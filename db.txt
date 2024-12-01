@@ -1,0 +1,80 @@
+sudo pacman -S postgresql
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+sudo -i -u postgres
+psql
+CREATE DATABASE almacen;
+CREATE USER almacen_user WITH PASSWORD 'password';
+ALTER ROLE almacen_user SET client_encoding TO 'utf8';
+ALTER ROLE almacen_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE almacen_user SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE almacen TO almacen_user;
+\q
+exit
+
+
+
+
+
+    Acceder a PostgreSQL como superusuario: Abre una terminal y accede a PostgreSQL como el usuario postgres (superusuario):
+
+    sudo -u postgres psql
+
+    Otorgar permisos al usuario de la base de datos: Una vez dentro de la consola de PostgreSQL, ejecuta los siguientes comandos para otorgar los permisos necesarios al usuario de la base de datos (reemplaza tu_usuario con el nombre de tu usuario de base de datos):
+
+    GRANT USAGE ON SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO tu_usuario;
+
+    Salir de la consola de PostgreSQL:
+
+    \q
+
+
+
+    sudo -u postgres psql
+
+    LTER DATABASE tu_base_de_datos OWNER TO tu_usuario;
+
+    Otorgar permisos explícitos en el esquema public: Asegúrate de que el usuario tenga permisos explícitos en el esquema public. Ejecuta los siguientes comandos en la consola de PostgreSQL:
+
+    GRANT USAGE ON SCHEMA public TO tu_usuario;
+    GRANT CREATE ON SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tu_usuario;
+    GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO tu_usuario;
+
+    Verificar los permisos actuales: Puedes verificar los permisos actuales del usuario con el siguiente comando:
+
+    SELECT * FROM information_schema.role_table_grants WHERE grantee = 'tu_usuario';
+
+    Reiniciar PostgreSQL: A veces, los cambios en los permisos no se aplican inmediatamente. Intenta reiniciar el servicio de PostgreSQL:
+
+    sudo systemctl restart postgresql
+
+Después de realizar estos pasos, intenta nuevamente ejecutar el comando migrate:
+
+python manage.py migrate
+
+
+
+
+Otorgar permisos explícitos en el esquema public: Asegúrate de que el usuario tenga permisos explícitos en el esquema public. Ejecuta los siguientes comandos en la consola de PostgreSQL:
+
+GRANT USAGE ON SCHEMA public TO tu_usuario;
+GRANT CREATE ON SCHEMA public TO tu_usuario;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tu_usuario;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tu_usuario;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO tu_usuario;
+
+Verificar los permisos actuales: Puedes verificar los permisos actuales del usuario con el siguiente comando:
+
+SELECT * FROM information_schema.role_table_grants WHERE grantee = 'tu_usuario';
+
+Reiniciar PostgreSQL: A veces, los cambios en los permisos no se aplican inmediatamente. Intenta reiniciar el servicio de PostgreSQL:
+
+sudo systemctl restart postgresql
+
+
