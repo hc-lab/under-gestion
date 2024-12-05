@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import styled from 'styled-components';
 import ProductTable from './ProductTable';
 import ProductForm from './ProductForm';
@@ -73,18 +73,28 @@ const ProductoList = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        axios.get('http://localhost:8000/api/productos/')
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+
+        axiosInstance.get('productos/')
             .then(response => {
                 setProductos(response.data);
             })
             .catch(error => {
-                console.error('There was an error fetching the productos!', error);
+                if (error.response && error.response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login';
+                }
+                console.error('Error al obtener los productos:', error);
             });
     }, []);
 
     const handleProductoClick = (producto) => {
         setSelectedProducto(producto);
-        axios.get(`http://localhost:8000/api/historial/?producto=${producto.id}`)
+        axiosInstance.get(`historial/?producto=${producto.id}`)
             .then(response => {
                 setHistorial(response.data);
             })
@@ -102,7 +112,7 @@ const ProductoList = () => {
             motivo: motivo,
         };
 
-        axios.post('http://localhost:8000/api/salidas/', salidaData)
+        axiosInstance.post('salidas/', salidaData)
             .then(response => {
                 setHistorial([...historial, response.data]);
                 setSelectedProducto({
@@ -118,7 +128,7 @@ const ProductoList = () => {
             });
     };
 
-    const filteredProductos = productos.filter(producto => 
+    const filteredProductos = productos.filter(producto =>
         searchTerm
             ? producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
             : producto.categoria === activeTab

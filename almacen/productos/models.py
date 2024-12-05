@@ -1,30 +1,28 @@
 from django.db import models
+from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
 class Producto(models.Model):
-    CATEGORIAS = [
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Asegúrate de que el ID 1 exista en tu tabla de usuarios
+    nombre = models.CharField(max_length=200)
+    stock = models.IntegerField()
+    unidad_medida = models.CharField(max_length=50, choices=[
+        ('Unidad', 'Unidad'),
+        ('Kg', 'Kg'),
+        ('Par', 'Par'),
+    ], default='Unidad')
+    estado = models.CharField(max_length=50, default='No disponible', editable=False)
+    descripcion = models.TextField(blank=True, null=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+    categoria = models.CharField(max_length=50, choices=[
         ('Cocina', 'Cocina'),
         ('Almacen', 'Almacén'),
         ('EPPS', 'EPPS'),
         ('Mina', 'Mina'),
         ('Medicamento', 'Medicamento'),
-    ]
-
-    UNIDADES_MEDIDA = [
-        ('Unidad', 'Unidad'),
-        ('Kg', 'Kg'),
-        ('Par', 'Par'),
-    ]
-
-    nombre = models.CharField(max_length=100)
-    stock = models.IntegerField()
-    unidad_medida = models.CharField(max_length=50, choices=UNIDADES_MEDIDA, default='Unidad')
-    estado = models.CharField(max_length=50, default='No disponible', editable=False)
-    descripcion = models.TextField(blank=True, null=True)
-    fecha_creacion = models.DateTimeField(default=timezone.now)
-    fecha_actualizacion = models.DateTimeField(auto_now=True)
-    categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Cocina')
+    ], default='Cocina')
 
     def clean(self):
         if self.stock == 0 and self.estado == 'disponible':
@@ -40,8 +38,12 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
 
+class Historial(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='historiales')
+
 class HistorialProducto(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='historial')
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='historial_productos')
     fecha_hora = models.DateTimeField(default=timezone.now)
     cantidad = models.IntegerField()
     entregado_a = models.CharField(max_length=100)
