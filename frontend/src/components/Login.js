@@ -33,6 +33,8 @@ const Button = styled.button`
   cursor: pointer;
 `;
 
+// ... (mantener todos los imports y styled components)
+
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -42,15 +44,33 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/login/', {
+      const response = await axios.post('http://localhost:8000/api/auth/token/', {
         username,
         password
       });
-      console.log('Respuesta de la API:', response);
+
+      console.log('Respuesta completa:', response.data);
+
+      // Agregar logs para debugging
+      console.log('Respuesta completa del servidor:', response);
+      console.log('Datos de la respuesta:', response.data);
+
+      // Verificar la estructura de los datos
+      const userData = {
+        username: response.data.username,
+        first_name: response.data.first_name,
+        last_name: response.data.last_name,
+        email: response.data.email,
+        id: response.data.user_id
+      };
+
+      console.log('Datos del usuario estructurados:', userData);
+
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user', JSON.stringify(userData));
+
       setIsAuthenticated(true);
-      setUser(response.data.user);
+      setUser(userData);
       axios.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
       navigate('/');
     } catch (error) {
@@ -58,6 +78,8 @@ const Login = () => {
       alert('Error al iniciar sesión');
     }
   };
+
+  // ... (mantener el return con el JSX existente)
 
   return (
     <LoginContainer>
