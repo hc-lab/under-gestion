@@ -6,7 +6,16 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
+from django.contrib.auth import authenticate
+import logging
 
+logger = logging.getLogger(__name__)
+
+def login_view(request):
+    logger.debug(f"Datos recibidos: {request.data}")
+    # ... tu código ...
+    user = authenticate(username=username, password=password)
+    logger.debug(f"Resultado autenticación: {user}")
 class ProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = ProductoSerializer

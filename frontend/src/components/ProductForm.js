@@ -4,8 +4,11 @@ import styled from 'styled-components';
 const Form = styled.form`
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 `;
 
 const Input = styled.input`
@@ -14,44 +17,60 @@ const Input = styled.input`
     border-radius: 4px;
 `;
 
+const TextArea = styled.textarea`
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 100px;
+`;
+
 const Button = styled.button`
     padding: 10px;
-    background-color: #4CAF50;
+    background-color: #007bff;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     &:hover {
-        background-color: #45a049;
+        background-color: #0056b3;
     }
 `;
 
-const ProductForm = ({ cantidad, setCantidad, entregadoA, setEntregadoA, motivo, setMotivo, handleSalidaSubmit }) => (
-    <Form onSubmit={handleSalidaSubmit}>
-        <h2>Registrar Salida de Producto</h2>
-        <Input
-            type="number"
-            placeholder="Cantidad"
-            value={cantidad}
-            onChange={(e) => setCantidad(e.target.value)}
-            required
-        />
-        <Input
-            type="text"
-            placeholder="Entregado a"
-            value={entregadoA}
-            onChange={(e) => setEntregadoA(e.target.value)}
-            required
-        />
-        <Input
-            type="text"
-            placeholder="Motivo"
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-            required
-        />
-        <Button type="submit">Registrar Salida</Button>
-    </Form>
-);
+const ProductForm = ({
+    cantidad,
+    setCantidad,
+    entregadoA,
+    setEntregadoA,
+    motivo,
+    setMotivo,
+    handleSalidaSubmit
+}) => {
+    return (
+        <Form onSubmit={handleSalidaSubmit}>
+            <h3>Registrar Salida</h3>
+            <Input
+                type="number"
+                placeholder="Cantidad"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                required
+            />
+            <Input
+                type="text"
+                placeholder="Entregado a"
+                value={entregadoA}
+                onChange={(e) => setEntregadoA(e.target.value)}
+                required
+            />
+            <TextArea
+                placeholder="Motivo"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                required
+            />
+            <Button type="submit">Registrar Salida</Button>
+        </Form>
+    );
+};
 
 export default ProductForm;

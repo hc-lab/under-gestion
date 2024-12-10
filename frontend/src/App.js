@@ -2,8 +2,10 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './AuthContext';
 import Login from './components/Login';
-import ProductoList from './components/ProductList';
+import ProductList from './components/ProductList';
 import Navigation from './components/Navigation';
+import ProductChart from './components/ProductChart';
+import StockReport from './components/StockReport';
 
 const App = () => {
     return (
@@ -12,7 +14,9 @@ const App = () => {
                 <Navigation />
                 <Routes>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/" element={<ProductoList />} />
+                    <Route path="/" element={<ProductList />} />
+                    <Route path="/product-chart" element={<ProductChart />} />
+                    <Route path="/stock-report" element={<StockReport />} />
                 </Routes>
             </Router>
         </AuthProvider>

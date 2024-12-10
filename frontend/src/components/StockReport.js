@@ -67,7 +67,7 @@ const StockReport = () => {
 
   useEffect(() => {
     axios
-      .get('http://localhost:8000/api/productos/')
+      .get('http://192.168.1.246:8000/api/productos/')
       .then((response) => {
         setProductos(response.data);
       })

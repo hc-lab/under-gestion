@@ -5,8 +5,16 @@ class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
         fields = '__all__'
+        read_only_fields = ('estado', 'usuario')
+
+    def validate_stock(self, value):
+        if value < 0:
+            raise serializers.ValidationError("El stock no puede ser negativo")
+        return value
 
 class HistorialProductoSerializer(serializers.ModelSerializer):
+    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    
     class Meta:
         model = HistorialProducto
         fields = '__all__'

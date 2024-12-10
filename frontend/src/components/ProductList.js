@@ -62,6 +62,16 @@ const Tr = styled.tr`
     }
 `;
 
+const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+};
+
 const ProductoList = () => {
     const [productos, setProductos] = useState([]);
     const [historial, setHistorial] = useState([]);
@@ -71,50 +81,78 @@ const ProductoList = () => {
     const [entregadoA, setEntregadoA] = useState('');
     const [motivo, setMotivo] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/login';
-            return;
-        }
-
-        axiosInstance.get('productos/')
-            .then(response => {
+        const fetchProductos = async () => {
+            try {
+                setLoading(true);
+                const response = await axiosInstance.get('productos/');
                 setProductos(response.data);
-            })
-            .catch(error => {
-                if (error.response && error.response.status === 401) {
+                setError(null);
+            } catch (error) {
+                setError('Error al cargar los productos');
+                if (error.response?.status === 401) {
                     localStorage.removeItem('token');
                     window.location.href = '/login';
                 }
-                console.error('Error al obtener los productos:', error);
-            });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProductos();
     }, []);
 
     const handleProductoClick = (producto) => {
         setSelectedProducto(producto);
-        axiosInstance.get(`historial/?producto=${producto.id}`)
+        axiosInstance.get(`historial-producto/?producto=${producto.id}`)
             .then(response => {
                 setHistorial(response.data);
             })
             .catch(error => {
-                console.error('There was an error fetching the historial!', error);
+                console.error('Error al obtener el historial:', error);
+                setError('Error al cargar el historial del producto');
             });
     };
 
     const handleSalidaSubmit = (e) => {
         e.preventDefault();
+        
+        // Validaciones
+        if (!cantidad || cantidad <= 0) {
+            alert('La cantidad debe ser mayor a 0');
+            return;
+        }
+        
+        if (parseInt(cantidad) > selectedProducto.stock) {
+            alert('No hay suficiente stock disponible');
+            return;
+        }
+
+        if (!entregadoA.trim()) {
+            alert('Debe especificar a quién se entrega el producto');
+            return;
+        }
+
         const salidaData = {
             producto: selectedProducto.id,
             cantidad: parseInt(cantidad),
-            entregado_a: entregadoA,
-            motivo: motivo,
+            entregado_a: entregadoA.trim(),
+            motivo: motivo.trim(),
         };
 
         axiosInstance.post('salidas/', salidaData)
             .then(response => {
-                setHistorial([...historial, response.data]);
+                axiosInstance.get(`historial-producto/?producto=${selectedProducto.id}`)
+                    .then(historialResponse => {
+                        setHistorial(historialResponse.data);
+                    })
+                    .catch(error => {
+                        console.error('Error al actualizar el historial:', error);
+                    });
+                
                 setSelectedProducto({
                     ...selectedProducto,
                     stock: selectedProducto.stock - salidaData.cantidad,
@@ -124,7 +162,8 @@ const ProductoList = () => {
                 setMotivo('');
             })
             .catch(error => {
-                console.error('There was an error creating the salida!', error);
+                console.error('Error al registrar la salida:', error);
+                alert('Error al registrar la salida del producto');
             });
     };
 
@@ -133,6 +172,9 @@ const ProductoList = () => {
             ? producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
             : producto.categoria === activeTab
     );
+
+    if (loading) return <div>Cargando...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <Container>
@@ -180,7 +222,7 @@ const ProductoList = () => {
                                 {historial.length > 0 ? (
                                     historial.map((entry, index) => (
                                         <Tr key={entry.id}>
-                                            <Td>{entry.fecha_hora}</Td>
+                                            <Td>{formatDate(entry.fecha_hora)}</Td>
                                             <Td>{entry.cantidad}</Td>
                                             <Td>{entry.entregado_a}</Td>
                                             <Td>{entry.motivo}</Td>

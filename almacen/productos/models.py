@@ -62,7 +62,12 @@ class SalidaProducto(models.Model):
     def __str__(self):
         return f"{self.producto.nombre} - {self.fecha_hora} - {self.cantidad}"
 
+    def clean(self):
+        if self.cantidad > self.producto.stock:
+            raise ValidationError('No hay suficiente stock disponible')
+
     def save(self, *args, **kwargs):
+        self.clean()  # Validar antes de guardar
         super().save(*args, **kwargs)
         
         # Crear una entrada en el historial del producto

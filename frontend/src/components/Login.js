@@ -44,7 +44,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/token/', {
+      const response = await axios.post('http://192.168.1.246:8000/api/auth/token/', {
         username,
         password
       });
@@ -74,8 +74,9 @@ const Login = () => {
       axios.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
       navigate('/');
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
-      alert('Error al iniciar sesión');
+      const errorMessage = error.response?.data?.detail || 
+                         'Error al iniciar sesión. Por favor, intente nuevamente.';
+      alert(errorMessage);
     }
   };
 
