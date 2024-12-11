@@ -7,6 +7,7 @@ import Navigation from './components/Navigation';
 import ProductChart from './components/ProductChart';
 import StockReport from './components/StockReport';
 import CategoriaAdmin from './components/CategoriaAdmin';
+import Blog from './components/Blog';
 
 const App = () => {
     return (
@@ -15,7 +16,8 @@ const App = () => {
                 <Navigation />
                 <Routes>
                     <Route path="/login" element={<Login />} />
-                    <Route path="/" element={<ProductList />} />
+                    <Route path="/" element={<Blog />} />
+                    <Route path="/productos" element={<ProductList />} />
                     <Route path="/product-chart" element={<ProductChart />} />
                     <Route path="/stock-report" element={<StockReport />} />
                     <Route path="/categorias" element={<CategoriaAdmin />} />

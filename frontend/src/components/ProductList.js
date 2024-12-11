@@ -91,17 +91,15 @@ const ProductoList = () => {
         }
         
         if (activeTab) {
-            console.log('------- Filtrado -------');
-            console.log('Tab Activo:', activeTab);
+            console.log('Filtrando por categoría:', activeTab);
             console.log('Producto:', producto);
             console.log('Categoría del producto:', producto.categoria);
-            console.log('Tipo de categoria:', typeof producto.categoria);
             
-            if (typeof producto.categoria === 'number') {
-                return categorias.find(cat => cat.id === producto.categoria)?.nombre === activeTab;
-            } else {
-                return producto.categoria?.nombre === activeTab;
-            }
+            const categoriaProducto = typeof producto.categoria === 'string' 
+                ? producto.categoria 
+                : producto.categoria?.nombre;
+            
+            return categoriaProducto === activeTab;
         }
         
         return true;  // Mostrar todos si no hay filtro
@@ -212,6 +210,11 @@ const ProductoList = () => {
         console.log('Categoría seleccionada:', categoria);
         console.log('Productos disponibles:', productos);
         setActiveTab(categoria.nombre);
+        
+        const productosFiltrados = productos.filter(p => 
+            (typeof p.categoria === 'string' ? p.categoria : p.categoria?.nombre) === categoria.nombre
+        );
+        console.log('Productos filtrados:', productosFiltrados);
     };
 
     if (loading) return <div>Cargando...</div>;

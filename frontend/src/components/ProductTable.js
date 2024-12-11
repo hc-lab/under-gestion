@@ -41,11 +41,6 @@ const StockContainer = styled.div`
     gap: 8px;
 `;
 
-const InvisibleColumn = styled.div`
-    visibility: hidden;
-    width: 0;
-    height: 0;
-`;
 
 const ProductTable = ({ productos, selectedProducto, handleProductoClick }) => {
     const getStockIcon = (stock) => {

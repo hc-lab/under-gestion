@@ -2,10 +2,17 @@ from rest_framework import serializers
 from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria
 
 class ProductoSerializer(serializers.ModelSerializer):
+    categoria = serializers.SerializerMethodField()
+    
     class Meta:
         model = Producto
         fields = '__all__'
         read_only_fields = ('estado', 'usuario')
+
+    def get_categoria(self, obj):
+        if obj.categoria:
+            return obj.categoria.nombre
+        return None
 
     def validate_stock(self, value):
         if value < 0:

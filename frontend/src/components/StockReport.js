@@ -87,7 +87,7 @@ const StockReport = () => {
 
       <Subtitle>
         <FontAwesomeIcon icon={faExclamationTriangle} style={{ color: '#ff4d4d' }} /> Stock
-        Crítico (Rojo)
+        Crítico
       </Subtitle>
       {criticalStockProducts.length > 0 ? (
         <Table>
@@ -108,6 +108,7 @@ const StockReport = () => {
                 <Td>{producto.unidad_medida}</Td>
               </Tr>
             ))}
+
           </tbody>
         </Table>
       ) : (
@@ -116,7 +117,6 @@ const StockReport = () => {
 
       <Subtitle>
         <FontAwesomeIcon icon={faBoxOpen} style={{ color: '#ffd966' }} /> Stock Bajo
-        (Amarillo)
       </Subtitle>
       {lowStockProducts.length > 0 ? (
         <Table>
@@ -137,6 +137,7 @@ const StockReport = () => {
                 <Td>{producto.unidad_medida}</Td>
               </Tr>
             ))}
+
           </tbody>
         </Table>
       ) : (

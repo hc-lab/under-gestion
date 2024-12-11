@@ -61,30 +61,37 @@ const LogoutButton = styled.button`
 `;
 
 const Navigation = () => {
-    const { user, logout } = useContext(AuthContext);
+    const { user, isAuthenticated, logout } = useContext(AuthContext);
 
     return (
         <NavContainer>
             <LeftSection>
-                <NavLink to="/">Inicio</NavLink>
+                <NavLink to="/">Blog</NavLink>
             </LeftSection>
 
-            <CenterSection>
-                <NavLink to="/product-chart">Gráfico de Productos</NavLink>
-                <NavLink to="/stock-report">Reporte de Stock</NavLink>
-                <NavLink to="/categorias">Administrar Categorías</NavLink>
-            </CenterSection>
+            {isAuthenticated && (
+                <CenterSection>
+                    <NavLink to="/productos">Lista de Productos</NavLink>
+                    <NavLink to="/product-chart">Gráfico de Productos</NavLink>
+                    <NavLink to="/stock-report">Reporte de Stock</NavLink>
+                    <NavLink to="/categorias">Administrar Categorías</NavLink>
+                </CenterSection>
+            )}
 
             <RightSection>
-                {user && (
+                {isAuthenticated ? (
                     <>
                         <UserInfo>
-                            Bienvenido, {user.first_name || user.username}
+                            Bienvenido, {user?.first_name || user?.username}
                         </UserInfo>
                         <LogoutButton onClick={logout}>
                             Cerrar Sesión
                         </LogoutButton>
                     </>
+                ) : (
+                    <NavLink to="/login" style={{ color: '#fff' }}>
+                        Iniciar Sesión
+                    </NavLink>
                 )}
             </RightSection>
         </NavContainer>
