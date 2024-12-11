@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producto, HistorialProducto, SalidaProducto, Historial
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria
 
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,4 +27,9 @@ class SalidaProductoSerializer(serializers.ModelSerializer):
 class HistorialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Historial
+        fields = '__all__'
+
+class CategoriaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Categoria
         fields = '__all__'

@@ -72,6 +72,7 @@ const Navigation = () => {
             <CenterSection>
                 <NavLink to="/product-chart">Gráfico de Productos</NavLink>
                 <NavLink to="/stock-report">Reporte de Stock</NavLink>
+                <NavLink to="/categorias">Administrar Categorías</NavLink>
             </CenterSection>
 
             <RightSection>

@@ -111,7 +111,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'almacen',
-        'USER': 'almacen_user',
+        'USER': 'hitt',
         'PASSWORD': '1234',
         'HOST': 'localhost',
         'PORT': '',

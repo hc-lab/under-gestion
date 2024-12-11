@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Producto, HistorialProducto, SalidaProducto, Historial
-from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria
+from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -73,3 +73,8 @@ class CustomAuthToken(ObtainAuthToken):
             'first_name': user.first_name,
             'last_name': user.last_name
         })
+
+class CategoriaViewSet(viewsets.ModelViewSet):
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+    permission_classes = [IsAuthenticated]

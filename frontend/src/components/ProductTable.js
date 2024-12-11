@@ -66,6 +66,7 @@ const ProductTable = ({ productos, selectedProducto, handleProductoClick }) => {
                     <Th>Unidad de Medida</Th>
                     <Th>Estado</Th>
                     <Th>Stock</Th>
+                    <Th>Categoría</Th>
                 </tr>
             </thead>
             <tbody>
@@ -83,9 +84,11 @@ const ProductTable = ({ productos, selectedProducto, handleProductoClick }) => {
                         <Td $highlight={selectedProducto?.id === producto.id}>{producto.estado}</Td>
                         <Td $highlight={selectedProducto?.id === producto.id}>
                             <StockContainer>
-                                <InvisibleColumn>{producto.stock}</InvisibleColumn>
                                 {producto.stock} {getStockIcon(producto.stock)}
                             </StockContainer>
+                        </Td>
+                        <Td $highlight={selectedProducto?.id === producto.id}>
+                            {producto.categoria.nombre}
                         </Td>
                     </Tr>
                 ))}

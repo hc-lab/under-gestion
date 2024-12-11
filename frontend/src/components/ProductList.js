@@ -76,7 +76,8 @@ const ProductoList = () => {
     const [productos, setProductos] = useState([]);
     const [historial, setHistorial] = useState([]);
     const [selectedProducto, setSelectedProducto] = useState(null);
-    const [activeTab, setActiveTab] = useState('Cocina');
+    const [categorias, setCategorias] = useState([]);
+    const [activeTab, setActiveTab] = useState(null);
     const [cantidad, setCantidad] = useState('');
     const [entregadoA, setEntregadoA] = useState('');
     const [motivo, setMotivo] = useState('');
@@ -84,15 +85,49 @@ const ProductoList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const filteredProductos = productos.filter(producto => {
+        if (searchTerm) {
+            return producto.nombre.toLowerCase().includes(searchTerm.toLowerCase());
+        }
+        
+        if (activeTab) {
+            console.log('------- Filtrado -------');
+            console.log('Tab Activo:', activeTab);
+            console.log('Producto:', producto);
+            console.log('Categoría del producto:', producto.categoria);
+            console.log('Tipo de categoria:', typeof producto.categoria);
+            
+            if (typeof producto.categoria === 'number') {
+                return categorias.find(cat => cat.id === producto.categoria)?.nombre === activeTab;
+            } else {
+                return producto.categoria?.nombre === activeTab;
+            }
+        }
+        
+        return true;  // Mostrar todos si no hay filtro
+    });
+
     useEffect(() => {
-        const fetchProductos = async () => {
+        const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await axiosInstance.get('productos/');
-                setProductos(response.data);
+                const [productosResponse, categoriasResponse] = await Promise.all([
+                    axiosInstance.get('productos/'),
+                    axiosInstance.get('categorias/')
+                ]);
+                
+                console.log('Productos recibidos (raw):', productosResponse.data);
+                if (productosResponse.data.length > 0) {
+                    console.log('Ejemplo de producto:', productosResponse.data[0]);
+                    console.log('Categoría del primer producto:', productosResponse.data[0].categoria);
+                }
+                
+                setProductos(productosResponse.data);
+                setCategorias(categoriasResponse.data);
                 setError(null);
             } catch (error) {
-                setError('Error al cargar los productos');
+                console.error('Error al cargar datos:', error);
+                setError('Error al cargar los datos');
                 if (error.response?.status === 401) {
                     localStorage.removeItem('token');
                     window.location.href = '/login';
@@ -102,8 +137,13 @@ const ProductoList = () => {
             }
         };
 
-        fetchProductos();
+        fetchData();
     }, []);
+
+    useEffect(() => {
+        console.log('Active Tab:', activeTab);
+        console.log('Productos filtrados:', filteredProductos);
+    }, [activeTab, filteredProductos]);
 
     const handleProductoClick = (producto) => {
         setSelectedProducto(producto);
@@ -167,11 +207,12 @@ const ProductoList = () => {
             });
     };
 
-    const filteredProductos = productos.filter(producto =>
-        searchTerm
-            ? producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
-            : producto.categoria === activeTab
-    );
+    const handleTabClick = (categoria) => {
+        console.log('------- Cambio de Tab -------');
+        console.log('Categoría seleccionada:', categoria);
+        console.log('Productos disponibles:', productos);
+        setActiveTab(categoria.nombre);
+    };
 
     if (loading) return <div>Cargando...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -181,11 +222,21 @@ const ProductoList = () => {
             <Column $flex="3">
                 <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
                 <Tabs>
-                    <Tab $active={activeTab === 'Cocina'} onClick={() => setActiveTab('Cocina')}>Cocina</Tab>
-                    <Tab $active={activeTab === 'Almacen'} onClick={() => setActiveTab('Almacen')}>Almacén</Tab>
-                    <Tab $active={activeTab === 'EPPS'} onClick={() => setActiveTab('EPPS')}>EPPS</Tab>
-                    <Tab $active={activeTab === 'Mina'} onClick={() => setActiveTab('Mina')}>Mina</Tab>
-                    <Tab $active={activeTab === 'Medicamento'} onClick={() => setActiveTab('Medicamento')}>Medicamento</Tab>
+                    <Tab
+                        $active={!activeTab}
+                        onClick={() => setActiveTab(null)}
+                    >
+                        Todos
+                    </Tab>
+                    {categorias.map(categoria => (
+                        <Tab
+                            key={categoria.id}
+                            $active={activeTab === categoria.nombre}
+                            onClick={() => handleTabClick(categoria)}
+                        >
+                            {categoria.nombre}
+                        </Tab>
+                    ))}
                 </Tabs>
                 <h1>Lista de Productos</h1>
                 <ProductTable
