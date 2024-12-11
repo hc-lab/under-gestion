@@ -74,7 +74,6 @@ const Navigation = () => {
                     <NavLink to="/productos">Lista de Productos</NavLink>
                     <NavLink to="/product-chart">Gráfico de Productos</NavLink>
                     <NavLink to="/stock-report">Reporte de Stock</NavLink>
-                    <NavLink to="/categorias">Administrar Categorías</NavLink>
                 </CenterSection>
             )}
 

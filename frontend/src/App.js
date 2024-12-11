@@ -6,7 +6,6 @@ import ProductList from './components/ProductList';
 import Navigation from './components/Navigation';
 import ProductChart from './components/ProductChart';
 import StockReport from './components/StockReport';
-import CategoriaAdmin from './components/CategoriaAdmin';
 import Blog from './components/Blog';
 
 const App = () => {
@@ -20,7 +19,6 @@ const App = () => {
                     <Route path="/productos" element={<ProductList />} />
                     <Route path="/product-chart" element={<ProductChart />} />
                     <Route path="/stock-report" element={<StockReport />} />
-                    <Route path="/categorias" element={<CategoriaAdmin />} />
                 </Routes>
             </Router>
         </AuthProvider>

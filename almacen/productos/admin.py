@@ -1,21 +1,28 @@
 from django.contrib import admin
-from .models import Producto, HistorialProducto, SalidaProducto
+from .models import Producto, Categoria, HistorialProducto, SalidaProducto
+
+@admin.register(Categoria)
+class CategoriaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'descripcion', 'fecha_creacion')
+    search_fields = ('nombre',)
+    list_filter = ('fecha_creacion',)
+    ordering = ('nombre',)
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'categoria', 'stock', 'unidad_medida', 'estado', 'fecha_creacion', 'fecha_actualizacion')
-    list_filter = ('categoria', 'estado')
-    search_fields = ('nombre', 'categoria')
-    readonly_fields = ('estado',)  # Añadir esta línea
+    list_display = ('nombre', 'categoria', 'stock', 'estado', 'unidad_medida')
+    list_filter = ('categoria', 'estado', 'unidad_medida')
+    search_fields = ('nombre', 'descripcion')
+    ordering = ('nombre',)
 
 @admin.register(HistorialProducto)
 class HistorialProductoAdmin(admin.ModelAdmin):
-    list_display = ('producto', 'fecha_hora', 'cantidad', 'entregado_a', 'motivo')
-    list_filter = ('producto__categoria', 'fecha_hora')
+    list_display = ('producto', 'fecha_hora', 'cantidad', 'entregado_a')
+    list_filter = ('fecha_hora', 'producto')
     search_fields = ('producto__nombre', 'entregado_a')
 
 @admin.register(SalidaProducto)
 class SalidaProductoAdmin(admin.ModelAdmin):
-    list_display = ('producto', 'fecha_hora', 'cantidad', 'entregado_a', 'motivo')
-    list_filter = ('producto__categoria', 'fecha_hora')
+    list_display = ('producto', 'fecha_hora', 'cantidad', 'entregado_a')
+    list_filter = ('fecha_hora', 'producto')
     search_fields = ('producto__nombre', 'entregado_a')
