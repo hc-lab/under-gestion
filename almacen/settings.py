@@ -7,4 +7,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432',
     }
-} 
+}
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') 

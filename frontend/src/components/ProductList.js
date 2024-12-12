@@ -210,6 +210,7 @@ const ProductoList = () => {
         console.log('Categoría seleccionada:', categoria);
         console.log('Productos disponibles:', productos);
         setActiveTab(categoria.nombre);
+        setSearchTerm('');  
         
         const productosFiltrados = productos.filter(p => 
             (typeof p.categoria === 'string' ? p.categoria : p.categoria?.nombre) === categoria.nombre
@@ -223,7 +224,11 @@ const ProductoList = () => {
     return (
         <Container>
             <Column $flex="3">
-                <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+                <SearchBar 
+                    searchTerm={searchTerm} 
+                    setSearchTerm={setSearchTerm}
+                    placeholder={activeTab ? `Buscar en ${activeTab}...` : "Buscar producto..."}
+                />
                 <Tabs>
                     <Tab
                         $active={!activeTab}

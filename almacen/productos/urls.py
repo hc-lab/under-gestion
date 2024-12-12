@@ -6,7 +6,8 @@ from .views import (
     SalidaProductoViewSet, 
     HistorialViewSet, 
     CustomAuthToken,
-    CategoriaViewSet
+    CategoriaViewSet,
+    NoticiaViewSet
 )
 
 
@@ -16,6 +17,7 @@ router.register(r'historial', HistorialViewSet, basename='historial')
 router.register(r'historial-producto', HistorialProductoViewSet, basename='historialproducto')
 router.register(r'salidas', SalidaProductoViewSet, basename='salidaproducto')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
+router.register(r'noticias', NoticiaViewSet, basename='noticia')
 
 urlpatterns = [
     path('', include(router.urls)),

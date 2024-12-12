@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria
-from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia
+from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer, NoticiaSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -78,3 +78,8 @@ class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = Categoria.objects.all()
     serializer_class = CategoriaSerializer
     permission_classes = [IsAuthenticated]
+
+class NoticiaViewSet(viewsets.ModelViewSet):
+    queryset = Noticia.objects.all().order_by('-fecha_creacion')
+    serializer_class = NoticiaSerializer
+    permission_classes = [AllowAny]  # Permitir acceso público a las noticias

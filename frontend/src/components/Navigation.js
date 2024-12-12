@@ -66,16 +66,20 @@ const Navigation = () => {
     return (
         <NavContainer>
             <LeftSection>
-                <NavLink to="/">Blog</NavLink>
+                <NavLink to="/">Inicio</NavLink>
             </LeftSection>
 
-            {isAuthenticated && (
-                <CenterSection>
-                    <NavLink to="/productos">Lista de Productos</NavLink>
-                    <NavLink to="/product-chart">Gráfico de Productos</NavLink>
-                    <NavLink to="/stock-report">Reporte de Stock</NavLink>
-                </CenterSection>
-            )}
+            <CenterSection>
+                {isAuthenticated ? (
+                    <>
+                        <NavLink to="/productos">Lista de Productos</NavLink>
+                        <NavLink to="/product-chart">Gráfico de Productos</NavLink>
+                        <NavLink to="/stock-report">Reporte de Stock</NavLink>
+                    </>
+                ) : (
+                    <NavLink to="/blog">Blog</NavLink>
+                )}
+            </CenterSection>
 
             <RightSection>
                 {isAuthenticated ? (

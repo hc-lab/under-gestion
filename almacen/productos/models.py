@@ -84,3 +84,27 @@ class SalidaProducto(models.Model):
         # Actualizar el stock del producto
         self.producto.stock -= self.cantidad
         self.producto.save()
+
+class Noticia(models.Model):
+    titulo = models.CharField(max_length=200)
+    contenido = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=False)
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return self.titulo
+
+class ImagenNoticia(models.Model):
+    noticia = models.ForeignKey(Noticia, related_name='imagenes', on_delete=models.CASCADE)
+    imagen = models.ImageField(upload_to='noticias/')
+    descripcion = models.CharField(max_length=200, blank=True, null=True)
+    orden = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['orden']
+
+    def __str__(self):
+        return f"Imagen {self.orden} de {self.noticia.titulo}"

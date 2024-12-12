@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, ImagenNoticia
 
 class ProductoSerializer(serializers.ModelSerializer):
     categoria = serializers.SerializerMethodField()
@@ -40,3 +40,15 @@ class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
         fields = '__all__'
+
+class ImagenNoticiaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenNoticia
+        fields = ['id', 'imagen', 'descripcion', 'orden']
+
+class NoticiaSerializer(serializers.ModelSerializer):
+    imagenes = ImagenNoticiaSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Noticia
+        fields = ['id', 'titulo', 'contenido', 'fecha_creacion', 'usuario', 'imagenes']

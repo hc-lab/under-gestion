@@ -41,6 +41,9 @@ export const AuthProvider = ({ children }) => {
         // Actualizar el estado
         setIsAuthenticated(false);
         setUser(null);
+
+        // Redirigir al usuario a la página de inicio
+        window.location.href = '/';
     };
 
     return (

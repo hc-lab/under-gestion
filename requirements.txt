@@ -1,0 +1,16 @@
+Django>=4.2.0
+Pillow>=10.0.0
+django-crispy-forms>=2.0
+python-dotenv>=1.0.0
+django-widget-tweaks>=1.4.12
+django-bootstrap4>=23.1
+djangorestframework>=3.14.0
+django-cors-headers>=4.2.0
+psycopg2>=2.9.7  # Para PostgreSQL (versión estándar)
+psycopg2-binary>=2.9.7  # Para PostgreSQL (versión binaria precompilada)
+whitenoise>=6.5.0  # Para servir archivos estáticos
+gunicorn>=21.2.0  # Para despliegue en producción
+dj-database-url>=2.1.0  # Para configuración de BD mediante URL
+django-filter>=23.2  # Para filtrado en DRF
+markdown>=3.5.1  # Para documentación de API
+django-debug-toolbar>=4.2.0  # Para debugging en desarrollo
