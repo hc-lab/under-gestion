@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, PerfilUsuario
 from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer, NoticiaSerializer
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -16,12 +16,39 @@ def login_view(request):
     # ... tu código ...
     user = authenticate(username=username, password=password)
     logger.debug(f"Resultado autenticación: {user}")
+
+class TienePermisosNecesarios(BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_superuser:
+            return True
+            
+        try:
+            perfil = request.user.perfilusuario
+            if request.method in ['POST']:
+                return perfil.puede_escribir
+            elif request.method in ['PUT', 'PATCH']:
+                return perfil.puede_editar
+            elif request.method == 'DELETE':
+                return perfil.puede_eliminar
+            return True  # Para GET
+        except PerfilUsuario.DoesNotExist:
+            return False
+
 class ProductoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, TienePermisosNecesarios]
     serializer_class = ProductoSerializer
 
     def get_queryset(self):
-        return Producto.objects.filter(usuario=self.request.user)
+        if self.request.user.is_superuser:
+            return Producto.objects.all()
+        
+        try:
+            perfil = self.request.user.perfilusuario
+            if perfil.usar_base_datos_admin:
+                return Producto.objects.filter(usuario__is_superuser=True)
+            return Producto.objects.filter(usuario=self.request.user)
+        except PerfilUsuario.DoesNotExist:
+            return Producto.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)

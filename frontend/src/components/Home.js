@@ -63,16 +63,30 @@ const MainImage = styled.img`
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: all 0.8s ease-in-out;
-    filter: brightness(0.9);
+    transition: all 4s ease-in-out;
+    filter: brightness(0.9) blur(1px);
+    transform: scale(1.3);
+    animation: gaussianEffect 4s infinite;
     ${NewsCard}:hover & {
-        transform: scale(1.05);
+        transform: scale(1);
         filter: brightness(1);
     }
     opacity: ${props => props.$active ? '1' : '0'};
     position: absolute;
     top: 0;
     left: 0;
+
+    @keyframes gaussianEffect {
+        0% {
+            filter: brightness(0.9) blur(0px);
+        }
+        50% {
+            filter: brightness(1) blur(0.5px);
+        }
+        100% {
+            filter: brightness(0.9) blur(1px);
+        }
+    }
 `;
 
 const ImageOverlay = styled.div`
@@ -84,22 +98,17 @@ const ImageOverlay = styled.div`
     pointer-events: none;
     background: radial-gradient(
         circle at center,
-        transparent 60%,
-        rgba(0, 0, 0, 0.2) 70%,
-        rgba(0, 0, 0, 0.4) 80%,
-        rgba(0, 0, 0, 0.6) 90%,
-        rgba(0, 0, 0, 0.8) 100%
+        transparent 50%,
+        rgba(0, 0, 0, 0.05) 60%,
+        rgba(0, 0, 0, 0.15) 70%,
+        rgba(0, 0, 0, 0.25) 80%,
+        rgba(0, 0, 0, 0.35) 90%
     );
-    backdrop-filter: blur(1px);
-    -webkit-backdrop-filter: blur(1px);
-    mask-image: radial-gradient(
-        circle at center,
-        transparent 60%,
-        black 80%
-    );
-    transition: opacity 0.4s ease;
+    transition: all 4s ease;
+    opacity: 1;
+    
     ${NewsCard}:hover & {
-        opacity: 0.5;
+        opacity: 0.3;
     }
 `;
 
@@ -112,6 +121,7 @@ const ThumbnailsContainer = styled.div`
     background: rgba(0,0,0,0.5);
     padding: 5px;
     border-radius: 8px;
+    overflow: hidden;
 `;
 
 const Thumbnail = styled.img`
@@ -121,6 +131,11 @@ const Thumbnail = styled.img`
     cursor: pointer;
     object-fit: cover;
     border: 2px solid ${props => props.$active ? '#fff' : 'transparent'};
+    transition: all 2s ease-in-out;
+    transform: scale(1.3);
+    &:hover {
+        transform: scale(1);
+    }
 `;
 
 const NewsContent = styled.div`

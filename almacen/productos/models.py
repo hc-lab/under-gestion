@@ -108,3 +108,20 @@ class ImagenNoticia(models.Model):
 
     def __str__(self):
         return f"Imagen {self.orden} de {self.noticia.titulo}"
+
+class PerfilUsuario(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    es_admin = models.BooleanField(default=True)
+    puede_escribir = models.BooleanField(default=True)
+    puede_editar = models.BooleanField(default=True)
+    puede_eliminar = models.BooleanField(default=True)
+    usar_base_datos_admin = models.BooleanField(default=True)
+    base_datos_propia = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"
+
+    class Meta:
+        permissions = [
+            ("full_access", "Acceso total al sistema"),
+        ]
