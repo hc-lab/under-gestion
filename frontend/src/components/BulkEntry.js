@@ -302,7 +302,7 @@ const IngresoMasivo = () => {
                         <tr>
                             <Th>Producto</Th>
                             <Th>Cantidad</Th>
-                            <Th>Unidad de Medida</Th>
+                            <Th>Usuario</Th>
                             <Th>Hora</Th>
                         </tr>
                     </thead>
@@ -311,7 +311,7 @@ const IngresoMasivo = () => {
                             <tr key={index}>
                                 <Td>{ingreso.producto_nombre}</Td>
                                 <Td>{ingreso.cantidad}</Td>
-                                <Td>{ingreso.unidad_medida}</Td>
+                                <Td>{ingreso.usuario_nombre}</Td>
                                 <Td>{new Date(ingreso.fecha).toLocaleTimeString()}</Td>
                             </tr>
                         ))}

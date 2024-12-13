@@ -1,13 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const BlogContainer = styled.div`
+const InfoContainer = styled.div`
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 `;
 
-const BlogHeader = styled.div`
+const InfoHeader = styled.div`
     text-align: center;
     margin-bottom: 3rem;
 `;
@@ -22,7 +22,7 @@ const Subtitle = styled.p`
     font-size: 1.2rem;
 `;
 
-const BlogContent = styled.div`
+const InfoContent = styled.div`
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 2rem;
@@ -50,19 +50,19 @@ const CardContent = styled.p`
     line-height: 1.6;
 `;
 
-const Blog = () => {
+const Info = () => {
     return (
-        <BlogContainer>
-            <BlogHeader>
+        <InfoContainer>
+            <InfoHeader>
                 <Title>Bienvenido al Sistema de Almacén</Title>
                 <Subtitle>Gestión eficiente de inventario y recursos</Subtitle>
-            </BlogHeader>
+            </InfoHeader>
 
-            <BlogContent>
+            <InfoContent>
                 <BlogCard>
                     <CardTitle>Gestión de Productos</CardTitle>
                     <CardContent>
-                        Administra tu inventario de manera eficiente. 
+                        Administra tu inventario de manera eficiente.
                         Controla stock, categorías y movimientos de productos.
                     </CardContent>
                 </BlogCard>
@@ -82,9 +82,9 @@ const Blog = () => {
                         Alertas de stock bajo y seguimiento en tiempo real.
                     </CardContent>
                 </BlogCard>
-            </BlogContent>
-        </BlogContainer>
+            </InfoContent>
+        </InfoContainer>
     );
 };
 
-export default Blog; 
+export default Info; 

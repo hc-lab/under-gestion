@@ -27,8 +27,13 @@ class Producto(models.Model):
     categoria = models.ForeignKey(Categoria, on_delete=models.PROTECT)
 
     def clean(self):
-        if self.stock == 0 and self.estado == 'disponible':
-            raise ValidationError('No se puede tener un stock de 0 con el estado "disponible".')
+        if self.stock < 0:
+            raise ValidationError('El stock no puede ser negativo')
+        if not self.nombre.strip():
+            raise ValidationError('El nombre no puede estar vacío')
+        # Validar que no exista otro producto con el mismo nombre
+        if Producto.objects.filter(nombre=self.nombre).exclude(id=self.id).exists():
+            raise ValidationError('Ya existe un producto con este nombre')
 
     def save(self, *args, **kwargs):
         if self.stock == 0:
@@ -50,9 +55,11 @@ class HistorialProducto(models.Model):
     cantidad = models.IntegerField()
     entregado_a = models.CharField(max_length=100)
     motivo = models.TextField()
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.fecha_hora}"
+        usuario_nombre = self.usuario.username if self.usuario else 'Usuario Eliminado'
+        return f"{self.producto.nombre} - {self.fecha_hora} - por {usuario_nombre}"
 
 class SalidaProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='salidas')
@@ -60,16 +67,18 @@ class SalidaProducto(models.Model):
     cantidad = models.IntegerField()
     entregado_a = models.CharField(max_length=100)
     motivo = models.TextField()
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.fecha_hora} - {self.cantidad}"
+        usuario_nombre = self.usuario.username if self.usuario else 'Usuario Eliminado'
+        return f"{self.producto.nombre} - {self.fecha_hora} - {self.cantidad} por {usuario_nombre}"
 
     def clean(self):
         if self.cantidad > self.producto.stock:
             raise ValidationError('No hay suficiente stock disponible')
 
     def save(self, *args, **kwargs):
-        self.clean()  # Validar antes de guardar
+        self.clean()
         super().save(*args, **kwargs)
         
         # Crear una entrada en el historial del producto
@@ -78,7 +87,8 @@ class SalidaProducto(models.Model):
             fecha_hora=self.fecha_hora,
             cantidad=self.cantidad,
             entregado_a=self.entregado_a,
-            motivo=self.motivo
+            motivo=self.motivo,
+            usuario=self.usuario
         )
         
         # Actualizar el stock del producto
@@ -130,12 +140,29 @@ class IngresoProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='ingresos')
     fecha = models.DateTimeField(default=timezone.now)
     cantidad = models.IntegerField()
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.fecha} - {self.cantidad}"
+        usuario_nombre = self.usuario.username if self.usuario else 'Usuario Eliminado'
+        return f"{self.producto.nombre} - {self.fecha} - {self.cantidad} por {usuario_nombre}"
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         # Actualizar el stock del producto
         self.producto.stock += self.cantidad
         self.producto.save()
+
+class AuditoriaLog(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    accion = models.CharField(max_length=50)  # CREATE, UPDATE, DELETE
+    modelo = models.CharField(max_length=50)
+    objeto_id = models.IntegerField()
+    detalles = models.JSONField()
+    fecha = models.DateTimeField(auto_now_add=True)
+
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    mensaje = models.TextField()
+    tipo = models.CharField(max_length=50)  # stock_bajo, error, info
+    leido = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)

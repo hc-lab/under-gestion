@@ -21,15 +21,20 @@ class ProductoSerializer(serializers.ModelSerializer):
 
 class HistorialProductoSerializer(serializers.ModelSerializer):
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
     
     class Meta:
         model = HistorialProducto
-        fields = '__all__'
+        fields = ['id', 'producto', 'producto_nombre', 'fecha_hora', 'cantidad', 
+                 'entregado_a', 'motivo', 'usuario', 'usuario_nombre']
 
 class SalidaProductoSerializer(serializers.ModelSerializer):
+    usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
+    
     class Meta:
         model = SalidaProducto
-        fields = '__all__'
+        fields = ['id', 'producto', 'fecha_hora', 'cantidad', 'entregado_a', 'motivo', 'usuario', 'usuario_nombre']
+        read_only_fields = ('usuario',)
 
 class HistorialSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,8 +59,10 @@ class NoticiaSerializer(serializers.ModelSerializer):
         fields = ['id', 'titulo', 'contenido', 'fecha_creacion', 'usuario', 'imagenes']
 
 class IngresoProductoSerializer(serializers.ModelSerializer):
+    usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
     
     class Meta:
         model = IngresoProducto
-        fields = ['id', 'producto', 'producto_nombre', 'fecha', 'cantidad']
+        fields = ['id', 'producto', 'producto_nombre', 'fecha', 'cantidad', 'usuario', 'usuario_nombre']
+        read_only_fields = ('usuario',)

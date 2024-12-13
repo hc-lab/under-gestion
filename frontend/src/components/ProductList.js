@@ -84,6 +84,7 @@ const ProductoList = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [selectedCategoria, setSelectedCategoria] = useState('');
 
     const filteredProductos = productos.filter(producto => {
         if (searchTerm) {
@@ -221,6 +222,66 @@ const ProductoList = () => {
         console.log('Productos filtrados:', productosFiltrados);
     };
 
+    const fetchProductos = async () => {
+        try {
+            const response = await axiosInstance.get('productos/', {
+                params: {
+                    nombre: searchTerm,
+                    categoria: selectedCategoria
+                }
+            });
+            setProductos(response.data);
+        } catch (error) {
+            console.error('Error:', error);
+            if (error.response?.status === 401) {
+                await refreshAccessToken();
+            }
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axiosInstance.get('productos/');
+                setProductos(response.data);
+            } catch (error) {
+                if (error.response?.status === 401) {
+                    const newToken = await refreshAccessToken();
+                    if (newToken) {
+                        const response = await axiosInstance.get('productos/');
+                        setProductos(response.data);
+                    }
+                }
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    // Función para refrescar el token
+    const refreshAccessToken = async () => {
+        try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) return null;
+
+            const response = await axiosInstance.post('auth/token/refresh/', {
+                refresh: refreshToken
+            });
+
+            const { access } = response.data;
+            localStorage.setItem('accessToken', access);
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+            return access;
+        } catch (error) {
+            console.error('Error al refrescar el token:', error);
+            // Si hay error al refrescar, redirigir al login
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
+            return null;
+        }
+    };
+
     if (loading) return <div>Cargando...</div>;
     if (error) return <div>Error: {error}</div>;
 
@@ -277,6 +338,7 @@ const ProductoList = () => {
                                     <Th>Fecha y Hora</Th>
                                     <Th>Cantidad</Th>
                                     <Th>Entregado a</Th>
+                                    <Th>Usuario</Th>
                                     <Th>Motivo</Th>
                                 </tr>
                             </thead>
@@ -287,6 +349,7 @@ const ProductoList = () => {
                                             <Td>{formatDate(entry.fecha_hora)}</Td>
                                             <Td>{entry.cantidad}</Td>
                                             <Td>{entry.entregado_a}</Td>
+                                            <Td>{entry.usuario_nombre}</Td>
                                             <Td>{entry.motivo}</Td>
                                         </Tr>
                                     ))

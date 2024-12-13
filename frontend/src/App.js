@@ -6,7 +6,7 @@ import ProductList from './components/ProductList';
 import Navigation from './components/Navigation';
 import ProductChart from './components/ProductChart';
 import StockReport from './components/StockReport';
-import Blog from './components/Blog';
+import Info from './components/Info';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
 import BulkEntry from './components/BulkEntry';
@@ -20,10 +20,10 @@ const App = () => {
                     <Route path="/login" element={<Login />} />
                     <Route path="/" element={<Home />} />
                     <Route 
-                        path="/blog" 
+                        path="/info" 
                         element={
                             <ProtectedRoute>
-                                <Blog />
+                                <Info />
                             </ProtectedRoute>
                         } 
                     />

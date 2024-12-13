@@ -14,3 +14,6 @@ dj-database-url>=2.1.0  # Para configuración de BD mediante URL
 django-filter>=23.2  # Para filtrado en DRF
 markdown>=3.5.1  # Para documentación de API
 django-debug-toolbar>=4.2.0  # Para debugging en desarrollo
+djangorestframework-simplejwt>=5.3.0  # Para autenticación JWT
+django-redis>=5.4.0  # Para caché con Redis
+django-filter>=23.2  # Para filtrado avanzado

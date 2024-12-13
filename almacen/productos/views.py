@@ -9,6 +9,16 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 import logging
 from datetime import datetime, timedelta
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.exceptions import ValidationError
+from django.db import transaction
+from django_filters import rest_framework as filters
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 logger = logging.getLogger(__name__)
 
@@ -35,10 +45,38 @@ class TienePermisosNecesarios(BasePermission):
         except PerfilUsuario.DoesNotExist:
             return False
 
+class ProductoFilter(filters.FilterSet):
+    nombre = filters.CharFilter(lookup_expr='icontains')
+    categoria = filters.CharFilter(field_name='categoria__nombre')
+    
+    class Meta:
+        model = Producto
+        fields = ['nombre', 'categoria', 'estado']
+
 class ProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = ProductoSerializer
     queryset = Producto.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['categoria', 'estado']
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['nombre', 'stock', 'fecha_creacion']
+    filterset_class = ProductoFilter
+
+    @method_decorator(cache_page(60 * 15))  # Cache por 15 minutos
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        cache_key = f'producto_{kwargs["pk"]}'
+        producto = cache.get(cache_key)
+        
+        if not producto:
+            producto = self.get_object()
+            cache.set(cache_key, producto, timeout=60*15)
+        
+        serializer = self.get_serializer(producto)
+        return Response(serializer.data)
 
 class HistorialViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -69,8 +107,24 @@ class HistorialProductoViewSet(viewsets.ModelViewSet):
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
-    queryset = SalidaProducto.objects.all()
     serializer_class = SalidaProductoSerializer
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                serializer.save(usuario=self.request.user)
+                headers = self.get_success_headers(serializer.data)
+                return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=400)
+        except Exception as e:
+            return Response(
+                {'error': 'Error interno del servidor', 'details': str(e)}, 
+                status=500
+            )
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
@@ -110,3 +164,18 @@ class IngresoProductoViewSet(viewsets.ModelViewSet):
             fecha_fin = fecha_inicio + timedelta(days=1)
             queryset = queryset.filter(fecha__gte=fecha_inicio, fecha__lt=fecha_fin)
         return queryset.order_by('-fecha')
+
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            user = self.user
+            response.data['user'] = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        return response

@@ -45,7 +45,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/token/', {
+      const response = await axiosInstance.post('auth/token/', {
         username,
         password
       });
@@ -58,24 +58,21 @@ const Login = () => {
         id: response.data.user_id
       };
 
-      // Guardar token y datos de usuario
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(userData));
 
-      // Configurar axios
       axiosInstance.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
 
       setIsAuthenticated(true);
       setUser(userData);
       navigate('/');
     } catch (error) {
+      console.error('Error de login:', error);
       const errorMessage = error.response?.data?.detail || 
-                         'Error al iniciar sesión. Por favor, intente nuevamente.';
+                           'Error al iniciar sesión. Por favor, intente nuevamente.';
       alert(errorMessage);
     }
   };
-
-  // ... (mantener el return con el JSX existente)
 
   return (
     <LoginContainer>
