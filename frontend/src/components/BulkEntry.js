@@ -69,7 +69,7 @@ const Input = styled.input`
 
 const ProductoInput = styled.div`
     display: grid;
-    grid-template-columns: 3fr 2fr 1fr;
+    grid-template-columns: 3fr 2fr 2fr 1fr;
     gap: 1.5rem;
     margin-bottom: 1.5rem;
     padding: 1.5rem;
@@ -149,12 +149,23 @@ const ResumenContainer = styled.div`
     margin-top: 2rem;
 `;
 
+const UnidadMedida = styled.div`
+    padding: 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    color: #666;
+    font-size: 1rem;
+    text-align: center;
+`;
+
 const IngresoMasivo = () => {
     const [productos, setProductos] = useState([]);
     const [productosIngresados, setProductosIngresados] = useState([]);
     const [nuevosProductos, setNuevosProductos] = useState([{
         producto_id: '',
-        cantidad: ''
+        cantidad: '',
+        unidad_medida: ''
     }]);
 
     useEffect(() => {
@@ -163,7 +174,11 @@ const IngresoMasivo = () => {
             axiosInstance.get('productos/'),
             axiosInstance.get('categorias/')
         ]).then(([productosRes, categoriasRes]) => {
-            setProductos(productosRes.data);    
+            // Ordenar productos alfabéticamente por nombre
+            const productosOrdenados = productosRes.data.sort((a, b) => 
+                a.nombre.localeCompare(b.nombre)
+            );
+            setProductos(productosOrdenados);    
         });
 
         // Cargar ingresos del día
@@ -177,7 +192,8 @@ const IngresoMasivo = () => {
     const handleAddProducto = () => {
         setNuevosProductos([...nuevosProductos, {
             producto_id: '',
-            cantidad: ''
+            cantidad: '',
+            unidad_medida: ''
         }]);
     };
 
@@ -189,7 +205,14 @@ const IngresoMasivo = () => {
     const handleChange = (index, field, value) => {
         const updatedProductos = nuevosProductos.map((producto, i) => {
             if (i === index) {
-                return { ...producto, [field]: value };
+                const newProducto = { ...producto, [field]: value };
+                
+                if (field === 'producto_id') {
+                    const productoSeleccionado = productos.find(p => p.id === parseInt(value));
+                    newProducto.unidad_medida = productoSeleccionado ? productoSeleccionado.unidad_medida : '';
+                }
+                
+                return newProducto;
             }
             return producto;
         });
@@ -217,7 +240,8 @@ const IngresoMasivo = () => {
             // Limpiar formulario
             setNuevosProductos([{
                 producto_id: '',
-                cantidad: ''
+                cantidad: '',
+                unidad_medida: ''
             }]);
 
             alert('Productos ingresados correctamente');
@@ -251,6 +275,9 @@ const IngresoMasivo = () => {
                             required
                             min="1"
                         />
+                        <UnidadMedida>
+                            {producto.unidad_medida || '-'}
+                        </UnidadMedida>
                         {index > 0 && (
                             <DeleteButton type="button" onClick={() => handleRemoveProducto(index)}>
                                 Eliminar
@@ -275,6 +302,7 @@ const IngresoMasivo = () => {
                         <tr>
                             <Th>Producto</Th>
                             <Th>Cantidad</Th>
+                            <Th>Unidad de Medida</Th>
                             <Th>Hora</Th>
                         </tr>
                     </thead>
@@ -283,6 +311,7 @@ const IngresoMasivo = () => {
                             <tr key={index}>
                                 <Td>{ingreso.producto_nombre}</Td>
                                 <Td>{ingreso.cantidad}</Td>
+                                <Td>{ingreso.unidad_medida}</Td>
                                 <Td>{new Date(ingreso.fecha).toLocaleTimeString()}</Td>
                             </tr>
                         ))}
