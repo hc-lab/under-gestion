@@ -125,3 +125,17 @@ class PerfilUsuario(models.Model):
         permissions = [
             ("full_access", "Acceso total al sistema"),
         ]
+
+class IngresoProducto(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='ingresos')
+    fecha = models.DateTimeField(default=timezone.now)
+    cantidad = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.fecha} - {self.cantidad}"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Actualizar el stock del producto
+        self.producto.stock += self.cantidad
+        self.producto.save()

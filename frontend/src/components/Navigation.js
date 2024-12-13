@@ -70,14 +70,16 @@ const Navigation = () => {
             </LeftSection>
 
             <CenterSection>
-                {isAuthenticated ? (
+                {isAuthenticated ? (    
                     <>
+                        <NavLink to="/blog">Blog</NavLink>
                         <NavLink to="/productos">Lista de Productos</NavLink>
+                        <NavLink to="/bulk-entry">Ingreso de Productos</NavLink>
                         <NavLink to="/product-chart">Gráfico de Productos</NavLink>
-                        <NavLink to="/stock-report">Reporte de Stock</NavLink>
+                        <NavLink to="/stock-report">Requerimientos</NavLink>
                     </>
                 ) : (
-                    <NavLink to="/blog">Blog</NavLink>
+                    <NavLink to="/">Inicio</NavLink>
                 )}
             </CenterSection>
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import styled from 'styled-components';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBoxOpen, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
@@ -64,17 +64,30 @@ const NoDataMessage = styled.p`
 
 const StockReport = () => {
   const [productos, setProductos] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get('http://192.168.1.246:8000/api/productos/')
-      .then((response) => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await axiosInstance.get('productos/');
+        console.log('Datos recibidos:', response.data);
         setProductos(response.data);
-      })
-      .catch((error) => {
-        console.error('There was an error fetching the productos!', error);
-      });
+        setError(null);
+      } catch (error) {
+        console.error('Error al cargar productos:', error);
+        setError('Error al cargar los datos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
+
+  if (loading) return <div>Cargando...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   const criticalStockProducts = productos.filter((producto) => producto.stock <= 1);
   const lowStockProducts = productos.filter(
@@ -108,7 +121,6 @@ const StockReport = () => {
                 <Td>{producto.unidad_medida}</Td>
               </Tr>
             ))}
-
           </tbody>
         </Table>
       ) : (
@@ -137,7 +149,6 @@ const StockReport = () => {
                 <Td>{producto.unidad_medida}</Td>
               </Tr>
             ))}
-
           </tbody>
         </Table>
       ) : (

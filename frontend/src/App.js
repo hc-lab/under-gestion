@@ -9,6 +9,7 @@ import StockReport from './components/StockReport';
 import Blog from './components/Blog';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './components/Home';
+import BulkEntry from './components/BulkEntry';
 
 const App = () => {
     return (
@@ -18,7 +19,14 @@ const App = () => {
                 <Routes>
                     <Route path="/login" element={<Login />} />
                     <Route path="/" element={<Home />} />
-                    <Route path="/blog" element={<Blog />} />
+                    <Route 
+                        path="/blog" 
+                        element={
+                            <ProtectedRoute>
+                                <Blog />
+                            </ProtectedRoute>
+                        } 
+                    />
                     <Route 
                         path="/productos" 
                         element={
@@ -40,6 +48,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <StockReport />
+                            </ProtectedRoute>
+                        } 
+                    />
+                    <Route 
+                        path="/bulk-entry" 
+                        element={
+                            <ProtectedRoute>
+                                <BulkEntry />
                             </ProtectedRoute>
                         } 
                     />

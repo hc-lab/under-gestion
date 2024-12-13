@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, PerfilUsuario
-from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer, NoticiaSerializer
+from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, PerfilUsuario, IngresoProducto
+from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer, NoticiaSerializer, IngresoProductoSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate
 import logging
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -35,23 +36,9 @@ class TienePermisosNecesarios(BasePermission):
             return False
 
 class ProductoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, TienePermisosNecesarios]
+    permission_classes = [IsAuthenticated]
     serializer_class = ProductoSerializer
-
-    def get_queryset(self):
-        if self.request.user.is_superuser:
-            return Producto.objects.all()
-        
-        try:
-            perfil = self.request.user.perfilusuario
-            if perfil.usar_base_datos_admin:
-                return Producto.objects.filter(usuario__is_superuser=True)
-            return Producto.objects.filter(usuario=self.request.user)
-        except PerfilUsuario.DoesNotExist:
-            return Producto.objects.none()
-
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
+    queryset = Producto.objects.all()
 
 class HistorialViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -102,11 +89,24 @@ class CustomAuthToken(ObtainAuthToken):
         })
 
 class CategoriaViewSet(viewsets.ModelViewSet):
-    queryset = Categoria.objects.all()
-    serializer_class = CategoriaSerializer
     permission_classes = [IsAuthenticated]
+    serializer_class = CategoriaSerializer
+    queryset = Categoria.objects.all()
 
 class NoticiaViewSet(viewsets.ModelViewSet):
     queryset = Noticia.objects.all().order_by('-fecha_creacion')
     serializer_class = NoticiaSerializer
     permission_classes = [AllowAny]  # Permitir acceso público a las noticias
+
+class IngresoProductoViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = IngresoProductoSerializer
+
+    def get_queryset(self):
+        queryset = IngresoProducto.objects.all()
+        fecha = self.request.query_params.get('fecha', None)
+        if fecha:
+            fecha_inicio = datetime.strptime(fecha, '%Y-%m-%d')
+            fecha_fin = fecha_inicio + timedelta(days=1)
+            queryset = queryset.filter(fecha__gte=fecha_inicio, fecha__lt=fecha_fin)
+        return queryset.order_by('-fecha')

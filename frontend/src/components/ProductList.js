@@ -109,27 +109,18 @@ const ProductoList = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const [productosResponse, categoriasResponse] = await Promise.all([
+                const [productosRes, categoriasRes] = await Promise.all([
                     axiosInstance.get('productos/'),
                     axiosInstance.get('categorias/')
                 ]);
                 
-                console.log('Productos recibidos (raw):', productosResponse.data);
-                if (productosResponse.data.length > 0) {
-                    console.log('Ejemplo de producto:', productosResponse.data[0]);
-                    console.log('Categoría del primer producto:', productosResponse.data[0].categoria);
-                }
-                
-                setProductos(productosResponse.data);
-                setCategorias(categoriasResponse.data);
+                console.log('Productos recibidos:', productosRes.data);
+                setProductos(productosRes.data);
+                setCategorias(categoriasRes.data);
                 setError(null);
             } catch (error) {
                 console.error('Error al cargar datos:', error);
                 setError('Error al cargar los datos');
-                if (error.response?.status === 401) {
-                    localStorage.removeItem('token');
-                    window.location.href = '/login';
-                }
             } finally {
                 setLoading(false);
             }
@@ -183,6 +174,7 @@ const ProductoList = () => {
 
         axiosInstance.post('salidas/', salidaData)
             .then(response => {
+                // Actualizar el historial
                 axiosInstance.get(`historial-producto/?producto=${selectedProducto.id}`)
                     .then(historialResponse => {
                         setHistorial(historialResponse.data);
@@ -191,10 +183,21 @@ const ProductoList = () => {
                         console.error('Error al actualizar el historial:', error);
                     });
                 
+                // Actualizar el stock en el producto sele  ccionado
+                const nuevoStock = selectedProducto.stock - salidaData.cantidad;
                 setSelectedProducto({
                     ...selectedProducto,
-                    stock: selectedProducto.stock - salidaData.cantidad,
+                    stock: nuevoStock
                 });
+
+                // Actualizar el stock en la lista de productos
+                setProductos(productos.map(producto => 
+                    producto.id === selectedProducto.id 
+                        ? { ...producto, stock: nuevoStock }
+                        : producto
+                ));
+
+                // Limpiar el formulario
                 setCantidad('');
                 setEntregadoA('');
                 setMotivo('');

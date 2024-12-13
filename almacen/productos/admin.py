@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import Producto, Categoria, HistorialProducto, SalidaProducto, Noticia, ImagenNoticia, PerfilUsuario
+from .models import Producto, Categoria, HistorialProducto, SalidaProducto, Noticia, ImagenNoticia, PerfilUsuario, IngresoProducto
 
 class PerfilUsuarioInline(admin.StackedInline):
     model = PerfilUsuario
@@ -145,3 +145,9 @@ class NoticiaAdmin(admin.ModelAdmin):
             return request.user.perfilusuario.puede_eliminar
         except PerfilUsuario.DoesNotExist:
             return False
+
+@admin.register(IngresoProducto)
+class IngresoProductoAdmin(admin.ModelAdmin):
+    list_display = ('producto', 'fecha', 'cantidad')
+    list_filter = ('fecha', 'producto')
+    search_fields = ('producto__nombre',)

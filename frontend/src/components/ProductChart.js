@@ -1,33 +1,65 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import styled from 'styled-components';
+
+const ChartContainer = styled.div`
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+`;
+
+const Title = styled.h1`
+    text-align: center;
+    margin-bottom: 2rem;
+`;
 
 const ProductChart = () => {
-  const [productos, setProductos] = useState([]);
+    const [productos, setProductos] = useState([]);
+    const [error, setError] = useState(null);
 
-  useEffect(() => {
-    axios.get('http://192.168.1.246:8000/api/productos/')
-      .then(response => {
-        setProductos(response.data);
-      })
-      .catch(error => {
-        console.error('Hubo un error al obtener los productos:', error);
-      });
-  }, []);
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const response = await axiosInstance.get('productos/');
+                console.log('Datos recibidos:', response.data);
+                setProductos(response.data);
+                setError(null);
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                setError('Error al cargar los datos');
+            }
+        };
 
-  return (
-    <div>
-      <h1>Gráfico de Productos</h1>
-      <BarChart width={600} height={300} data={productos}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="nombre" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="stock" fill="#8884d8" />
-      </BarChart>
-    </div>
-  );
+        fetchData();
+    }, []);
+
+    if (error) return <div>Error: {error}</div>;
+    if (!productos.length) return <div>Cargando...</div>;
+
+    return (
+        <ChartContainer>
+            <Title>Gráfico de Productos</Title>
+            <BarChart 
+                width={800} 
+                height={400} 
+                data={productos}
+                margin={{
+                    top: 20,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="nombre" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="stock" fill="#8884d8" name="Stock" />
+            </BarChart>
+        </ChartContainer>
+    );
 };
 
 export default ProductChart;

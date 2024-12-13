@@ -3,6 +3,7 @@ import axios from 'axios';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
+import axiosInstance from '../axiosInstance';
 
 const LoginContainer = styled.div`
   max-width: 400px;
@@ -44,18 +45,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://192.168.1.246:8000/api/auth/token/', {
+      const response = await axios.post('http://localhost:8000/api/auth/token/', {
         username,
         password
       });
 
-      console.log('Respuesta completa:', response.data);
-
-      // Agregar logs para debugging
-      console.log('Respuesta completa del servidor:', response);
-      console.log('Datos de la respuesta:', response.data);
-
-      // Verificar la estructura de los datos
       const userData = {
         username: response.data.username,
         first_name: response.data.first_name,
@@ -64,14 +58,15 @@ const Login = () => {
         id: response.data.user_id
       };
 
-      console.log('Datos del usuario estructurados:', userData);
-
+      // Guardar token y datos de usuario
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(userData));
 
+      // Configurar axios
+      axiosInstance.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
+
       setIsAuthenticated(true);
       setUser(userData);
-      axios.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
       navigate('/');
     } catch (error) {
       const errorMessage = error.response?.data?.detail || 
