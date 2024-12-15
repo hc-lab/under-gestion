@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.button {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.button:hover {
+  @apply transform scale-105;
+}
+
+.button:active {
+  @apply transform scale-95;
+}
+
+.gradient-bg {
+  @apply bg-gradient-to-r from-blue-500 to-indigo-600;
+} 
+
+.stat-card {
+  @apply relative overflow-hidden;
+}
+
+.stat-card::before {
+  content: '';
+  @apply absolute -right-4 -bottom-4 w-24 h-24 rounded-full opacity-10 bg-current;
+} 

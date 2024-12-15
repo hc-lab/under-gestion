@@ -1,74 +1,94 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from './axiosInstance';
+import { toast } from 'react-hot-toast';
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Verificar token al inicio y después de cada refresh
-    useEffect(() => {
-        const verifyToken = async () => {
-            const token = localStorage.getItem('token');
-            const userString = localStorage.getItem('user');
-
-            if (token && userString) {
-                try {
-                    // Configurar el token en axios
-                    axiosInstance.defaults.headers.common['Authorization'] = `Token ${token}`;
-                    
-                    
-                    // Si la petición es exitosa, el token es válido
-                    const userData = JSON.parse(userString);
+    const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            axiosInstance.defaults.headers.common['Authorization'] = `Token ${token}`;
+            try {
+                const response = await axiosInstance.get('user/current/');
+                if (response.status === 200) {
+                    setUser(response.data);
                     setIsAuthenticated(true);
-                    setUser(userData);
-                } catch (error) {
-                    // Si hay error, el token no es válido
-                    console.error('Error al verificar token:', error);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    setIsAuthenticated(false);
-                    setUser(null);
                 }
+            } catch (error) {
+                console.error('Error verificando autenticación:', error);
+                cleanupAuth();
+                toast.error('Error de autenticación');
             }
-            setLoading(false);
-        };
+        }
+        setLoading(false);
+    };
 
-        verifyToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        checkAuth();
     }, []);
 
-    const logout = () => {
-        // Limpiar localStorage
+    const cleanupAuth = () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
-
-        // Limpiar el header de autorización
         delete axiosInstance.defaults.headers.common['Authorization'];
-
-        // Actualizar el estado
-        setIsAuthenticated(false);
         setUser(null);
+        setIsAuthenticated(false);
+    };
 
-        // Redirigir al usuario a la página de inicio
-        window.location.href = '/';
+    const login = async (credentials) => {
+        try {
+            const response = await axiosInstance.post('login/', credentials);
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                axiosInstance.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
+                setUser(response.data.user);
+                setIsAuthenticated(true);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Error en login:', error);
+            return false;
+        }
+    };
+
+    const logout = () => {
+        localStorage.removeItem('token');
+        delete axiosInstance.defaults.headers.common['Authorization'];
+        setUser(null);
+        setIsAuthenticated(false);
     };
 
     if (loading) {
-        return <div>Cargando...</div>; // O tu componente de loading
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+        );
     }
 
     return (
         <AuthContext.Provider value={{
-            isAuthenticated,
-            setIsAuthenticated,
             user,
-            setUser,
-            loading,
-            logout
+            isAuthenticated,
+            login,
+            logout,
+            checkAuth
         }}>
             {children}
         </AuthContext.Provider>
     );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    }
+    return context;
 };
