@@ -17,7 +17,7 @@ from .views import (
 router = DefaultRouter()
 router.register(r'productos', ProductoViewSet, basename='producto')
 router.register(r'historial', HistorialViewSet, basename='historial')
-router.register(r'historial-producto', HistorialProductoViewSet, basename='historialproducto')
+router.register(r'historial-producto', HistorialProductoViewSet, basename='historial-producto')
 router.register(r'salidas', SalidaProductoViewSet, basename='salidaproducto')
 router.register(r'categorias', CategoriaViewSet, basename='categoria')
 router.register(r'noticias', NoticiaViewSet, basename='noticia')

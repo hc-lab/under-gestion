@@ -12,7 +12,7 @@ const Dashboard = () => {
     const [totalProductos, setTotalProductos] = useState(0);
     const [enStock, setEnStock] = useState(0);
     const [alertas, setAlertas] = useState(0);
-    const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+    const [productoSeleccionado, setProductoSeleccionado] = useState('');
     const [salidaData, setSalidaData] = useState({ fechas: [], cantidades: [] });
     const [productos, setProductos] = useState([]);
 
@@ -28,9 +28,9 @@ const Dashboard = () => {
                 const productosResponse = await axiosInstance.get('productos/');
                 setProductos(productosResponse.data);
                 
-                // Cargar datos de salida del primer producto por defecto
+                // Establecer el primer producto como seleccionado si existe
                 if (productosResponse.data.length > 0) {
-                    setProductoSeleccionado(productosResponse.data[0].id);
+                    setProductoSeleccionado(productosResponse.data[0].id.toString());
                     await fetchSalidaData(productosResponse.data[0].id);
                 }
             } catch (error) {
@@ -144,15 +144,18 @@ const Dashboard = () => {
 
             {/* Buscador de Productos */}
             <div className="mb-4">
-                <label htmlFor="producto-select" className="block text-sm font-medium text-gray-700">Selecciona un Producto:</label>
+                <label htmlFor="producto-select" className="block text-sm font-medium text-gray-700">
+                    Selecciona un Producto:
+                </label>
                 <select
                     id="producto-select"
-                    value={productoSeleccionado}
+                    value={productoSeleccionado || ''}
                     onChange={handleProductoChange}
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
                 >
+                    <option value="">Seleccione un producto</option>
                     {productos.map((producto) => (
-                        <option key={producto.id} value={producto.id}>
+                        <option key={producto.id} value={producto.id.toString()}>
                             {producto.nombre}
                         </option>
                     ))}

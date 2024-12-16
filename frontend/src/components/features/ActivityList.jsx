@@ -31,31 +31,33 @@ const ActivityList = () => {
     const fetchActivities = async () => {
         try {
             setLoading(true);
+            console.log('Intentando obtener actividades...');
             const response = await axiosInstance.get('historial-producto/');
+            console.log('Respuesta:', response.data);
 
-            // Obtener fecha actual en hora local
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            if (!Array.isArray(response.data)) {
+                console.error('La respuesta no es un array:', response.data);
+                setActivities([]);
+                return;
+            }
 
-            const allActivities = response.data.map(activity => ({
-                ...activity,
-                mensaje: formatMessage(activity),
-                color: activity.tipo_movimiento === 'Ingreso' ? 'text-emerald-600' : 'text-blue-600',
-                bgColor: activity.tipo_movimiento === 'Ingreso' ? 'bg-emerald-50' : 'bg-blue-50',
-                fecha: new Date(activity.fecha.replace('Z', ''))  // Remover el UTC
-            }))
-            .filter(activity => {
-                const activityDate = new Date(activity.fecha);
-                return activityDate.getDate() === now.getDate() &&
-                       activityDate.getMonth() === now.getMonth() &&
-                       activityDate.getFullYear() === now.getFullYear();
-            })
-            .sort((a, b) => b.fecha - a.fecha)
-            .slice(0, 5);
+            const allActivities = response.data
+                .filter(activity => activity && activity.fecha) // Asegurarse de que los datos son válidos
+                .map(activity => ({
+                    ...activity,
+                    mensaje: formatMessage(activity),
+                    color: activity.tipo_movimiento === 'Ingreso' ? 'text-emerald-600' : 'text-blue-600',
+                    bgColor: activity.tipo_movimiento === 'Ingreso' ? 'bg-emerald-50' : 'bg-blue-50',
+                    fecha: new Date(activity.fecha)
+                }))
+                .sort((a, b) => b.fecha - a.fecha)
+                .slice(0, 5);
 
             setActivities(allActivities);
         } catch (error) {
-            console.error('Error al cargar actividades:', error);
+            console.error('Error detallado:', error);
+            console.error('Respuesta del servidor:', error.response?.data);
+            setActivities([]);
         } finally {
             setLoading(false);
         }

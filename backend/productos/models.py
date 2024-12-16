@@ -51,29 +51,24 @@ class Historial(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='historiales')
 
 class HistorialProducto(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    cantidad = models.IntegerField()
-    tipo_movimiento = models.CharField(
-        max_length=50,
-        choices=[
-            ('Ingreso', 'Ingreso'),
-            ('Salida', 'Salida')
-        ],
-        default='Salida',
-        null=True,
-        blank=True
-    )
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    entregado_a = models.CharField(max_length=100, blank=True, null=True)
+    TIPO_MOVIMIENTO = [
+        ('Ingreso', 'Ingreso'),
+        ('Salida', 'Salida'),
+    ]
+    
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
+    cantidad = models.DecimalField(max_digits=10, decimal_places=2)
+    tipo_movimiento = models.CharField(max_length=10, choices=TIPO_MOVIMIENTO)
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    entregado_a = models.CharField(max_length=200, blank=True, null=True)
     motivo = models.TextField(blank=True, null=True)
-    fecha = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ['-fecha']
 
     def __str__(self):
-        tipo = self.tipo_movimiento if self.tipo_movimiento else 'Movimiento'
-        return f"{tipo} - {self.producto.nombre} - {self.cantidad}"
+        return f"{self.tipo_movimiento} de {self.producto.nombre}"
 
 class SalidaProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='salidas')

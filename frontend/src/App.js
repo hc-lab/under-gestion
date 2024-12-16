@@ -13,6 +13,7 @@ import ProtectedRoute from './components/features/ProtectedRoute';
 import ThemeProvider from './components/layout/ThemeProvider';
 import Layout from './components/layout/Layout';
 import ActivityHistory from './components/features/ActivityHistory';
+import Reports from './components/features/Reports';
 
 const App = () => {
     return (
@@ -23,21 +24,30 @@ const App = () => {
                         <Routes>
                             <Route path="/" element={<Home />} />
                             <Route path="/login" element={<Login />} />
-                            <Route path="/management" element={
-                                <ProtectedRoute>
-                                    <Management />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/dashboard" element={
-                                <ProtectedRoute>
-                                    <Dashboard />
-                                </ProtectedRoute>
-                            } />
-                            <Route path="/productos" element={
-                                <ProtectedRoute>
-                                    <ProductList />
-                                </ProtectedRoute>
-                            } />
+                            <Route 
+                                path="/productos" 
+                                element={
+                                    <ProtectedRoute>
+                                        <ProductList />
+                                    </ProtectedRoute>
+                                } 
+                            />
+                            <Route 
+                                path="/dashboard" 
+                                element={
+                                    <ProtectedRoute>
+                                        <Dashboard />
+                                    </ProtectedRoute>
+                                } 
+                            />
+                            <Route 
+                                path="/management" 
+                                element={
+                                    <ProtectedRoute>
+                                        <Management />
+                                    </ProtectedRoute>
+                                } 
+                            />
                             <Route path="/product-chart" element={<ProtectedRoute><ProductChart /></ProtectedRoute>} />
                             <Route path="/bulk-entry" element={<ProtectedRoute><BulkEntry /></ProtectedRoute>} />
                             <Route path="/alerts" element={<Alerts />} />
@@ -46,6 +56,14 @@ const App = () => {
                                     <ActivityHistory />
                                 </ProtectedRoute>
                             } />
+                            <Route 
+                                path="/reports" 
+                                element={
+                                    <ProtectedRoute>
+                                        <Reports />
+                                    </ProtectedRoute>
+                                } 
+                            />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </Layout>

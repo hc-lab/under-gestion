@@ -9,10 +9,18 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    const checkAuth = async () => {
-        const token = localStorage.getItem('token');
+    useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        console.log('AuthContext - token:', token);
         if (token) {
-            axiosInstance.defaults.headers.common['Authorization'] = `Token ${token}`;
+            setIsAuthenticated(true);
+        }
+    }, []);
+
+    const checkAuth = async () => {
+        const token = localStorage.getItem('access_token');
+        if (token) {
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             try {
                 const response = await axiosInstance.get('user/current/');
                 if (response.status === 200) {
@@ -28,13 +36,13 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     };
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         checkAuth();
     }, []);
 
     const cleanupAuth = () => {
-        localStorage.removeItem('token');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
         delete axiosInstance.defaults.headers.common['Authorization'];
         setUser(null);
         setIsAuthenticated(false);
@@ -42,26 +50,40 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            const response = await axiosInstance.post('login/', credentials);
-            if (response.data.token) {
-                localStorage.setItem('token', response.data.token);
-                axiosInstance.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
-                setUser(response.data.user);
+            console.log('Intentando login con:', credentials);
+            const response = await axiosInstance.post('token/', {
+                username: credentials.username,
+                password: credentials.password
+            });
+            
+            console.log('Respuesta del servidor:', response.data);
+
+            if (response.data.access) {
+                localStorage.setItem('access_token', response.data.access);
+                localStorage.setItem('refresh_token', response.data.refresh);
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+                setUser({ username: credentials.username });
                 setIsAuthenticated(true);
+                toast.success('Inicio de sesión exitoso');
                 return true;
             }
             return false;
         } catch (error) {
-            console.error('Error en login:', error);
+            console.error('Error detallado:', error);
+            console.error('Respuesta del servidor:', error.response?.data);
+            
+            const errorMessage = error.response?.data?.detail || 
+                               error.response?.data?.message || 
+                               'Error al iniciar sesión';
+            
+            toast.error(errorMessage);
             return false;
         }
     };
 
     const logout = () => {
-        localStorage.removeItem('token');
-        delete axiosInstance.defaults.headers.common['Authorization'];
-        setUser(null);
-        setIsAuthenticated(false);
+        cleanupAuth();
+        toast.success('Sesión cerrada');
     };
 
     if (loading) {
@@ -92,3 +114,5 @@ export const useAuth = () => {
     }
     return context;
 };
+
+export default AuthContext;

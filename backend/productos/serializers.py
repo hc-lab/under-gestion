@@ -32,21 +32,17 @@ class ProductoSerializer(serializers.ModelSerializer):
 
 class HistorialProductoSerializer(serializers.ModelSerializer):
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
+    unidad_medida = serializers.CharField(source='producto.unidad_medida', read_only=True)
     usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
-    producto = ProductoSerializer(read_only=True)
-    fecha_formateada = serializers.SerializerMethodField()
     
     class Meta:
         model = HistorialProducto
         fields = [
             'id', 'producto', 'producto_nombre',
-            'fecha', 'cantidad', 'tipo_movimiento',
-            'entregado_a', 'motivo', 'usuario',
-            'usuario_nombre', 'fecha_formateada'
+            'cantidad', 'tipo_movimiento', 'fecha',
+            'usuario_nombre', 'entregado_a', 'motivo',
+            'unidad_medida'
         ]
-
-    def get_fecha_formateada(self, obj):
-        return obj.fecha.strftime("%Y-%m-%d %H:%M:%S") if obj.fecha else None
 
 class SalidaProductoSerializer(serializers.ModelSerializer):
     usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)

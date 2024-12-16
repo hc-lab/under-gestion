@@ -122,33 +122,17 @@ class HistorialViewSet(viewsets.ModelViewSet):
         serializer.save(usuario=self.request.user)
 
 class HistorialProductoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
     serializer_class = HistorialProductoSerializer
-
+    
     def get_queryset(self):
-        queryset = HistorialProducto.objects.all()
-        producto_id = self.request.query_params.get('producto', None)
-        
-        # Obtener registros del día actual
-        today = timezone.now().date()
-        queryset = queryset.filter(fecha__date=today)
-        
-        # Incluir información relacionada para evitar consultas adicionales
-        queryset = queryset.select_related(
-            'producto',
-            'usuario'
-        )
-        
-        # Asegurarnos de que incluya tanto ingresos como salidas
-        queryset = queryset.filter(
-            tipo_movimiento__in=['Ingreso', 'Salida']
-        )
-        
-        if producto_id:
-            queryset = queryset.filter(producto_id=producto_id)
-        
-        # Ordenar por fecha descendente (más recientes primero)
-        return queryset.order_by('-fecha')
+        try:
+            return HistorialProducto.objects.select_related(
+                'producto',
+                'usuario'
+            ).order_by('-fecha')
+        except Exception as e:
+            print(f"Error en get_queryset: {str(e)}")
+            return HistorialProducto.objects.none()
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
