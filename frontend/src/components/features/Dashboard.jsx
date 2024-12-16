@@ -1,187 +1,208 @@
 import React, { useEffect, useState } from 'react';
-import { BoxIcon, StockIcon, AlertIcon } from '../common/Icons';
-import StatCard from '../common/StatCard';
-import ActivityList from './ActivityList';
+import { 
+    ChartBarIcon, 
+    CubeIcon, 
+    ExclamationTriangleIcon,
+    ClockIcon
+} from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
 import { Line } from 'react-chartjs-2';
-import { Chart, registerables } from 'chart.js';
-
-Chart.register(...registerables);
+import { Chart as ChartJS } from 'chart.js/auto';
+import ActivityList from './ActivityList';
 
 const Dashboard = () => {
-    const [totalProductos, setTotalProductos] = useState(0);
-    const [enStock, setEnStock] = useState(0);
-    const [alertas, setAlertas] = useState(0);
-    const [productoSeleccionado, setProductoSeleccionado] = useState('');
-    const [salidaData, setSalidaData] = useState({ fechas: [], cantidades: [] });
-    const [productos, setProductos] = useState([]);
+    const [stats, setStats] = useState({
+        totalProductos: 0,
+        enStock: 0,
+        alertas: 0,
+        movimientosHoy: 0
+    });
+    const [loading, setLoading] = useState(true);
+    const [chartData, setChartData] = useState({
+        labels: [],
+        datasets: []
+    });
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const response = await axiosInstance.get('dashboard-data/');
-                setTotalProductos(response.data.totalProductos);
-                setEnStock(response.data.enStock);
-                setAlertas(response.data.alertas);
-                
-                // Obtener productos para el buscador
-                const productosResponse = await axiosInstance.get('productos/');
-                setProductos(productosResponse.data);
-                
-                // Establecer el primer producto como seleccionado si existe
-                if (productosResponse.data.length > 0) {
-                    setProductoSeleccionado(productosResponse.data[0].id.toString());
-                    await fetchSalidaData(productosResponse.data[0].id);
-                }
-            } catch (error) {
-                console.error('Error al cargar datos del dashboard:', error);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    useEffect(() => {
-        if (productoSeleccionado) {
-            fetchSalidaData(productoSeleccionado);
-        }
-    }, [productoSeleccionado]);
-
-    const fetchSalidaData = async (productoId) => {
-        try {
-            const response = await axiosInstance.get(`salida-producto-data/${productoId}/`);
-            setSalidaData(response.data);
-        } catch (error) {
-            console.error('Error al cargar datos de salida:', error);
-        }
-    };
-
-    const handleProductoChange = (event) => {
-        const id = event.target.value;
-        setProductoSeleccionado(id);
-        fetchSalidaData(id);
-    };
-
-    const data = {
-        labels: salidaData.fechas,
-        datasets: [
-            {
-                label: 'Salidas',
-                data: salidaData.cantidades,
-                fill: false,
-                backgroundColor: 'rgba(75,192,192,0.4)',
-                borderColor: 'rgba(75,192,192,1)',
-            },
-        ],
-    };
-
-    // Modificar la configuración del gráfico
-    const options = {
+    const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-            x: {
-                type: 'category',
-                title: {
-                    display: true,
-                    text: 'Fechas'
-                },
-                grid: {
-                    display: false
-                }
-            },
-            y: {
-                beginAtZero: true, // Comenzar desde cero
-                title: {
-                    display: true,
-                    text: 'Cantidad'
-                },
-                ticks: {
-                    stepSize: 1, // Incrementos de 1 en 1
-                    precision: 0  // Sin decimales
-                }
-            }
-        },
         plugins: {
             legend: {
                 position: 'top',
             },
             title: {
                 display: true,
-                text: 'Historial de Salidas'
+                text: 'Movimientos de Inventario'
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)',
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
             }
         }
     };
 
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                const [statsRes, movimientosRes] = await Promise.all([
+                    axiosInstance.get('dashboard-data/'),
+                    axiosInstance.get('historial-producto/')
+                ]);
+
+                setStats({
+                    totalProductos: statsRes.data.totalProductos,
+                    enStock: statsRes.data.enStock,
+                    alertas: statsRes.data.alertas,
+                    movimientosHoy: movimientosRes.data.length
+                });
+
+                // Procesar datos para el gráfico
+                const movimientos = movimientosRes.data;
+                const fechas = [...new Set(movimientos.map(m => 
+                    new Date(m.fecha).toLocaleDateString()
+                ))].sort();
+
+                const ingresos = fechas.map(fecha => 
+                    movimientos.filter(m => 
+                        new Date(m.fecha).toLocaleDateString() === fecha && 
+                        m.tipo_movimiento === 'Ingreso'
+                    ).length
+                );
+
+                const salidas = fechas.map(fecha => 
+                    movimientos.filter(m => 
+                        new Date(m.fecha).toLocaleDateString() === fecha && 
+                        m.tipo_movimiento === 'Salida'
+                    ).length
+                );
+
+                setChartData({
+                    labels: fechas,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresos,
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Salidas',
+                            data: salidas,
+                            borderColor: 'rgb(99, 102, 241)',
+                            backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                            tension: 0.4
+                        }
+                    ]
+                });
+
+            } catch (error) {
+                console.error('Error al cargar datos del dashboard:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
     return (
-        <div className="p-6 space-y-6">
-            {/* Header */}
-            <header className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold text-gray-900">Dashboard Almacén</h1>
-                <button className="btn-primary">Nuevo Producto</button>
-            </header>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <StatCard 
-                    title="Total Productos"
-                    value={totalProductos.toLocaleString()}
-                    icon={<BoxIcon />}
-                />
-                <StatCard 
-                    title="En Stock"
-                    value={enStock.toLocaleString()}
-                    trend="+2.5%"
-                    icon={<StockIcon />}
-                />
-                <StatCard 
-                    title="Alertas"
-                    value={alertas}
-                    status="warning"
-                    icon={<AlertIcon />}
-                />
+        <div className="p-6 max-w-7xl mx-auto">
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-900">Panel de Control</h1>
+                <p className="text-gray-500">Resumen general del almacén</p>
             </div>
 
-            {/* Buscador de Productos */}
-            <div className="mb-4">
-                <label htmlFor="producto-select" className="block text-sm font-medium text-gray-700">
-                    Selecciona un Producto:
-                </label>
-                <select
-                    id="producto-select"
-                    value={productoSeleccionado || ''}
-                    onChange={handleProductoChange}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50"
-                >
-                    <option value="">Seleccione un producto</option>
-                    {productos.map((producto) => (
-                        <option key={producto.id} value={producto.id.toString()}>
-                            {producto.nombre}
-                        </option>
-                    ))}
-                </select>
-            </div>
+            {/* Estadísticas principales */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
+                            <CubeIcon className="h-6 w-6" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total Productos</p>
+                            <p className="text-2xl font-semibold text-gray-900">{stats.totalProductos}</p>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Gráfico de Salidas */}
-            <div className="bg-white p-4 rounded-xl shadow">
-                <h2 className="text-lg font-semibold mb-4">Salidas del Producto Seleccionado</h2>
-                <div className="h-[400px]"> {/* Contenedor con altura fija */}
-                    {salidaData.fechas.length > 0 && salidaData.cantidades.length > 0 ? (
-                        <Line 
-                            data={data} 
-                            options={options}
-                        />
-                    ) : (
-                        <p>No hay datos disponibles para mostrar.</p>
-                    )}
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-green-100 text-green-600">
+                            <ChartBarIcon className="h-6 w-6" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">En Stock</p>
+                            <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                            <ExclamationTriangleIcon className="h-6 w-6" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Alertas</p>
+                            <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <ClockIcon className="h-6 w-6" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
+                            <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Recent Activity */}
-            <section className="bg-white rounded-xl p-6">
-                <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
-                <ActivityList />
-            </section>
+            {/* Gráficos y Actividad Reciente */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Gráfico principal */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <h2 className="text-lg font-semibold mb-4">Movimientos del Inventario</h2>
+                    <div className="h-[400px]">
+                        <Line data={chartData} options={chartOptions} />
+                    </div>
+                </div>
+
+                {/* Actividad Reciente */}
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
+                    <ActivityList />
+                </div>
+            </div>
+
+            {/* Alertas y Productos Críticos */}
+            <div className="mt-6 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h2 className="text-lg font-semibold mb-4">Productos en Alerta</h2>
+                {/* Lista de productos con stock bajo o alertas */}
+            </div>
         </div>
     );
 };
