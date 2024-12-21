@@ -12,13 +12,16 @@ SECRET_KEY = 'django-insecure-(rz+bg(+ysu9iz#j)sgx5t@zcs+8gi!p%(trv3k=2_dbina=0v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+ALLOWED_HOSTS = ['*']  # Permitir todas las conexiones (solo para desarrollo)
+
+"""
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '192.168.1.246',  # Tu IP local en la red
     '*'  # Permite todas las IPs (no recomendado en producción)
 ]
-
+"""
 # Application definition
 
 INSTALLED_APPS = [
@@ -34,6 +37,7 @@ INSTALLED_APPS = [
     'django_filters',
     'productos',
     'corsheaders',
+    'personales',
 ]
 
 REST_FRAMEWORK = {
@@ -56,9 +60,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://192.168.1.246:3000",
+    "http://localhost:8000",  # Backend local
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -92,6 +100,9 @@ CORS_ALLOW_HEADERS = [
 
 ROOT_URLCONF = 'almacen.urls'
 
+MEDIA_URL = '/media/'
+#MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -119,7 +130,7 @@ DATABASES = {
         'NAME': 'almacen',
         'USER': 'hitt',
         'PASSWORD': '1234',
-        'HOST': 'localhost',
+        'HOST': 'db',  # Nombre del servicio de la base de datos en docker-compose
         'PORT': '5432',
         'OPTIONS': {
             'client_encoding': 'UTF8'
@@ -127,6 +138,29 @@ DATABASES = {
     }
 }
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',  # Puedes usar DEBUG para capturar todos los logs, incluyendo info detallada
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',  # Puedes usar DEBUG para ver todos los logs generados
+            'propagate': True,
+        },
+        'django.auth': {  # Para logs relacionados con la autenticación
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 

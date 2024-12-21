@@ -1,0 +1,52 @@
+En Manjaro Linux, vamos a seguir estos pasos para poner en marcha tu proyecto dockerizado:
+
+Primero, asegúrate de tener Docker y Docker Compose instalados:
+
+sudo pacman -S docker docker-compose
+
+Inicia el servicio de Docker:
+
+sudo systemctl start docker
+sudo systemctl enable docker  # Para que inicie con el sistema
+
+Añade tu usuario al grupo docker (para no tener que usar sudo):
+
+sudo usermod -aG docker $USER
+
+cd backend
+pip freeze > requirements.txt
+
+cd ..  # Vuelve a la raíz del proyecto
+docker-compose build  # Construye las imágenes
+docker-compose up    # Levanta los contenedores
+
+
+Añade tu usuario al grupo docker:
+sudo usermod -aG docker $hitt #USER
+
+Verifica que tu usuario está en el grupo docker:
+groups $hitt
+
+
+
+Importante: Los cambios en grupos requieren que cierres sesión y vuelvas a entrar. Puedes hacer esto de dos formas:
+A. Cierra sesión completamente y vuelve a entrar en tu cuenta O
+B. Si no quieres cerrar sesión, puedes actualizar los grupos en la terminal actual:
+    newgrp docker
+
+docker-compose build
+
+¡Bien! El build se completó exitosamente. Ahora puedes iniciar los contenedores con:
+docker-compose up
+
+
+Para verificar que los contenedores están corriendo:
+docker-compose ps
+
+Si necesitas detener los contenedores:
+docker-compose down
+
+
+docker-compose exec backend python manage.py makemigrations
+docker-compose exec backend python manage.py migrate
+

@@ -69,17 +69,29 @@ const Login = () => {
         username: username.trim(),
         password: password
       });
-      
+
       if (success) {
         navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error en login:', error);
-      setError('Error al iniciar sesión. Por favor, verifique sus credenciales.');
+
+      // Mejor manejo del error para evitar el stack trace en consola
+      if (error.response) {
+        // El error tiene una respuesta del servidor (por ejemplo, status 400)
+        setError('Datos incorrectos. Por favor, verifique sus credenciales.');
+      } else if (error.request) {
+        // El error ocurrió al hacer la solicitud (problema con la red o servidor)
+        setError('Hubo un problema al conectarse al servidor. Inténtelo nuevamente.');
+      } else {
+        // Error inesperado
+        setError('Ocurrió un error inesperado. Inténtelo nuevamente más tarde.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <LoginContainer>
