@@ -28,6 +28,7 @@ class PersonalViewSet(viewsets.ModelViewSet):
 
 class PersonalSearchView(generics.ListAPIView):
     serializer_class = PersonalSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         query = self.request.query_params.get('search', '')
@@ -35,5 +36,5 @@ class PersonalSearchView(generics.ListAPIView):
             return Personal.objects.filter(
                 Q(nombres__icontains=query) | 
                 Q(apellidos__icontains=query)
-            )[:10]  # Limitamos a 10 resultados
+            ).order_by('nombres', 'apellidos')[:10]
         return Personal.objects.none()

@@ -7,17 +7,29 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
 
   const searchPersonal = async (searchText) => {
     try {
-      const response = await axios.get(`/api/personal/search/?search=${searchText}`);
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/personal/search/?search=${searchText}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      console.log('Respuesta de búsqueda:', response.data);
       setSuggestions(response.data);
     } catch (error) {
       console.error('Error buscando personal:', error);
     }
   };
 
+  useEffect(() => {
+    const handleClickOutside = () => setShowSuggestions(false);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const handleInputChange = (e) => {
     const text = e.target.value;
     onChange(text);
-    if (text.length > 2) {
+    if (text.length >= 1) {
       searchPersonal(text);
       setShowSuggestions(true);
     } else {
@@ -33,16 +45,17 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
   };
 
   return (
-    <div className="relative">
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
       <input
         type="text"
         value={value}
         onChange={handleInputChange}
         className="w-full p-2 border rounded"
         placeholder="Buscar personal..."
+        autoComplete="off"
       />
       {showSuggestions && suggestions.length > 0 && (
-        <ul className="absolute z-10 w-full bg-white border rounded-lg shadow-lg mt-1">
+        <ul className="absolute z-50 w-full bg-white border rounded-lg shadow-lg mt-1 max-h-60 overflow-y-auto">
           {suggestions.map((personal) => (
             <li
               key={personal.id}
