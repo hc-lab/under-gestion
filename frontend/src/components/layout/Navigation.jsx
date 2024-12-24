@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { UserCircleIcon, HomeIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowsUpDownIcon, BellAlertIcon, ClockIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, HomeIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowsUpDownIcon, BellAlertIcon, ClockIcon, ChevronDownIcon, UsersIcon } from '@heroicons/react/24/outline';
 
 const Navigation = () => {
     const location = useLocation();
@@ -46,6 +46,12 @@ const Navigation = () => {
             description: 'Informes y documentación',
             icon: ClipboardDocumentListIcon,
             path: '/reports'
+        },
+        {
+            name: 'Personal',
+            description: 'Gestión del personal y permisos',
+            icon: UsersIcon,
+            path: '/personal'
         }
     ];
 
