@@ -5,7 +5,7 @@ const axiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    withCredentials: true  // Importante para CORS
+    withCredentials: true
 });
 
 axiosInstance.interceptors.request.use(
@@ -14,21 +14,20 @@ axiosInstance.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        console.log('Request config:', config);  // Para debugging
         return config;
     },
     error => {
+        console.error('Error en la petición:', error);
         return Promise.reject(error);
     }
 );
 
-// Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
     response => response,
     error => {
-        console.error('Error en la petición:', error);
+        console.error('Error en la respuesta:', error);
         if (error.response) {
-            console.error('Respuesta del servidor:', error.response.data);
+            console.error('Datos del error:', error.response.data);
         }
         return Promise.reject(error);
     }
