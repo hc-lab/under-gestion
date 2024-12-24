@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
 from .models import Personal
 from .serializers import PersonalSerializer
+from rest_framework import generics
+from django.db.models import Q
 
 class PersonalFilter(filters.FilterSet):
     class Meta:
@@ -23,3 +25,15 @@ class PersonalViewSet(viewsets.ModelViewSet):
     search_fields = ['nombres', 'apellidos', 'dni', 'cargo', 'procedencia']
     ordering_fields = ['apellidos', 'nombres', 'fecha_registro']
     ordering = ['apellidos', 'nombres']
+
+class PersonalSearchView(generics.ListAPIView):
+    serializer_class = PersonalSerializer
+
+    def get_queryset(self):
+        query = self.request.query_params.get('search', '')
+        if query:
+            return Personal.objects.filter(
+                Q(nombres__icontains=query) | 
+                Q(apellidos__icontains=query)
+            )[:10]  # Limitamos a 10 resultados
+        return Personal.objects.none()
