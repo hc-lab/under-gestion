@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import axiosInstance from '../../axiosInstance';
 
 const AutocompletePersonal = ({ onSelect, value, onChange }) => {
   const [suggestions, setSuggestions] = useState([]);
@@ -56,6 +57,11 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
     onChange(`${personal.nombres} ${personal.apellidos}`);
     setShowSuggestions(false);
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    console.log('Token actual:', token);
+  }, []);
 
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
