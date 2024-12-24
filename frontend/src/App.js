@@ -14,6 +14,7 @@ import ThemeProvider from './components/layout/ThemeProvider';
 import Layout from './components/layout/Layout';
 import ActivityHistory from './components/features/ActivityHistory';
 import Reports from './components/features/Reports';
+import Personal from './components/features/Personal';
 
 const App = () => {
     return (
@@ -64,6 +65,7 @@ const App = () => {
                                     </ProtectedRoute>
                                 } 
                             />
+                            <Route path="/personal" element={<Personal />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </Layout>
