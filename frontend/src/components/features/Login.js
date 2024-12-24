@@ -60,32 +60,17 @@ const Login = () => {
     setError('');
     setIsLoading(true);
     try {
-      if (!username.trim() || !password) {
-        setError('Por favor, complete todos los campos');
-        return;
-      }
-
-      const success = await login({
+      await login({
         username: username.trim(),
         password: password
       });
-
-      if (success) {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error en login:', error);
-
-      // Mejor manejo del error para evitar el stack trace en consola
       if (error.response) {
-        // El error tiene una respuesta del servidor (por ejemplo, status 400)
-        setError('Datos incorrectos. Por favor, verifique sus credenciales.');
-      } else if (error.request) {
-        // El error ocurrió al hacer la solicitud (problema con la red o servidor)
-        setError('Hubo un problema al conectarse al servidor. Inténtelo nuevamente.');
+        setError('Credenciales inválidas');
       } else {
-        // Error inesperado
-        setError('Ocurrió un error inesperado. Inténtelo nuevamente más tarde.');
+        setError('Error de conexión');
       }
     } finally {
       setIsLoading(false);

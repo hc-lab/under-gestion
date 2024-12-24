@@ -5,6 +5,7 @@ class Personal(models.Model):
     apellidos = models.CharField(max_length=100)
     dni = models.CharField(max_length=8, unique=True)
     cargo = models.CharField(max_length=100)
+    telefono = models.CharField(max_length=9)
     procedencia = models.CharField(max_length=100)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
@@ -13,3 +14,4 @@ class Personal(models.Model):
 
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
+
