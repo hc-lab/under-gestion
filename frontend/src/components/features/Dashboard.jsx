@@ -53,10 +53,13 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                console.log('Fetching dashboard data...');
                 const [statsRes, movimientosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/')
                 ]);
+                console.log('Stats response:', statsRes.data);
+                console.log('Movimientos response:', movimientosRes.data);
 
                 setStats({
                     totalProductos: statsRes.data.totalProductos,
@@ -106,7 +109,10 @@ const Dashboard = () => {
                 });
 
             } catch (error) {
-                console.error('Error al cargar datos del dashboard:', error);
+                console.error('Error detallado:', error);
+                if (error.response) {
+                    console.error('Respuesta del servidor:', error.response.data);
+                }
             } finally {
                 setLoading(false);
             }
