@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            const response = await axiosInstance.post('/api/token/', credentials);
+            const response = await axiosInstance.post('/token/', credentials);
             const { access, refresh } = response.data;
             
             localStorage.setItem('token', access);
@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
             
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
             
-            console.log('Token guardado:', access); // Para debugging
+            console.log('Token guardado:', access);
             setIsAuthenticated(true);
             return true;
         } catch (error) {

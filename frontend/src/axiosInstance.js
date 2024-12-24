@@ -14,10 +14,10 @@ axiosInstance.interceptors.request.use(
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        console.log('Request config:', config);
         return config;
     },
     error => {
-        console.error('Error en la petición:', error);
         return Promise.reject(error);
     }
 );
