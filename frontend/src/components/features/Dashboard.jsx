@@ -54,8 +54,8 @@ const Dashboard = () => {
         const fetchDashboardData = async () => {
             try {
                 const [statsRes, movimientosRes] = await Promise.all([
-                    axiosInstance.get('dashboard-data/'),
-                    axiosInstance.get('historial-producto/')
+                    axiosInstance.get('/dashboard-data/'),
+                    axiosInstance.get('/historial-producto/')
                 ]);
 
                 setStats({

@@ -241,17 +241,23 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         return response
 
 class DashboardDataView(APIView):
-    def get(self, request):
-        total_productos = Producto.objects.count()
-        en_stock = Producto.objects.filter(stock__gt=0).count()
-        alertas = Producto.objects.filter(stock__lte=1).count()
+    permission_classes = [IsAuthenticated]
 
-        data = {
-            'totalProductos': total_productos,
-            'enStock': en_stock,
-            'alertas': alertas,
-        }
-        return Response(data)
+    def get(self, request):
+        try:
+            # Obtener estadísticas
+            total_productos = Producto.objects.count()
+            en_stock = Producto.objects.filter(cantidad__gt=0).count()
+            alertas = Producto.objects.filter(cantidad__lte=F('stock_minimo')).count()
+
+            data = {
+                'totalProductos': total_productos,
+                'enStock': en_stock,
+                'alertas': alertas,
+            }
+            return Response(data)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
 class SalidaProductoDataView(APIView):
     def get(self, request, producto_id):
