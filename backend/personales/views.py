@@ -38,3 +38,9 @@ class PersonalSearchView(generics.ListAPIView):
                 Q(apellidos__icontains=query)
             ).order_by('nombres', 'apellidos')[:10]
         return Personal.objects.none()
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        print(f"Búsqueda: {request.query_params.get('search', '')}")  # Para debugging
+        print(f"Resultados encontrados: {queryset.count()}")  # Para debugging
+        return super().list(request, *args, **kwargs)

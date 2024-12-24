@@ -5,18 +5,30 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
+  // Crear una instancia de axios con configuración base
+  const axiosInstance = axios.create({
+    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+
   const searchPersonal = async (searchText) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/personal/search/?search=${searchText}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      console.log('Respuesta de búsqueda:', response.data);
+      console.log('Buscando:', searchText);
+      const response = await axiosInstance.get(`/api/personal/search/?search=${searchText}`);
+      console.log('Respuesta:', response.data);
       setSuggestions(response.data);
     } catch (error) {
-      console.error('Error buscando personal:', error);
+      if (error.response) {
+        console.error('Error de respuesta:', error.response.data);
+        console.error('Status:', error.response.status);
+      } else if (error.request) {
+        console.error('Error de solicitud:', error.request);
+      } else {
+        console.error('Error:', error.message);
+      }
     }
   };
 
@@ -29,6 +41,7 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
   const handleInputChange = (e) => {
     const text = e.target.value;
     onChange(text);
+    console.log('Texto ingresado:', text); // Para debugging
     if (text.length >= 1) {
       searchPersonal(text);
       setShowSuggestions(true);

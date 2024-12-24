@@ -1,8 +1,9 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from './axiosInstance';
 import { toast } from 'react-hot-toast';
+import axios from 'axios';
 
-const AuthContext = createContext(null);
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -50,34 +51,23 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            console.log('Intentando login con:', credentials);
-            const response = await axiosInstance.post('token/', {
-                username: credentials.username,
-                password: credentials.password
-            });
+            const response = await axios.post('/api/token/', credentials);
+            const { access, refresh } = response.data;
             
-            console.log('Respuesta del servidor:', response.data);
-
-            if (response.data.access) {
-                localStorage.setItem('access_token', response.data.access);
-                localStorage.setItem('refresh_token', response.data.refresh);
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
-                setUser({ username: credentials.username });
-                setIsAuthenticated(true);
-                toast.success('Inicio de sesión exitoso');
-                return true;
-            }
-            return false;
+            // Guarda los tokens
+            localStorage.setItem('token', access);
+            localStorage.setItem('refreshToken', refresh);
+            
+            // Configura el token por defecto para todas las peticiones de axios
+            axios.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+            
+            console.log('Token guardado:', access); // Para debugging
+            
+            setIsAuthenticated(true);
+            return true;
         } catch (error) {
-            console.error('Error detallado:', error);
-            console.error('Respuesta del servidor:', error.response?.data);
-            
-            const errorMessage = error.response?.data?.detail || 
-                               error.response?.data?.message || 
-                               'Error al iniciar sesión';
-            
-            toast.error(errorMessage);
-            return false;
+            console.error('Error en login:', error);
+            throw error;
         }
     };
 
