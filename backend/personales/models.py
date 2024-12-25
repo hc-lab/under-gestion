@@ -8,6 +8,7 @@ class Personal(models.Model):
     telefono = models.CharField(max_length=9)
     procedencia = models.CharField(max_length=100)
     fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['apellidos', 'nombres']
