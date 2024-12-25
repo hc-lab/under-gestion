@@ -62,6 +62,13 @@ class TareoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['fecha_inicio', 'fecha_registro']
     ordering = ['-fecha_inicio']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        fecha = self.request.query_params.get('fecha', None)
+        if fecha:
+            queryset = queryset.filter(fecha_inicio=fecha)
+        return queryset
+
 class TipoTareoViewSet(viewsets.ModelViewSet):
     queryset = TipoTareo.objects.all()
     serializer_class = TipoTareoSerializer
