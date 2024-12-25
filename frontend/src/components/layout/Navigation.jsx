@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { UserCircleIcon, HomeIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowsUpDownIcon, BellAlertIcon, ClockIcon, ChevronDownIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, HomeIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowsUpDownIcon, BellAlertIcon, ClockIcon, ChevronDownIcon, UsersIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 const Navigation = () => {
     const location = useLocation();
@@ -105,7 +105,10 @@ const Navigation = () => {
                                     }
                                 `}
                             >
-                                Productos
+                                <div className="flex items-center">
+                                    <CubeIcon className="h-5 w-5 mr-1" />
+                                    <span>Productos</span>
+                                </div>
                             </Link>
 
                             {/* Menú de Herramientas */}
