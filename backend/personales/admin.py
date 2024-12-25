@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Personal
+from .models import Personal, TipoTareo, Tareo
 
 @admin.register(Personal)
 class PersonalAdmin(admin.ModelAdmin):
@@ -36,3 +36,16 @@ class PersonalAdmin(admin.ModelAdmin):
                 apellidos__icontains=search_term
             )
         return queryset, use_distinct
+
+@admin.register(TipoTareo)
+class TipoTareoAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'descripcion')
+    search_fields = ['nombre']
+
+@admin.register(Tareo)
+class TareoAdmin(admin.ModelAdmin):
+    list_display = ('personal', 'tipo', 'fecha_inicio', 'fecha_fin', 'estado', 'unidad_trabajo')
+    list_filter = ('tipo', 'estado', 'fecha_inicio')
+    search_fields = ['personal__nombres', 'personal__apellidos', 'observaciones']
+    date_hierarchy = 'fecha_inicio'
+    raw_id_fields = ('personal',)

@@ -97,6 +97,23 @@ const Navigation = () => {
                                 </div>
                             </Link>
 
+                            <Link
+                                to="/rrhh"
+                                className={`
+                                    px-4 py-2 rounded-md text-sm font-medium
+                                    transition-all duration-200
+                                    ${location.pathname === '/rrhh'
+                                        ? 'bg-indigo-600 text-white shadow-lg'
+                                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                    }
+                                `}
+                            >
+                                <div className="flex items-center">
+                                    <UsersIcon className="h-5 w-5 mr-1" />
+                                    <span>RR.HH</span>
+                                </div>
+                            </Link>
+
                             <button
                                 onClick={() => navigate('/productos')}
                                 className={`

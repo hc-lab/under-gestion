@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django_filters import rest_framework as filters
-from .models import Personal
-from .serializers import PersonalSerializer
+from .models import Personal, Tareo, TipoTareo
+from .serializers import PersonalSerializer, TareoSerializer, TipoTareoSerializer
 from rest_framework import generics
 from django.db.models import Q
 from rest_framework.views import APIView
@@ -43,8 +43,8 @@ class PersonalSearchView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        print(f"Búsqueda: {request.query_params.get('search', '')}")  # Para debugging
-        print(f"Resultados encontrados: {queryset.count()}")  # Para debugging
+        print(f"Búsqueda: {request.query_params.get('search', '')}")
+        print(f"Resultados encontrados: {queryset.count()}")
         return super().list(request, *args, **kwargs)
 
 class PersonalListView(APIView):
@@ -52,3 +52,16 @@ class PersonalListView(APIView):
         personal = Personal.objects.all()
         serializer = PersonalSerializer(personal, many=True)
         return Response(serializer.data)
+
+# Nuevas clases para el Tareo
+class TareoViewSet(viewsets.ModelViewSet):
+    queryset = Tareo.objects.all()
+    serializer_class = TareoSerializer
+    filterset_fields = ['tipo', 'estado', 'personal']
+    search_fields = ['observaciones', 'personal__nombres', 'personal__apellidos']
+    ordering_fields = ['fecha_inicio', 'fecha_registro']
+    ordering = ['-fecha_inicio']
+
+class TipoTareoViewSet(viewsets.ModelViewSet):
+    queryset = TipoTareo.objects.all()
+    serializer_class = TipoTareoSerializer

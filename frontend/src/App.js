@@ -15,6 +15,7 @@ import Layout from './components/layout/Layout';
 import ActivityHistory from './components/features/ActivityHistory';
 import Reports from './components/features/Reports';
 import Personal from './components/features/Personal';
+import RRHH from './components/features/RRHH';
 
 const App = () => {
     return (
@@ -68,6 +69,14 @@ const App = () => {
                                 } 
                             />
                             <Route path="/personal" element={<Personal />} />
+                            <Route 
+                                path="/rrhh" 
+                                element={
+                                    <ProtectedRoute>
+                                        <RRHH />
+                                    </ProtectedRoute>
+                                } 
+                            />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
                     </Layout>
