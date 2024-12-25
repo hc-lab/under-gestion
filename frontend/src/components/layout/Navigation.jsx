@@ -79,7 +79,7 @@ const Navigation = () => {
 
                     {/* Enlaces principales en el centro */}
                     {isAuthenticated && (
-                        <div className="flex items-center space-x-8">
+                        <div className="flex items-center space-x-4">
                             <Link
                                 to="/dashboard"
                                 className={`
@@ -91,9 +91,13 @@ const Navigation = () => {
                                     }
                                 `}
                             >
-                                Dashboard
+                                <div className="flex items-center">
+                                    <ChartBarIcon className="h-5 w-5 mr-1" />
+                                    <span>Dashboard</span>
+                                </div>
                             </Link>
 
+                            {/* Enlace a Productos */}
                             <Link
                                 to="/productos"
                                 className={`
@@ -111,7 +115,7 @@ const Navigation = () => {
                                 </div>
                             </Link>
 
-                            {/* Menú de Herramientas */}
+                            {/* Resto del menú de herramientas */}
                             <Menu as="div" className="relative">
                                 {({ open }) => (
                                     <>
