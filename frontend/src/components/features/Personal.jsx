@@ -63,21 +63,31 @@ const Personal = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {personal.map((persona) => (
-                            <tr key={persona.id}>
+                            <tr key={persona.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {persona.nombres} {persona.apellidos}
+                                    <div className="text-sm font-medium text-gray-900">
+                                        {persona.nombres} {persona.apellidos}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {persona.dni}
+                                    <div className="text-sm text-gray-500">
+                                        {persona.dni_protegido}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {persona.cargo}
+                                    <div className="text-sm text-gray-900">
+                                        {persona.cargo}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {persona.telefono}
+                                    <div className="text-sm text-gray-500">
+                                        {persona.telefono_protegido}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    {persona.procedencia}
+                                    <div className="text-sm text-gray-900">
+                                        {persona.procedencia}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
