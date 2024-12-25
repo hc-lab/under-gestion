@@ -133,7 +133,7 @@ const ProductList = () => {
     const filteredPersonal = query === ''
         ? personal
         : personal.filter((person) => {
-            const fullName = `${person.nombre} ${person.apellido}`.toLowerCase();
+            const fullName = `${person.nombres} ${person.apellidos}`.toLowerCase();
             return fullName.includes(query.toLowerCase());
         });
 
@@ -420,15 +420,22 @@ const ProductList = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Entregado a
                                             </label>
-                                            <Combobox value={selectedPerson} onChange={(person) => {
-                                                setSelectedPerson(person);
-                                                setEntregadoA(`${person.nombre} ${person.apellido}`);
-                                            }}>
+                                            <Combobox 
+                                                value={selectedPerson} 
+                                                onChange={(person) => {
+                                                    if (person) {
+                                                        setSelectedPerson(person);
+                                                        setEntregadoA(`${person.nombres} ${person.apellidos}`);
+                                                    }
+                                                }}
+                                            >
                                                 <div className="relative mt-1">
                                                     <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
                                                         <Combobox.Input
                                                             className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
-                                                            displayValue={(person) => person ? `${person.nombre} ${person.apellido}` : ''}
+                                                            displayValue={(person) => 
+                                                                person ? `${person.nombres} ${person.apellidos}` : ''
+                                                            }
                                                             onChange={(event) => setQuery(event.target.value)}
                                                             required
                                                         />
@@ -464,7 +471,7 @@ const ProductList = () => {
                                                                         {({ selected, active }) => (
                                                                             <>
                                                                                 <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                                                    {`${person.nombre} ${person.apellido}`}
+                                                                                    {`${person.nombres} ${person.apellidos}`}
                                                                                 </span>
                                                                                 {selected ? (
                                                                                     <span
