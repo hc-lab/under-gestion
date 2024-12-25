@@ -15,43 +15,17 @@ const Navigation = () => {
         navigate('/login');
     };
 
-    // Lista de opciones adicionales
-    const menuItems = [
+    // Menú principal con las rutas
+    const mainRoutes = [
         {
-            name: 'Estadísticas',
-            description: 'Visualización de datos y métricas',
-            icon: ChartBarIcon,
-            path: '/product-chart'
+            name: 'Dashboard',
+            path: '/dashboard',
+            icon: ChartBarIcon
         },
         {
-            name: 'Registro de Productos',
-            description: 'Ingreso y gestión de nuevos productos',
-            icon: ArrowsUpDownIcon,
-            path: '/bulk-entry'
-        },
-        {
-            name: 'Historial',
-            description: 'Actividad y cambios recientes',
-            icon: ClockIcon,
-            path: '/activity-history'
-        },
-        {
-            name: 'Alertas',
-            description: 'Notificaciones y avisos',
-            icon: BellAlertIcon,
-            path: '/alerts'
-        },
-        {
-            name: 'Reportes',
-            description: 'Informes y documentación',
-            icon: ClipboardDocumentListIcon,
-            path: '/reports'
-        },
-        {
-            name: 'Personal',
-            description: 'Gestión del personal y permisos',
-            icon: UsersIcon,
-            path: '/personal'
+            name: 'Productos',
+            path: '/productos',
+            icon: CubeIcon
         }
     ];
 
@@ -77,120 +51,28 @@ const Navigation = () => {
                         </Link>
                     </div>
 
-                    {/* Enlaces principales en el centro */}
+                    {/* Enlaces principales */}
                     {isAuthenticated && (
                         <div className="flex items-center space-x-4">
-                            <Link
-                                to="/dashboard"
-                                className={`
-                                    px-4 py-2 rounded-md text-sm font-medium
-                                    transition-all duration-200
-                                    ${location.pathname === '/dashboard'
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                    }
-                                `}
-                            >
-                                <div className="flex items-center">
-                                    <ChartBarIcon className="h-5 w-5 mr-1" />
-                                    <span>Dashboard</span>
-                                </div>
-                            </Link>
-
-                            {/* Enlace a Productos */}
-                            <Link
-                                to="/productos"
-                                className={`
-                                    px-4 py-2 rounded-md text-sm font-medium
-                                    transition-all duration-200
-                                    ${location.pathname === '/productos'
-                                        ? 'bg-indigo-600 text-white shadow-lg'
-                                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                    }
-                                `}
-                            >
-                                <div className="flex items-center">
-                                    <CubeIcon className="h-5 w-5 mr-1" />
-                                    <span>Productos</span>
-                                </div>
-                            </Link>
-
-                            {/* Resto del menú de herramientas */}
-                            <Menu as="div" className="relative">
-                                {({ open }) => (
-                                    <>
-                                        <Menu.Button
-                                            className={`
-                                                inline-flex items-center px-4 py-2 rounded-md
-                                                text-sm font-medium transition-all duration-200
-                                                ${open
-                                                    ? 'bg-indigo-600 text-white shadow-lg'
-                                                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                                                }
-                                            `}
-                                        >
-                                            <span>Herramientas</span>
-                                            <ChevronDownIcon
-                                                className={`ml-2 h-5 w-5 transition-transform duration-200 ${open ? 'transform rotate-180' : ''}`}
-                                            />
-                                        </Menu.Button>
-
-                                        <Transition
-                                            as={Fragment}
-                                            enter="transition ease-out duration-200"
-                                            enterFrom="opacity-0 translate-y-1"
-                                            enterTo="opacity-100 translate-y-0"
-                                            leave="transition ease-in duration-150"
-                                            leaveFrom="opacity-100 translate-y-0"
-                                            leaveTo="opacity-0 translate-y-1"
-                                        >
-                                            <Menu.Items className="absolute left-1/2 z-10 mt-3 w-screen max-w-md -translate-x-1/2 transform">
-                                                <div className="overflow-hidden rounded-xl shadow-lg ring-1 ring-black ring-opacity-5">
-                                                    <div className="relative grid gap-6 bg-gradient-to-br from-white to-gray-50 px-6 py-6">
-                                                        {menuItems.map((item) => (
-                                                            <Menu.Item key={item.name}>
-                                                                {({ active }) => (
-                                                                    <Link
-                                                                        to={item.path}
-                                                                        className={`
-                                                                            flex items-center p-4 rounded-lg
-                                                                            ${active 
-                                                                                ? 'bg-indigo-50 transform scale-[0.98]' 
-                                                                                : 'hover:bg-indigo-50'
-                                                                            }
-                                                                            transition-all duration-200 ease-out
-                                                                            group
-                                                                        `}
-                                                                    >
-                                                                        <div className={`
-                                                                            flex h-12 w-12 items-center justify-center rounded-lg
-                                                                            ${active ? 'bg-indigo-600' : 'bg-indigo-500'}
-                                                                            group-hover:bg-indigo-600 transition-colors
-                                                                        `}>
-                                                                            <item.icon
-                                                                                className="h-6 w-6 text-white"
-                                                                                aria-hidden="true"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="ml-4">
-                                                                            <p className="text-base font-semibold text-gray-900">
-                                                                                {item.name}
-                                                                            </p>
-                                                                            <p className="mt-1 text-sm text-gray-500">
-                                                                                {item.description}
-                                                                            </p>
-                                                                        </div>
-                                                                    </Link>
-                                                                )}
-                                                            </Menu.Item>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </Menu.Items>
-                                        </Transition>
-                                    </>
-                                )}
-                            </Menu>
+                            {mainRoutes.map((route) => (
+                                <Link
+                                    key={route.path}
+                                    to={route.path}
+                                    className={`
+                                        px-4 py-2 rounded-md text-sm font-medium
+                                        transition-all duration-200
+                                        ${location.pathname === route.path
+                                            ? 'bg-indigo-600 text-white shadow-lg'
+                                            : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                                        }
+                                    `}
+                                >
+                                    <div className="flex items-center">
+                                        <route.icon className="h-5 w-5 mr-1" />
+                                        <span>{route.name}</span>
+                                    </div>
+                                </Link>
+                            ))}
                         </div>
                     )}
 
