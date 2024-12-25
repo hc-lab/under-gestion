@@ -35,52 +35,36 @@ class Personal(models.Model):
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
 
-class TipoTareo(models.Model):
+class Tareo(models.Model):
     TIPO_CHOICES = [
+        ('UNIDAD', 'En Unidad'),  # Presente/Trabajando
         ('PERMISO', 'Permiso'),
-        ('DIA_LIBRE', 'Día Libre'),
-        ('UNIDAD', 'En Unidad'),
-        ('RENUNCIA', 'Renuncia'),
         ('FALTA', 'Falta'),
-        ('DESCANSO_MEDICO', 'Descanso Médico')
+        ('DESCANSO', 'Descanso Médico'),
+        ('VACACIONES', 'Vacaciones'),
+        ('OTROS', 'Otros')
     ]
 
-    nombre = models.CharField(max_length=50, choices=TIPO_CHOICES, unique=True)
-    descripcion = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.get_nombre_display()
-
-class Tareo(models.Model):
-    personal = models.ForeignKey('Personal', on_delete=models.CASCADE, related_name='tareos')
-    tipo = models.ForeignKey(TipoTareo, on_delete=models.PROTECT)
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField(null=True, blank=True)
-    observaciones = models.TextField(blank=True, null=True)
-    documento = models.FileField(upload_to='documentos_tareo/', blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    unidad_trabajo = models.CharField(max_length=100, blank=True, null=True)
-    estado = models.CharField(
-        max_length=20,
-        choices=[
-            ('PENDIENTE', 'Pendiente'),
-            ('APROBADO', 'Aprobado'),
-            ('RECHAZADO', 'Rechazado')
-        ],
-        default='PENDIENTE'
+    personal = models.ForeignKey(Personal, on_delete=models.CASCADE, related_name='tareos')
+    fecha = models.DateField()  # Solo una fecha
+    tipo = models.CharField(
+        max_length=20, 
+        choices=TIPO_CHOICES,
+        default='UNIDAD'
     )
-
-    def clean(self):
-        if self.fecha_fin and self.fecha_inicio > self.fecha_fin:
-            raise ValidationError('La fecha de fin no puede ser anterior a la fecha de inicio')
-
-    def save(self, *args, **kwargs):
-        self.clean()
-        super().save(*args, **kwargs)
+    motivo = models.TextField(blank=True, null=True)
+    unidad_trabajo = models.CharField(max_length=100, blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-fecha_inicio']
+        ordering = ['-fecha', 'personal__apellidos']
+        # Asegurar que solo haya un registro por personal por día
+        unique_together = ['personal', 'fecha']
 
     def __str__(self):
-        return f"{self.personal} - {self.tipo} ({self.fecha_inicio})"
+        return f"{self.personal} - {self.get_tipo_display()} ({self.fecha})"
+
+    def clean(self):
+        # Validaciones personalizadas si son necesarias
+        pass
 
