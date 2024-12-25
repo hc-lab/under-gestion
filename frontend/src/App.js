@@ -29,6 +29,7 @@ const App = () => {
                                 path="/productos" 
                                 element={
                                     <ProtectedRoute>
+                                        {console.log('Intentando renderizar ProductList')}
                                         <ProductList />
                                     </ProtectedRoute>
                                 } 
@@ -37,6 +38,7 @@ const App = () => {
                                 path="/dashboard" 
                                 element={
                                     <ProtectedRoute>
+                                        {console.log('Intentando renderizar Dashboard')}
                                         <Dashboard />
                                     </ProtectedRoute>
                                 } 

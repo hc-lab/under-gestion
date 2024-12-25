@@ -97,8 +97,8 @@ const Navigation = () => {
                                 </div>
                             </Link>
 
-                            <Link
-                                to="/productos"
+                            <button
+                                onClick={() => navigate('/productos')}
                                 className={`
                                     px-4 py-2 rounded-md text-sm font-medium
                                     transition-all duration-200
@@ -107,17 +107,12 @@ const Navigation = () => {
                                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                                     }
                                 `}
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    console.log('Navegando a /productos');
-                                    navigate('/productos');
-                                }}
                             >
                                 <div className="flex items-center">
                                     <CubeIcon className="h-5 w-5 mr-1" />
                                     <span>Productos</span>
                                 </div>
-                            </Link>
+                            </button>
 
                             {/* Menú de Herramientas */}
                             <Menu as="div" className="relative">
