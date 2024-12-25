@@ -41,7 +41,7 @@ class Tareo(models.Model):
         ('PERMISO', 'Permiso'),
         ('FALTA', 'Falta'),
         ('DESCANSO', 'Descanso Médico'),
-        ('DIA_LIBRE', 'Día Libre'),
+        ('DIAS_LIBRES', 'Días Libres'),
         ('OTROS', 'Otros')
     ]
 

@@ -264,7 +264,7 @@ const RRHH = () => {
                                                 <option value="PERMISO">Permiso</option>
                                                 <option value="FALTA">Falta</option>
                                                 <option value="DESCANSO">Descanso Médico</option>
-                                                <option value="DIA_LIBRE">Día Libre</option>
+                                                <option value="DIAS_LIBRES">Días Libres</option>
                                                 <option value="OTROS">Otros</option>
                                             </select>
                                         </div>
