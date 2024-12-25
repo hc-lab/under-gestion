@@ -107,6 +107,11 @@ const Navigation = () => {
                                         : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                                     }
                                 `}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    console.log('Navegando a /productos');
+                                    navigate('/productos');
+                                }}
                             >
                                 <div className="flex items-center">
                                     <CubeIcon className="h-5 w-5 mr-1" />

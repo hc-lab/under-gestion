@@ -43,10 +43,13 @@ const ProductList = () => {
     }, []);
 
     useEffect(() => {
+        console.log('ProductList montado');
         if (!localStorage.getItem('access_token')) {
+            console.log('No hay token, redirigiendo a login');
             navigate('/login');
             return;
         }
+        console.log('Iniciando fetchData');
         fetchData();
     }, [navigate, fetchData]);
 
