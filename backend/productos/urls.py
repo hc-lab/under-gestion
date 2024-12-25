@@ -33,5 +33,4 @@ urlpatterns = [
     path('ingresos-dia/', IngresoProductoViewSet.as_view({'get': 'list'}), name='ingresos-dia'),
     path('salidas/', SalidaProductoViewSet.as_view({'get': 'list'}), name='salidas'),
     path('historial-producto/', HistorialProductoViewSet.as_view({'get': 'list'}), name='historial-producto'),
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
 ]
