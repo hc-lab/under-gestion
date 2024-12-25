@@ -29,8 +29,8 @@ class PersonalAdmin(admin.ModelAdmin):
 
 @admin.register(Tareo)
 class TareoAdmin(admin.ModelAdmin):
-    list_display = ('personal', 'fecha', 'tipo', 'unidad_trabajo', 'fecha_registro')
-    list_filter = ('tipo', 'fecha', 'unidad_trabajo')
+    list_display = ('personal', 'fecha', 'tipo', 'fecha_registro')
+    list_filter = ('tipo', 'fecha')
     search_fields = ['personal__nombres', 'personal__apellidos', 'motivo']
     date_hierarchy = 'fecha'
     raw_id_fields = ('personal',)
