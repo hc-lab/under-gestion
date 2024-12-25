@@ -76,16 +76,15 @@ const RRHH = () => {
         e.preventDefault();
         try {
             const data = {
-                ...formData,
                 personal: selectedPersonal.id,
-                fecha_inicio: format(new Date(), 'yyyy-MM-dd')
+                fecha: format(new Date(), 'yyyy-MM-dd'),
+                tipo: formData.tipo,
+                motivo: formData.observaciones || ''
             };
 
             if (selectedPersonal.tareo?.id) {
-                // Actualizar tareo existente
                 await axiosInstance.put(`tareos/${selectedPersonal.tareo.id}/`, data);
             } else {
-                // Crear nuevo tareo
                 await axiosInstance.post('tareos/', data);
             }
 
@@ -94,6 +93,9 @@ const RRHH = () => {
             fetchPersonalWithTareos();
         } catch (error) {
             console.error('Error al actualizar tareo:', error);
+            if (error.response?.data) {
+                console.error('Detalles del error:', error.response.data);
+            }
             toast.error('Error al actualizar el tareo');
         }
     };
@@ -256,7 +258,7 @@ const RRHH = () => {
                                                 <option value="PERMISO">Permiso</option>
                                                 <option value="FALTA">Falta</option>
                                                 <option value="DESCANSO">Descanso Médico</option>
-                                                <option value="VACACIONES">Vacaciones</option>
+                                                <option value="DIA_LIBRE">Día Libre</option>
                                                 <option value="OTROS">Otros</option>
                                             </select>
                                         </div>

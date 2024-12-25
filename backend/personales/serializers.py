@@ -36,6 +36,5 @@ class TareoSerializer(serializers.ModelSerializer):
             'fecha', 
             'tipo', 
             'motivo',
-            'unidad_trabajo',
             'fecha_registro'
         ] 

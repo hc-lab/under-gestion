@@ -37,28 +37,26 @@ class Personal(models.Model):
 
 class Tareo(models.Model):
     TIPO_CHOICES = [
-        ('UNIDAD', 'En Unidad'),  # Presente/Trabajando
+        ('UNIDAD', 'En Unidad'),
         ('PERMISO', 'Permiso'),
         ('FALTA', 'Falta'),
         ('DESCANSO', 'Descanso Médico'),
-        ('VACACIONES', 'Vacaciones'),
+        ('DIA_LIBRE', 'Día Libre'),
         ('OTROS', 'Otros')
     ]
 
     personal = models.ForeignKey(Personal, on_delete=models.CASCADE, related_name='tareos')
-    fecha = models.DateField()  # Solo una fecha
+    fecha = models.DateField()
     tipo = models.CharField(
         max_length=20, 
         choices=TIPO_CHOICES,
         default='UNIDAD'
     )
     motivo = models.TextField(blank=True, null=True)
-    unidad_trabajo = models.CharField(max_length=100, blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-fecha', 'personal__apellidos']
-        # Asegurar que solo haya un registro por personal por día
         unique_together = ['personal', 'fecha']
 
     def __str__(self):
