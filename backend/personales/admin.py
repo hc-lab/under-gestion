@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Personal, TipoTareo, Tareo
+from .models import Personal, Tareo
 
 @admin.register(Personal)
 class PersonalAdmin(admin.ModelAdmin):
@@ -27,25 +27,11 @@ class PersonalAdmin(admin.ModelAdmin):
         }),
     )
 
-    def get_search_results(self, request, queryset, search_term):
-        queryset, use_distinct = super().get_search_results(request, queryset, search_term)
-        if search_term:
-            queryset |= self.model.objects.filter(
-                nombres__icontains=search_term
-            ) | self.model.objects.filter(
-                apellidos__icontains=search_term
-            )
-        return queryset, use_distinct
-
-@admin.register(TipoTareo)
-class TipoTareoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'descripcion')
-    search_fields = ['nombre']
-
 @admin.register(Tareo)
 class TareoAdmin(admin.ModelAdmin):
-    list_display = ('personal', 'tipo', 'fecha_inicio', 'fecha_fin', 'estado', 'unidad_trabajo')
-    list_filter = ('tipo', 'estado', 'fecha_inicio')
-    search_fields = ['personal__nombres', 'personal__apellidos', 'observaciones']
-    date_hierarchy = 'fecha_inicio'
+    list_display = ('personal', 'fecha', 'tipo', 'unidad_trabajo', 'fecha_registro')
+    list_filter = ('tipo', 'fecha', 'unidad_trabajo')
+    search_fields = ['personal__nombres', 'personal__apellidos', 'motivo']
+    date_hierarchy = 'fecha'
     raw_id_fields = ('personal',)
+    ordering = ('-fecha', 'personal__apellidos')
