@@ -245,19 +245,30 @@ class DashboardDataView(APIView):
 
     def get(self, request):
         try:
-            # Obtener estadísticas
+            # Obtener estadísticas básicas
             total_productos = Producto.objects.count()
-            en_stock = Producto.objects.filter(cantidad__gt=0).count()
-            alertas = Producto.objects.filter(cantidad__lte=F('stock_minimo')).count()
+            productos_en_stock = Producto.objects.filter(stock__gt=0).count()
+            productos_alerta = Producto.objects.filter(stock__lte=10).count()
+
+            # Obtener movimientos del día
+            hoy = timezone.now().date()
+            movimientos_hoy = HistorialProducto.objects.filter(
+                fecha__date=hoy
+            ).count()
 
             data = {
                 'totalProductos': total_productos,
-                'enStock': en_stock,
-                'alertas': alertas,
+                'enStock': productos_en_stock,
+                'alertas': productos_alerta,
+                'movimientosHoy': movimientos_hoy
             }
+
             return Response(data)
         except Exception as e:
-            return Response({'error': str(e)}, status=500)
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class SalidaProductoDataView(APIView):
     def get(self, request, producto_id):
