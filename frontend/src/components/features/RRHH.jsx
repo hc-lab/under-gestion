@@ -120,11 +120,33 @@ const RRHH = () => {
                 return 'bg-blue-100 text-blue-800';
             case 'FALTA':
                 return 'bg-red-100 text-red-800';
-            case 'DESCANSO_MEDICO':
+            case 'DESCANSO':
                 return 'bg-yellow-100 text-yellow-800';
+            case 'DIAS_LIBRES':
+                return 'bg-purple-100 text-purple-800';
+            case 'OTROS':
+                return 'bg-gray-100 text-gray-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
+    };
+
+    const calcularResumen = () => {
+        const resumen = {
+            UNIDAD: 0,
+            PERMISO: 0,
+            FALTA: 0,
+            DESCANSO: 0,
+            DIAS_LIBRES: 0,
+            OTROS: 0
+        };
+
+        personal.forEach(persona => {
+            const tipo = persona.tareo?.tipo || 'UNIDAD';
+            resumen[tipo] = (resumen[tipo] || 0) + 1;
+        });
+
+        return resumen;
     };
 
     if (loading) {
@@ -212,6 +234,33 @@ const RRHH = () => {
                         ))}
                     </tbody>
                 </table>
+            </div>
+
+            {/* Agregar el resumen después de la tabla */}
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {Object.entries(calcularResumen()).map(([tipo, cantidad]) => (
+                    <div 
+                        key={tipo} 
+                        className={`p-4 rounded-lg shadow ${getTipoColor(tipo)} flex flex-col items-center justify-center`}
+                    >
+                        <span className="text-2xl font-bold">{cantidad}</span>
+                        <span className="text-sm mt-1">
+                            {tipo === 'UNIDAD' && 'En Unidad'}
+                            {tipo === 'PERMISO' && 'Permiso'}
+                            {tipo === 'FALTA' && 'Falta'}
+                            {tipo === 'DESCANSO' && 'Descanso Médico'}
+                            {tipo === 'DIAS_LIBRES' && 'Días Libres'}
+                            {tipo === 'OTROS' && 'Otros'}
+                        </span>
+                    </div>
+                ))}
+            </div>
+
+            {/* Agregar el total */}
+            <div className="mt-4 text-right">
+                <span className="text-lg font-semibold">
+                    Total de Personal: {personal.length}
+                </span>
             </div>
 
             {/* Modal de Edición */}
