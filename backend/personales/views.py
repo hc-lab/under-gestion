@@ -47,6 +47,31 @@ class TareoViewSet(viewsets.ModelViewSet):
     ordering_fields = ['fecha', 'fecha_registro']
     ordering = ['-fecha']
 
+    def create(self, request, *args, **kwargs):
+        try:
+            print("Datos recibidos:", request.data)  # Para depuración
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            print("Error en create:", str(e))  # Para depuración
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def update(self, request, *args, **kwargs):
+        try:
+            print("Datos de actualización:", request.data)  # Para depuración
+            return super().update(request, *args, **kwargs)
+        except Exception as e:
+            print("Error en update:", str(e))  # Para depuración
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
     @action(detail=False, methods=['get'])
     def hoy(self, request):
         """Obtener todos los tareos de hoy"""

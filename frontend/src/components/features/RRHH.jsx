@@ -31,20 +31,13 @@ const RRHH = () => {
             setLoading(true);
             const [personalRes, tareosRes] = await Promise.all([
                 axiosInstance.get('personal/'),
-                axiosInstance.get('tareos/')
+                axiosInstance.get('tareos/hoy/')
             ]);
 
-            // Combinar personal con sus tareos
             const personalConTareos = personalRes.data.map(persona => {
                 const tareoHoy = tareosRes.data.find(
-                    tareo => 
-                        tareo.personal === persona.id && 
-                        tareo.fecha_inicio === format(new Date(), 'yyyy-MM-dd')
-                ) || {
-                    tipo: 'UNIDAD',
-                    estado: 'PENDIENTE',
-                    observaciones: ''
-                };
+                    tareo => tareo.personal === persona.id
+                ) || null;
 
                 return {
                     ...persona,
@@ -82,21 +75,34 @@ const RRHH = () => {
                 motivo: formData.observaciones || ''
             };
 
+            console.log('Enviando datos:', data);
+
+            let response;
             if (selectedPersonal.tareo?.id) {
-                await axiosInstance.put(`tareos/${selectedPersonal.tareo.id}/`, data);
+                response = await axiosInstance.put(
+                    `tareos/${selectedPersonal.tareo.id}/`, 
+                    data
+                );
             } else {
-                await axiosInstance.post('tareos/', data);
+                response = await axiosInstance.post('tareos/', data);
             }
+
+            console.log('Respuesta:', response.data);
 
             toast.success('Tareo actualizado exitosamente');
             setIsModalOpen(false);
-            fetchPersonalWithTareos();
+            await fetchPersonalWithTareos();
         } catch (error) {
             console.error('Error al actualizar tareo:', error);
             if (error.response?.data) {
                 console.error('Detalles del error:', error.response.data);
+                const errorMessage = error.response.data.non_field_errors?.[0] || 
+                                   error.response.data.error ||
+                                   'Error al actualizar el tareo';
+                toast.error(errorMessage);
+            } else {
+                toast.error('Error al actualizar el tareo');
             }
-            toast.error('Error al actualizar el tareo');
         }
     };
 

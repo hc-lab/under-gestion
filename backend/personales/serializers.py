@@ -37,4 +37,25 @@ class TareoSerializer(serializers.ModelSerializer):
             'tipo', 
             'motivo',
             'fecha_registro'
-        ] 
+        ]
+
+    def validate(self, data):
+        """
+        Validar que no exista otro tareo para el mismo personal en la misma fecha
+        """
+        personal = data.get('personal')
+        fecha = data.get('fecha')
+        instance = self.instance
+
+        # Verificar si ya existe un tareo para este personal en esta fecha
+        existing_tareo = Tareo.objects.filter(
+            personal=personal,
+            fecha=fecha
+        ).exclude(id=instance.id if instance else None).first()
+
+        if existing_tareo:
+            raise serializers.ValidationError(
+                "Ya existe un tareo para este personal en esta fecha"
+            )
+
+        return data 
