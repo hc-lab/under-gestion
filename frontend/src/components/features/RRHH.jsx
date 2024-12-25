@@ -68,7 +68,6 @@ const RRHH = () => {
             fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
             fecha_fin: persona.tareo?.fecha_fin || '',
             observaciones: persona.tareo?.observaciones || '',
-            unidad_trabajo: persona.tareo?.unidad_trabajo || '',
         });
         setIsModalOpen(true);
     };
@@ -238,35 +237,14 @@ const RRHH = () => {
                                 leaveTo="opacity-0 scale-95"
                             >
                                 <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-                                    <Dialog.Title
-                                        as="h3"
-                                        className="text-lg font-medium leading-6 text-gray-900 mb-4"
-                                    >
-                                        Registrar Tareo
+                                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
+                                        {`${selectedPersonal?.nombres} ${selectedPersonal?.apellidos}`}
                                     </Dialog.Title>
+
                                     <form onSubmit={handleSubmit} className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700">
-                                                Personal
-                                            </label>
-                                            <select
-                                                value={formData.personal}
-                                                onChange={(e) => setFormData({...formData, personal: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                required
-                                            >
-                                                <option value="">Seleccione personal</option>
-                                                {personal.map((p) => (
-                                                    <option key={p.id} value={p.id}>
-                                                        {`${p.nombres} ${p.apellidos}`}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Tipo
+                                                Estado
                                             </label>
                                             <select
                                                 value={formData.tipo}
@@ -276,48 +254,11 @@ const RRHH = () => {
                                             >
                                                 <option value="UNIDAD">En Unidad</option>
                                                 <option value="PERMISO">Permiso</option>
-                                                <option value="DIA_LIBRE">Día Libre</option>
-                                                <option value="RENUNCIA">Renuncia</option>
                                                 <option value="FALTA">Falta</option>
-                                                <option value="DESCANSO_MEDICO">Descanso Médico</option>
+                                                <option value="DESCANSO">Descanso Médico</option>
+                                                <option value="VACACIONES">Vacaciones</option>
+                                                <option value="OTROS">Otros</option>
                                             </select>
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Fecha Inicio
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={formData.fecha_inicio}
-                                                onChange={(e) => setFormData({...formData, fecha_inicio: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                                required
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Fecha Fin (opcional)
-                                            </label>
-                                            <input
-                                                type="date"
-                                                value={formData.fecha_fin}
-                                                onChange={(e) => setFormData({...formData, fecha_fin: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Unidad de Trabajo
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.unidad_trabajo}
-                                                onChange={(e) => setFormData({...formData, unidad_trabajo: e.target.value})}
-                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                            />
                                         </div>
 
                                         <div>
@@ -329,6 +270,7 @@ const RRHH = () => {
                                                 onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
                                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                                                 rows="3"
+                                                placeholder="Ingrese las observaciones aquí..."
                                             />
                                         </div>
 
