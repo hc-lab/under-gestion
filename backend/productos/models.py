@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from personales.models import Personal
 
 class Categoria(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
@@ -71,10 +72,15 @@ class HistorialProducto(models.Model):
         return f"{self.tipo_movimiento} de {self.producto.nombre}"
 
 class SalidaProducto(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='salidas')
-    fecha_hora = models.DateTimeField(default=timezone.now)
+    producto = models.ForeignKey('Producto', on_delete=models.CASCADE)
     cantidad = models.IntegerField()
-    entregado_a = models.CharField(max_length=100)
+    fecha_hora = models.DateTimeField(auto_now_add=True)
+    entregado_a = models.ForeignKey(
+        Personal, 
+        on_delete=models.SET_NULL, 
+        null=True,
+        related_name='salidas_recibidas'
+    )
     motivo = models.TextField()
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 

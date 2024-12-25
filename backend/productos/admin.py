@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from .models import Producto, Categoria, HistorialProducto, SalidaProducto, Noticia, ImagenNoticia, PerfilUsuario, IngresoProducto
+from personales.models import Personal
 
 class PerfilUsuarioInline(admin.StackedInline):
     model = PerfilUsuario
@@ -112,31 +113,9 @@ class HistorialProductoAdmin(admin.ModelAdmin):
 
 @admin.register(SalidaProducto)
 class SalidaProductoAdmin(admin.ModelAdmin):
-    list_display = [
-        'fecha_hora',
-        'get_producto_nombre',
-        'cantidad',
-        'entregado_a',
-        'usuario'
-    ]
-    list_filter = [
-        'fecha_hora',
-        'producto',
-        'usuario'
-    ]
-    search_fields = [
-        'producto__nombre',
-        'usuario__username',
-        'entregado_a',
-        'motivo'
-    ]
-    date_hierarchy = 'fecha_hora'
-    ordering = ['-fecha_hora']
-
-    def get_producto_nombre(self, obj):
-        return obj.producto.nombre if obj.producto else '-'
-    get_producto_nombre.short_description = 'Producto'
-    get_producto_nombre.admin_order_field = 'producto__nombre'
+    autocomplete_fields = ['entregado_a']
+    list_display = ['producto', 'cantidad', 'fecha_hora', 'entregado_a']
+    search_fields = ['producto__nombre', 'entregado_a__nombres', 'entregado_a__apellidos']
 
 class ImagenNoticiaInline(admin.TabularInline):
     model = ImagenNoticia
