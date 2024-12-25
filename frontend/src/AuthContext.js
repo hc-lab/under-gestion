@@ -6,6 +6,29 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Verificar el token al cargar la página
+    useEffect(() => {
+        const checkAuth = async () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    // Verificar si el token es válido
+                    const response = await axiosInstance.get('/user/current/');
+                    setUser(response.data);
+                    setIsAuthenticated(true);
+                } catch (error) {
+                    console.error('Error validando token:', error);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refreshToken');
+                }
+            }
+            setIsLoading(false);
+        };
+
+        checkAuth();
+    }, []);
 
     const login = async (credentials) => {
         try {
@@ -17,7 +40,6 @@ export const AuthProvider = ({ children }) => {
             
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
             
-            console.log('Token guardado:', access);
             setIsAuthenticated(true);
             return true;
         } catch (error) {
@@ -34,20 +56,17 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            setIsAuthenticated(true);
-        }
-    }, []);
+    if (isLoading) {
+        return <div>Cargando...</div>; // O tu componente de loading
+    }
 
     return (
         <AuthContext.Provider value={{
             isAuthenticated,
             user,
             login,
-            logout
+            logout,
+            isLoading
         }}>
             {children}
         </AuthContext.Provider>

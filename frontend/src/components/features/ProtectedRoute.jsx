@@ -12,11 +12,9 @@ const ProtectedRoute = ({ children }) => {
     }, [location.pathname, isAuthenticated]);
 
     if (!isAuthenticated) {
-        console.log('Redirigiendo a login - No autenticado');
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
 
-    console.log('Renderizando ruta protegida:', location.pathname);
     return children;
 };
 
