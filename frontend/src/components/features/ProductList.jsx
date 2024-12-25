@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { toast } from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
+import { Combobox } from '@headlessui/react';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 
 const ProductList = () => {
     const auth = useAuth();
@@ -23,16 +25,21 @@ const ProductList = () => {
     const [entregadoA, setEntregadoA] = useState('');
     const [motivo, setMotivo] = useState('');
     const [error, setError] = useState(null);
+    const [personal, setPersonal] = useState([]);
+    const [query, setQuery] = useState('');
+    const [selectedPerson, setSelectedPerson] = useState(null);
 
     const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const [productosRes, categoriasRes] = await Promise.all([
+            const [productosRes, categoriasRes, personalRes] = await Promise.all([
                 axiosInstance.get('productos/'),
-                axiosInstance.get('categorias/')
+                axiosInstance.get('categorias/'),
+                axiosInstance.get('personal/')
             ]);
             setProductos(productosRes.data);
             setCategorias(categoriasRes.data);
+            setPersonal(personalRes.data);
         } catch (error) {
             console.error('Error en fetchData:', error);
             setError(error.message);
@@ -122,6 +129,13 @@ const ProductList = () => {
             (producto.categoria_id && categorias.find(c => c.id === producto.categoria_id)?.nombre === selectedCategoria);
         return matchesSearch && matchesCategoria;
     });
+
+    const filteredPersonal = query === ''
+        ? personal
+        : personal.filter((person) => {
+            const fullName = `${person.nombre} ${person.apellido}`.toLowerCase();
+            return fullName.includes(query.toLowerCase());
+        });
 
     if (loading) return <div>Cargando...</div>;
     if (error) return <div>Error: {error}</div>;
@@ -406,13 +420,70 @@ const ProductList = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Entregado a
                                             </label>
-                                            <input
-                                                type="text"
-                                                value={entregadoA}
-                                                onChange={(e) => setEntregadoA(e.target.value)}
-                                                className="input-field"
-                                                required
-                                            />
+                                            <Combobox value={selectedPerson} onChange={(person) => {
+                                                setSelectedPerson(person);
+                                                setEntregadoA(`${person.nombre} ${person.apellido}`);
+                                            }}>
+                                                <div className="relative mt-1">
+                                                    <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
+                                                        <Combobox.Input
+                                                            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+                                                            displayValue={(person) => person ? `${person.nombre} ${person.apellido}` : ''}
+                                                            onChange={(event) => setQuery(event.target.value)}
+                                                            required
+                                                        />
+                                                        <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                                            <ChevronUpDownIcon
+                                                                className="h-5 w-5 text-gray-400"
+                                                                aria-hidden="true"
+                                                            />
+                                                        </Combobox.Button>
+                                                    </div>
+                                                    <Transition
+                                                        as={Fragment}
+                                                        leave="transition ease-in duration-100"
+                                                        leaveFrom="opacity-100"
+                                                        leaveTo="opacity-0"
+                                                    >
+                                                        <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-50">
+                                                            {filteredPersonal.length === 0 && query !== '' ? (
+                                                                <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
+                                                                    No se encontró personal.
+                                                                </div>
+                                                            ) : (
+                                                                filteredPersonal.map((person) => (
+                                                                    <Combobox.Option
+                                                                        key={person.id}
+                                                                        className={({ active }) =>
+                                                                            `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                                                                active ? 'bg-indigo-600 text-white' : 'text-gray-900'
+                                                                            }`
+                                                                        }
+                                                                        value={person}
+                                                                    >
+                                                                        {({ selected, active }) => (
+                                                                            <>
+                                                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                                    {`${person.nombre} ${person.apellido}`}
+                                                                                </span>
+                                                                                {selected ? (
+                                                                                    <span
+                                                                                        className={`absolute inset-y-0 left-0 flex items-center pl-3 ${
+                                                                                            active ? 'text-white' : 'text-indigo-600'
+                                                                                        }`}
+                                                                                    >
+                                                                                        <CheckIcon className="h-5 w-5" aria-hidden="true" />
+                                                                                    </span>
+                                                                                ) : null}
+                                                                            </>
+                                                                        )}
+                                                                    </Combobox.Option>
+                                                                ))
+                                                            )}
+                                                        </Combobox.Options>
+                                                    </Transition>
+                                                </div>
+                                            </Combobox>
                                         </div>
 
                                         <div>

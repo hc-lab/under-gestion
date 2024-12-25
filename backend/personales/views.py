@@ -5,6 +5,8 @@ from .models import Personal
 from .serializers import PersonalSerializer
 from rest_framework import generics
 from django.db.models import Q
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 class PersonalFilter(filters.FilterSet):
     class Meta:
@@ -44,3 +46,9 @@ class PersonalSearchView(generics.ListAPIView):
         print(f"Búsqueda: {request.query_params.get('search', '')}")  # Para debugging
         print(f"Resultados encontrados: {queryset.count()}")  # Para debugging
         return super().list(request, *args, **kwargs)
+
+class PersonalListView(APIView):
+    def get(self, request):
+        personal = Personal.objects.all()
+        serializer = PersonalSerializer(personal, many=True)
+        return Response(serializer.data)
