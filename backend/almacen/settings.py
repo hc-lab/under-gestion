@@ -61,13 +61,12 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Configuración de CORS
-CORS_ORIGIN_ALLOW_ALL = True  # Cambiamos a True temporalmente
-CORS_ALLOW_CREDENTIALS = True
-
+# Configuración CORS
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -79,11 +78,25 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_HEADERS = [
-    '*'  # Permitir todos los headers temporalmente
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
-# Configuración adicional de CORS
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+# Exponer headers
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-csrftoken',
+]
+
+# Tiempo de cache para las opciones preflight
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
 
 ROOT_URLCONF = 'almacen.urls'
 
