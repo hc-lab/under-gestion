@@ -6,7 +6,7 @@ class Personal(models.Model):
         ('BBVA', 'BBVA'),
         ('Interbank', 'Interbank'),
         ('Scotiabank', 'Scotiabank'),
-        ('BN', 'Banco de la Nación'),
+        ('BN', 'Banco de la Nación'),   
         ('Otros', 'Otros')
     ]
 
@@ -14,7 +14,7 @@ class Personal(models.Model):
     apellidos = models.CharField(max_length=100)
     dni = models.CharField(max_length=8, unique=True)
     cargo = models.CharField(max_length=100)
-    telefono = models.CharField(max_length=9)
+    telefono = models.CharField(max_length=9, blank=True, null=True)
     procedencia = models.CharField(max_length=100)
     numero_cuenta = models.CharField(max_length=20, blank=True, null=True, verbose_name='Número de Cuenta')
     numero_cci = models.CharField(max_length=20, blank=True, null=True, verbose_name='Número de CCI')
