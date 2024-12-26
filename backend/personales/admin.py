@@ -33,44 +33,57 @@ class PersonalAdmin(admin.ModelAdmin):
 
 @admin.register(Tareo)
 class TareoAdmin(admin.ModelAdmin):
-    list_display = ('personal', 'fecha', 'tipo', 'fecha_registro')
+    list_display = ('personal', 'fecha', 'tipo', 'motivo', 'fecha_registro')
     list_filter = ('tipo', 'fecha')
     search_fields = ['personal__nombres', 'personal__apellidos', 'motivo']
     date_hierarchy = 'fecha'
     raw_id_fields = ('personal',)
     ordering = ('-fecha', 'personal__apellidos')
+    change_list_template = 'admin/tareo/tareo_changelist.html'
 
     def changelist_view(self, request, extra_context=None):
-        # Obtener estadísticas para el día actual
-        hoy = timezone.now().date()
         response = super().changelist_view(request, extra_context=extra_context)
         
         try:
-            queryset = self.get_queryset(request).filter(fecha=hoy)
-            stats = queryset.values('tipo').annotate(total=Count('id'))
+            # Obtener la fecha actual
+            hoy = timezone.now().date()
             
-            # Convertir a diccionario para fácil acceso
+            # Obtener todos los tareos de hoy
+            queryset = self.get_queryset(request).filter(fecha=hoy)
+            
+            # Obtener el conteo por tipo
+            stats = queryset.values('tipo').annotate(
+                total=Count('id')
+            ).order_by('tipo')
+            
+            # Obtener el total de personal
+            total_personal = Personal.objects.count()
+            
+            # Preparar las estadísticas
             stats_dict = {
                 'UNIDAD': 0,
                 'PERMISO': 0,
                 'FALTA': 0,
                 'DESCANSO': 0,
                 'DIAS_LIBRES': 0,
-                'OTROS': 0,
-                'TOTAL': queryset.count()
+                'OTROS': 0
             }
             
             for item in stats:
                 stats_dict[item['tipo']] = item['total']
             
             # Agregar al contexto
-            if not isinstance(response, TemplateResponse):
-                return response
-            
-            response.context_data['stats'] = stats_dict
-            
-        except (AttributeError, KeyError):
-            pass
+            if hasattr(response, 'context_data'):
+                response.context_data['summary'] = {
+                    'stats': stats_dict,
+                    'total_personal': total_personal,
+                    'fecha': hoy,
+                    'asistencia': stats_dict.get('UNIDAD', 0),
+                    'ausentes': total_personal - stats_dict.get('UNIDAD', 0)
+                }
+        
+        except (AttributeError, KeyError) as e:
+            print(f"Error al generar estadísticas: {e}")
         
         return response
 
