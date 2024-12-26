@@ -40,11 +40,11 @@ const ProductList = () => {
             setProductos(productosRes.data);
             setCategorias(categoriasRes.data);
             setPersonal(personalRes.data);
+            setLoading(false);
         } catch (error) {
             console.error('Error en fetchData:', error);
             setError(error.message);
             toast.error('Error al cargar los datos');
-        } finally {
             setLoading(false);
         }
     }, []);
@@ -52,6 +52,7 @@ const ProductList = () => {
     useEffect(() => {
         console.log('ProductList montado');
         console.log('Iniciando fetchData');
+        fetchData();
     }, [fetchData]);
 
     const handleProductoClick = async (producto) => {
