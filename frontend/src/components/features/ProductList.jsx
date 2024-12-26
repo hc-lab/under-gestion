@@ -188,22 +188,22 @@ const ProductList = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Nombre
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Categoría
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Stock
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Unidad
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Categoría
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Estado
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Acciones
                             </th>
                         </tr>
@@ -216,31 +216,16 @@ const ProductList = () => {
                                         <div className="text-sm font-medium text-gray-900">{producto.nombre}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            producto.categoria_id || producto.categoria ?
-                                            'bg-blue-100 text-blue-800' :
-                                            'bg-gray-100 text-gray-800'
-                                        }`}>
-                                            {(() => {
-                                                if (producto.categoria && producto.categoria.nombre) {
-                                                    return producto.categoria.nombre;
-                                                }
-                                                if (producto.categoria_id) {
-                                                    const cat = categorias.find(c => c.id === producto.categoria_id);
-                                                    return cat ? cat.nombre : 'Sin categoría';
-                                                }
-                                                return 'Sin categoría';
-                                            })()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{producto.stock}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{producto.unidad_medida}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                        <div className="text-sm text-gray-900">{producto.categoria?.nombre || '-'}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                                             producto.estado === 'Disponible' 
                                                 ? 'bg-green-100 text-green-800' 
                                                 : 'bg-red-100 text-red-800'
@@ -250,19 +235,19 @@ const ProductList = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
+                                            onClick={() => handleProductoClick(producto)}
+                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                        >
+                                            Historial
+                                        </button>
+                                        <button
                                             onClick={() => {
                                                 setSelectedProducto(producto);
                                                 setIsSalidaOpen(true);
                                             }}
-                                            className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                            className="text-green-600 hover:text-green-900"
                                         >
                                             Registrar Salida
-                                        </button>
-                                        <button
-                                            onClick={() => handleProductoClick(producto)}
-                                            className="text-gray-600 hover:text-gray-900"
-                                        >
-                                            Ver Historial
                                         </button>
                                     </td>
                                 </tr>
