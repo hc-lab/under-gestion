@@ -13,6 +13,8 @@ from .serializers import PersonalSerializer, TareoSerializer
 class PersonalViewSet(viewsets.ModelViewSet):
     serializer_class = PersonalSerializer
     permission_classes = [permissions.IsAuthenticated]
+    search_fields = ['nombres', 'apellidos', 'dni', 'cargo']
+    ordering = ['apellidos', 'nombres']
 
     def get_queryset(self):
         user = self.request.user
@@ -49,6 +51,10 @@ class PersonalListView(APIView):
 class TareoViewSet(viewsets.ModelViewSet):
     serializer_class = TareoSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['tipo', 'personal', 'fecha']
+    search_fields = ['motivo', 'personal__nombres', 'personal__apellidos']
+    ordering_fields = ['fecha', 'fecha_registro']
+    ordering = ['-fecha']
 
     def get_queryset(self):
         user = self.request.user

@@ -51,10 +51,9 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'almacen.middleware.CORSMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -68,6 +67,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = False  # Solo permitir orígenes específicos
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -234,3 +234,7 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+
+# Configuración de sesión
+SESSION_COOKIE_SECURE = False  # Cambiar a True en producción
+CSRF_COOKIE_SECURE = False    # Cambiar a True en producción
