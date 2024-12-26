@@ -23,7 +23,6 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from django.views.generic import RedirectView
-from personales.views import PersonalListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,7 +30,6 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include('productos.urls')),
     path('api/', include('personales.urls')),
-    path('api/personal/', PersonalListView.as_view(), name='personal-list'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [

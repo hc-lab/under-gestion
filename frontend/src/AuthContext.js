@@ -13,9 +13,8 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
             try {
-                // Asegurarse de que el token esté configurado en axios
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                const response = await axiosInstance.get('/api/user/current/');
+                const response = await axiosInstance.get('/user/current/');
+                console.log('Verificando autenticación...', response.data);
                 if (response.data && response.data.perfil) {
                     setUser(response.data);
                     setUserRole(response.data.perfil.rol);
@@ -25,7 +24,6 @@ export const AuthProvider = ({ children }) => {
                 console.error('Error validando token:', error);
                 localStorage.removeItem('token');
                 localStorage.removeItem('refreshToken');
-                delete axiosInstance.defaults.headers.common['Authorization'];
             }
         }
         setIsLoading(false);
@@ -37,20 +35,18 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            // Primero obtener el token
-            const tokenResponse = await axiosInstance.post('/api/token/', credentials);
+            // Obtener token
+            const tokenResponse = await axiosInstance.post('/token/', credentials);
+            console.log('Token Response:', tokenResponse.data); // Debug
+
             const { access, refresh } = tokenResponse.data;
-            
-            // Guardar tokens
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
-            
-            // Configurar el token en axios
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-            
+
             // Obtener información del usuario
-            const userResponse = await axiosInstance.get('/api/user/current/');
-            
+            const userResponse = await axiosInstance.get('/user/current/');
+            console.log('User Response:', userResponse.data); // Debug
+
             if (userResponse.data && userResponse.data.perfil) {
                 setUser(userResponse.data);
                 setUserRole(userResponse.data.perfil.rol);
@@ -60,6 +56,10 @@ export const AuthProvider = ({ children }) => {
             return false;
         } catch (error) {
             console.error('Error en login:', error);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+            }
             throw error;
         }
     };
@@ -67,7 +67,6 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        delete axiosInstance.defaults.headers.common['Authorization'];
         setIsAuthenticated(false);
         setUser(null);
         setUserRole(null);
