@@ -75,33 +75,25 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'perfil']
 
     def to_representation(self, instance):
-        print(f"\n=== DEBUG SERIALIZER ===")
-        print(f"Serializando usuario: {instance.username}")
-        print(f"¿Tiene perfil antes?: {hasattr(instance, 'perfil')}")
-        
         # Crear perfil si no existe
-        try:
-            if not hasattr(instance, 'perfil'):
-                print("Creando perfil en serializer...")
-                perfil = Perfil.objects.create(user=instance, rol='ADMIN')
-                print(f"Perfil creado: {perfil}")
-                instance.refresh_from_db()
-        except Exception as e:
-            print(f"Error creando perfil en serializer: {str(e)}")
+        if not hasattr(instance, 'perfil'):
+            print(f"Creando perfil en serializer para {instance.username}")
+            Perfil.objects.get_or_create(
+                user=instance,
+                defaults={'rol': 'ADMIN' if instance.is_superuser else 'OPERADOR'}
+            )
+            # Recargar el usuario para obtener el perfil
+            instance.refresh_from_db()
 
+        # Obtener la representación base
         data = super().to_representation(instance)
         
-        # Forzar la inclusión del perfil
-        try:
-            if hasattr(instance, 'perfil'):
-                print("Agregando perfil a la serialización...")
-                perfil_data = PerfilSerializer(instance.perfil).data
-                data['perfil'] = perfil_data
-                print(f"Datos del perfil agregados: {perfil_data}")
-            else:
-                print("¡ADVERTENCIA! Usuario sin perfil después de intentar crearlo")
-        except Exception as e:
-            print(f"Error serializando perfil: {str(e)}")
+        # Asegurarse de que el perfil esté incluido
+        if hasattr(instance, 'perfil'):
+            print(f"Perfil encontrado para {instance.username}: {instance.perfil}")
+            data['perfil'] = PerfilSerializer(instance.perfil).data
+        else:
+            print(f"¡ADVERTENCIA! No se encontró perfil para {instance.username}")
 
-        print(f"Datos finales: {data}")
+        print(f"Datos finales de serialización: {data}")
         return data 

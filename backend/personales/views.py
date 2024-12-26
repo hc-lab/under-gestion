@@ -147,34 +147,44 @@ class TareoViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def current_user(request):
     try:
-        # Obtener el usuario con su perfil en una sola consulta
+        print("\n=== DEBUG CURRENT_USER ===")
         user = User.objects.select_related('perfil').get(id=request.user.id)
+        print(f"Usuario encontrado: {user.username}")
+        print(f"¿Tiene perfil? {hasattr(user, 'perfil')}")
         
-        # Si no tiene perfil, crear uno
+        # Intentar obtener o crear el perfil
         if not hasattr(user, 'perfil'):
-            Perfil.objects.create(
+            print("Creando perfil...")
+            perfil, created = Perfil.objects.get_or_create(
                 user=user,
-                rol='ADMIN' if user.is_superuser else 'OPERADOR'
+                defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
             )
-            # Recargar el usuario con el nuevo perfil
-            user = User.objects.select_related('perfil').get(id=user.id)
+            print(f"Perfil {'creado' if created else 'existente'}: {perfil}")
+            # Recargar el usuario
+            user.refresh_from_db()
         
+        print(f"Perfil actual: {user.perfil if hasattr(user, 'perfil') else 'No tiene'}")
+        
+        # Serializar
         serializer = UserSerializer(user)
         data = serializer.data
+        print(f"Datos serializados: {data}")
         
-        # Verificar que el perfil esté en la respuesta
         if 'perfil' not in data:
             print("ERROR: Perfil no incluido en la serialización")
-            print(f"Usuario: {user}")
-            print(f"Tiene perfil: {hasattr(user, 'perfil')}")
-            print(f"Datos serializados: {data}")
-            return Response({
-                "error": "Error interno del servidor"
-            }, status=500)
+            # Intentar una última vez crear el perfil
+            Perfil.objects.get_or_create(
+                user=user,
+                defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
+            )
+            user.refresh_from_db()
+            serializer = UserSerializer(user)
+            data = serializer.data
         
         return Response(data)
+        
     except Exception as e:
         print(f"Error en current_user: {str(e)}")
-        return Response({
-            "error": str(e)
-        }, status=500)
+        import traceback
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=500)
