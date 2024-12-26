@@ -52,7 +52,6 @@ const ProductList = () => {
     useEffect(() => {
         console.log('ProductList montado');
         console.log('Iniciando fetchData');
-        fetchData();
     }, [fetchData]);
 
     const handleProductoClick = async (producto) => {

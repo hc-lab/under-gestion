@@ -1,0 +1,38 @@
+{% extends "admin/change_list.html" %}
+{% load i18n %}
+
+{% block content_title %}
+    <h1>Gestión de Tareos</h1>
+{% endblock %}
+
+{% block result_list %}
+    {% if stats %}
+    <div style="margin-bottom: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+        <h2 style="margin-bottom: 10px;">Resumen del día</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+            <div style="padding: 10px; background-color: #e8f5e9; border-radius: 4px;">
+                <strong>En Unidad:</strong> {{ stats.UNIDAD }}
+            </div>
+            <div style="padding: 10px; background-color: #e3f2fd; border-radius: 4px;">
+                <strong>Permiso:</strong> {{ stats.PERMISO }}
+            </div>
+            <div style="padding: 10px; background-color: #ffebee; border-radius: 4px;">
+                <strong>Falta:</strong> {{ stats.FALTA }}
+            </div>
+            <div style="padding: 10px; background-color: #fff3e0; border-radius: 4px;">
+                <strong>Descanso Médico:</strong> {{ stats.DESCANSO }}
+            </div>
+            <div style="padding: 10px; background-color: #f3e5f5; border-radius: 4px;">
+                <strong>Días Libres:</strong> {{ stats.DIAS_LIBRES }}
+            </div>
+            <div style="padding: 10px; background-color: #f5f5f5; border-radius: 4px;">
+                <strong>Otros:</strong> {{ stats.OTROS }}
+            </div>
+            <div style="padding: 10px; background-color: #e8eaf6; border-radius: 4px;">
+                <strong>Total:</strong> {{ stats.TOTAL }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {{ block.super }}
+{% endblock %} 
