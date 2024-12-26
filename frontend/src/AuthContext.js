@@ -35,6 +35,10 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
+            // Limpiar cualquier token anterior
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+            
             // Obtener token
             const tokenResponse = await axiosInstance.post('/token/', credentials);
             console.log('Token Response:', tokenResponse.data);
@@ -51,7 +55,6 @@ export const AuthProvider = ({ children }) => {
             console.log('User Response:', userResponse.data);
 
             if (!userResponse.data || !userResponse.data.perfil) {
-                console.error('Respuesta del usuario no contiene perfil:', userResponse.data);
                 throw new Error('Perfil de usuario no encontrado');
             }
 

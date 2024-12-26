@@ -67,7 +67,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False  # Solo permitir orígenes específicos
+CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
 
 CORS_ALLOW_METHODS = [
     'DELETE',
