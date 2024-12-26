@@ -9,44 +9,55 @@ export const AuthProvider = ({ children }) => {
     const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Verificar el token al cargar la página
-    useEffect(() => {
-        const checkAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    // Verificar si el token es válido
-                    const response = await axiosInstance.get('/user/current/');
+    const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const response = await axiosInstance.get('/api/user/current/');
+                if (response.data && response.data.perfil) {
                     setUser(response.data);
                     setUserRole(response.data.perfil.rol);
                     setIsAuthenticated(true);
-                } catch (error) {
-                    console.error('Error validando token:', error);
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('refreshToken');
+                } else {
+                    throw new Error('Perfil de usuario no encontrado');
                 }
+            } catch (error) {
+                console.error('Error validando token:', error);
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                setIsAuthenticated(false);
+                setUser(null);
+                setUserRole(null);
             }
-            setIsLoading(false);
-        };
+        }
+        setIsLoading(false);
+    };
 
+    useEffect(() => {
         checkAuth();
     }, []);
 
     const login = async (credentials) => {
         try {
-            const response = await axiosInstance.post('/token/', credentials);
+            const response = await axiosInstance.post('/api/token/', credentials);
             const { access, refresh } = response.data;
             
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
             
-            // Obtener información del usuario
-            const userResponse = await axiosInstance.get('/user/current/');
-            setUser(userResponse.data);
-            setUserRole(userResponse.data.perfil.rol);
-            setIsAuthenticated(true);
+            // Configurar el token en axios
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
             
-            return true;
+            // Obtener información del usuario
+            const userResponse = await axiosInstance.get('/api/user/current/');
+            if (userResponse.data && userResponse.data.perfil) {
+                setUser(userResponse.data);
+                setUserRole(userResponse.data.perfil.rol);
+                setIsAuthenticated(true);
+                return true;
+            } else {
+                throw new Error('Perfil de usuario no encontrado');
+            }
         } catch (error) {
             console.error('Error en login:', error);
             throw error;
@@ -63,7 +74,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     if (isLoading) {
-        return <div>Cargando...</div>; // O tu componente de loading
+        return <div>Cargando...</div>;
     }
 
     return (

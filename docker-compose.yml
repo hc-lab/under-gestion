@@ -12,7 +12,8 @@ services:
       - CORS_ALLOW_CREDENTIALS=true
       - DEBUG=1
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - mynetwork
 
@@ -40,6 +41,11 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - mynetwork
 

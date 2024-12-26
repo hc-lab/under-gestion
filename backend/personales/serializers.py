@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import Personal, Tareo
+from django.contrib.auth.models import User
+from .models import Perfil
 
 class PersonalSerializer(serializers.ModelSerializer):
     telefono_protegido = serializers.SerializerMethodField()
@@ -59,3 +61,15 @@ class TareoSerializer(serializers.ModelSerializer):
             )
 
         return data 
+
+class PerfilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Perfil
+        fields = ['rol', 'area', 'activo']
+
+class UserSerializer(serializers.ModelSerializer):
+    perfil = PerfilSerializer(read_only=True)
+    
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'perfil'] 

@@ -1,5 +1,5 @@
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -8,7 +8,7 @@ from django.db.models import Q
 from rest_framework import generics
 from rest_framework.views import APIView
 from .models import Personal, Tareo
-from .serializers import PersonalSerializer, TareoSerializer
+from .serializers import PersonalSerializer, TareoSerializer, UserSerializer
 
 class PersonalViewSet(viewsets.ModelViewSet):
     serializer_class = PersonalSerializer
@@ -141,3 +141,9 @@ class TareoViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(tareo)
         return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def current_user(request):
+    serializer = UserSerializer(request.user)
+    return Response(serializer.data)
