@@ -6,6 +6,7 @@ export const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
     // Verificar el token al cargar la página
@@ -17,6 +18,7 @@ export const AuthProvider = ({ children }) => {
                     // Verificar si el token es válido
                     const response = await axiosInstance.get('/user/current/');
                     setUser(response.data);
+                    setUserRole(response.data.perfil.rol);
                     setIsAuthenticated(true);
                 } catch (error) {
                     console.error('Error validando token:', error);
@@ -38,9 +40,12 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
             
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-            
+            // Obtener información del usuario
+            const userResponse = await axiosInstance.get('/user/current/');
+            setUser(userResponse.data);
+            setUserRole(userResponse.data.perfil.rol);
             setIsAuthenticated(true);
+            
             return true;
         } catch (error) {
             console.error('Error en login:', error);
@@ -54,6 +59,7 @@ export const AuthProvider = ({ children }) => {
         delete axiosInstance.defaults.headers.common['Authorization'];
         setIsAuthenticated(false);
         setUser(null);
+        setUserRole(null);
     };
 
     if (isLoading) {
@@ -64,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         <AuthContext.Provider value={{
             isAuthenticated,
             user,
+            userRole,
             login,
             logout,
             isLoading

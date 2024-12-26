@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -11,11 +11,19 @@ from .models import Personal, Tareo
 from .serializers import PersonalSerializer, TareoSerializer
 
 class PersonalViewSet(viewsets.ModelViewSet):
-    queryset = Personal.objects.all()
     serializer_class = PersonalSerializer
-    permission_classes = [IsAuthenticated]
-    search_fields = ['nombres', 'apellidos', 'dni', 'cargo']
-    ordering = ['apellidos', 'nombres']
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Personal.objects.all()
+        elif hasattr(user, 'perfil'):
+            if user.perfil.rol == 'SUPERVISOR':
+                return Personal.objects.filter(area=user.perfil.area)
+            elif user.perfil.rol == 'OPERADOR':
+                return Personal.objects.filter(user=user)
+        return Personal.objects.none()
 
 class PersonalSearchView(generics.ListAPIView):
     serializer_class = PersonalSerializer
@@ -39,13 +47,21 @@ class PersonalListView(APIView):
         return Response(serializer.data)
 
 class TareoViewSet(viewsets.ModelViewSet):
-    queryset = Tareo.objects.all()
     serializer_class = TareoSerializer
-    permission_classes = [IsAuthenticated]
-    filterset_fields = ['tipo', 'personal', 'fecha']
-    search_fields = ['motivo', 'personal__nombres', 'personal__apellidos']
-    ordering_fields = ['fecha', 'fecha_registro']
-    ordering = ['-fecha']
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Tareo.objects.all()
+        elif hasattr(user, 'perfil'):
+            if user.perfil.rol == 'SUPERVISOR':
+                # Supervisores ven los tareos de su área
+                return Tareo.objects.filter(personal__area=user.perfil.area)
+            elif user.perfil.rol == 'OPERADOR':
+                # Operadores solo ven sus propios tareos
+                return Tareo.objects.filter(personal__user=user)
+        return Tareo.objects.none()
 
     def create(self, request, *args, **kwargs):
         try:
