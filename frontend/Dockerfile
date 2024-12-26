@@ -6,18 +6,20 @@ WORKDIR /app/frontend
 # Copiar package.json y package-lock.json primero
 COPY package*.json ./
 
-# Instalar dependencias con flags para resolver problemas de compatibilidad
-RUN npm install --legacy-peer-deps --no-package-lock
+# Limpiar cache e instalar dependencias
+RUN npm cache clean --force && \
+    npm install -g npm@latest && \
+    npm install --legacy-peer-deps --force
+
+# Instalar ajv explícitamente (para resolver el error de ajv/dist/compile/codegen)
+RUN npm install ajv@latest ajv-keywords@latest
 
 # Copiar el resto de los archivos
 COPY . .
 
-# Construir la aplicación
-RUN npm run build
-
 # Exponer el puerto
 EXPOSE 3000
 
-# Comando para iniciar la aplicación
+# Comando para iniciar la aplicación en modo desarrollo (sin build)
 CMD ["npm", "start"]
 
