@@ -68,16 +68,21 @@ class PerfilSerializer(serializers.ModelSerializer):
         fields = ['rol', 'area', 'activo']
 
 class UserSerializer(serializers.ModelSerializer):
-    perfil = PerfilSerializer()
+    perfil = PerfilSerializer(read_only=True)
 
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'perfil']
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        # Asegurarse de que el perfil exista
+        # Crear perfil si no existe
         if not hasattr(instance, 'perfil'):
             Perfil.objects.create(user=instance, rol='OPERADOR')
             instance.refresh_from_db()
+        
+        data = super().to_representation(instance)
+        # Asegurarse de que el perfil esté incluido
+        if hasattr(instance, 'perfil'):
+            data['perfil'] = PerfilSerializer(instance.perfil).data
+        
         return data 

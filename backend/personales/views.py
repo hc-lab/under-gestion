@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
@@ -145,10 +146,20 @@ class TareoViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
-    # Asegurarse de que el usuario tenga un perfil
-    if not hasattr(request.user, 'perfil'):
-        Perfil.objects.create(user=request.user, rol='OPERADOR')
-        request.user.refresh_from_db()
+    user = request.user
+    print(f"Usuario: {user.username}")
     
-    serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+    if not hasattr(user, 'perfil'):
+        print("Creando nuevo perfil...")
+        Perfil.objects.create(user=user, rol='OPERADOR')
+        user.refresh_from_db()
+    
+    print(f"Perfil: {user.perfil if hasattr(user, 'perfil') else 'No tiene perfil'}")
+    
+    user = User.objects.select_related('perfil').get(id=user.id)
+    serializer = UserSerializer(user)
+    response_data = serializer.data
+    
+    print(f"Datos serializados: {response_data}")
+    
+    return Response(response_data)
