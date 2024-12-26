@@ -75,14 +75,33 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'perfil']
 
     def to_representation(self, instance):
+        print(f"\n=== DEBUG SERIALIZER ===")
+        print(f"Serializando usuario: {instance.username}")
+        print(f"¿Tiene perfil antes?: {hasattr(instance, 'perfil')}")
+        
         # Crear perfil si no existe
-        if not hasattr(instance, 'perfil'):
-            Perfil.objects.create(user=instance, rol='OPERADOR')
-            instance.refresh_from_db()
-        
+        try:
+            if not hasattr(instance, 'perfil'):
+                print("Creando perfil en serializer...")
+                perfil = Perfil.objects.create(user=instance, rol='ADMIN')
+                print(f"Perfil creado: {perfil}")
+                instance.refresh_from_db()
+        except Exception as e:
+            print(f"Error creando perfil en serializer: {str(e)}")
+
         data = super().to_representation(instance)
-        # Asegurarse de que el perfil esté incluido
-        if hasattr(instance, 'perfil'):
-            data['perfil'] = PerfilSerializer(instance.perfil).data
         
+        # Forzar la inclusión del perfil
+        try:
+            if hasattr(instance, 'perfil'):
+                print("Agregando perfil a la serialización...")
+                perfil_data = PerfilSerializer(instance.perfil).data
+                data['perfil'] = perfil_data
+                print(f"Datos del perfil agregados: {perfil_data}")
+            else:
+                print("¡ADVERTENCIA! Usuario sin perfil después de intentar crearlo")
+        except Exception as e:
+            print(f"Error serializando perfil: {str(e)}")
+
+        print(f"Datos finales: {data}")
         return data 

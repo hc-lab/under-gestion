@@ -147,19 +147,33 @@ class TareoViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def current_user(request):
     user = request.user
+    print(f"\n=== DEBUG CURRENT_USER ===")
     print(f"Usuario: {user.username}")
+    print(f"ID: {user.id}")
+    print(f"¿Tiene perfil?: {hasattr(user, 'perfil')}")
     
     if not hasattr(user, 'perfil'):
         print("Creando nuevo perfil...")
-        Perfil.objects.create(user=user, rol='OPERADOR')
-        user.refresh_from_db()
+        try:
+            perfil = Perfil.objects.create(user=user, rol='ADMIN')  # Cambiado a ADMIN
+            print(f"Perfil creado: {perfil}")
+            user.refresh_from_db()
+        except Exception as e:
+            print(f"Error creando perfil: {str(e)}")
     
-    print(f"Perfil: {user.perfil if hasattr(user, 'perfil') else 'No tiene perfil'}")
+    print(f"Perfil después de crear: {user.perfil if hasattr(user, 'perfil') else 'Aún sin perfil'}")
     
-    user = User.objects.select_related('perfil').get(id=user.id)
-    serializer = UserSerializer(user)
-    response_data = serializer.data
-    
-    print(f"Datos serializados: {response_data}")
-    
-    return Response(response_data)
+    try:
+        # Forzar una nueva consulta para obtener el usuario con su perfil
+        user = User.objects.select_related('perfil').get(id=user.id)
+        print(f"Usuario recargado: {user}")
+        print(f"Perfil recargado: {user.perfil if hasattr(user, 'perfil') else 'No encontrado'}")
+        
+        serializer = UserSerializer(user)
+        response_data = serializer.data
+        print(f"Datos serializados: {response_data}")
+        
+        return Response(response_data)
+    except Exception as e:
+        print(f"Error en la serialización: {str(e)}")
+        return Response({"error": str(e)}, status=500)
