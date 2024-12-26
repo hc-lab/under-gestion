@@ -1,16 +1,13 @@
 # proyecto_root/frontend/Dockerfile
-FROM node:16.20-alpine
+FROM node:20-alpine
 
 WORKDIR /app/frontend
-
-# Actualizar npm a una versión específica
-RUN npm install -g npm@8.19.4
 
 # Copiar package.json y package-lock.json primero
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install --legacy-peer-deps
+# Instalar dependencias con flags para resolver problemas de compatibilidad
+RUN npm install --legacy-peer-deps --no-package-lock
 
 # Copiar el resto de los archivos
 COPY . .
