@@ -88,14 +88,19 @@ class Perfil(models.Model):
         verbose_name = 'Perfil'
         verbose_name_plural = 'Perfiles'
 
+# Señal para crear perfil automáticamente
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        Perfil.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
+def ensure_profile_exists(sender, instance, created, **kwargs):
+    """
+    Asegura que exista un perfil para cada usuario.
+    Si el usuario es nuevo (created=True), crea un perfil.
+    Si el usuario ya existe pero no tiene perfil, también crea uno.
+    """
     if not hasattr(instance, 'perfil'):
-        Perfil.objects.create(user=instance)
-    instance.perfil.save()
+        print(f"Creando perfil para {instance.username}")
+        # Si el usuario es superuser, crear perfil como ADMIN
+        rol = 'ADMIN' if instance.is_superuser else 'OPERADOR'
+        Perfil.objects.create(user=instance, rol=rol)
+    else:
+        print(f"Perfil ya existe para {instance.username}")
 

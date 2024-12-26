@@ -146,34 +146,35 @@ class TareoViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
-    user = request.user
-    print(f"\n=== DEBUG CURRENT_USER ===")
-    print(f"Usuario: {user.username}")
-    print(f"ID: {user.id}")
-    print(f"¿Tiene perfil?: {hasattr(user, 'perfil')}")
-    
-    if not hasattr(user, 'perfil'):
-        print("Creando nuevo perfil...")
-        try:
-            perfil = Perfil.objects.create(user=user, rol='ADMIN')  # Cambiado a ADMIN
-            print(f"Perfil creado: {perfil}")
-            user.refresh_from_db()
-        except Exception as e:
-            print(f"Error creando perfil: {str(e)}")
-    
-    print(f"Perfil después de crear: {user.perfil if hasattr(user, 'perfil') else 'Aún sin perfil'}")
-    
     try:
-        # Forzar una nueva consulta para obtener el usuario con su perfil
-        user = User.objects.select_related('perfil').get(id=user.id)
-        print(f"Usuario recargado: {user}")
-        print(f"Perfil recargado: {user.perfil if hasattr(user, 'perfil') else 'No encontrado'}")
+        # Obtener el usuario con su perfil en una sola consulta
+        user = User.objects.select_related('perfil').get(id=request.user.id)
+        
+        # Si no tiene perfil, crear uno
+        if not hasattr(user, 'perfil'):
+            Perfil.objects.create(
+                user=user,
+                rol='ADMIN' if user.is_superuser else 'OPERADOR'
+            )
+            # Recargar el usuario con el nuevo perfil
+            user = User.objects.select_related('perfil').get(id=user.id)
         
         serializer = UserSerializer(user)
-        response_data = serializer.data
-        print(f"Datos serializados: {response_data}")
+        data = serializer.data
         
-        return Response(response_data)
+        # Verificar que el perfil esté en la respuesta
+        if 'perfil' not in data:
+            print("ERROR: Perfil no incluido en la serialización")
+            print(f"Usuario: {user}")
+            print(f"Tiene perfil: {hasattr(user, 'perfil')}")
+            print(f"Datos serializados: {data}")
+            return Response({
+                "error": "Error interno del servidor"
+            }, status=500)
+        
+        return Response(data)
     except Exception as e:
-        print(f"Error en la serialización: {str(e)}")
-        return Response({"error": str(e)}, status=500)
+        print(f"Error en current_user: {str(e)}")
+        return Response({
+            "error": str(e)
+        }, status=500)
