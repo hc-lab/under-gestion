@@ -7,7 +7,7 @@ from datetime import datetime
 from django.db.models import Q
 from rest_framework import generics
 from rest_framework.views import APIView
-from .models import Personal, Tareo
+from .models import Personal, Tareo, Perfil
 from .serializers import PersonalSerializer, TareoSerializer, UserSerializer
 
 class PersonalViewSet(viewsets.ModelViewSet):
@@ -145,5 +145,10 @@ class TareoViewSet(viewsets.ModelViewSet):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
+    # Asegurarse de que el usuario tenga un perfil
+    if not hasattr(request.user, 'perfil'):
+        Perfil.objects.create(user=request.user, rol='OPERADOR')
+        request.user.refresh_from_db()
+    
     serializer = UserSerializer(request.user)
     return Response(serializer.data)

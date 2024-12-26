@@ -1,6 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import PersonalViewSet, TareoViewSet, PersonalSearchView, PersonalListView, current_user
+from .views import (
+    PersonalViewSet, 
+    TareoViewSet, 
+    PersonalSearchView, 
+    PersonalListView,
+    current_user
+)
 
 router = DefaultRouter()
 router.register(r'personal', PersonalViewSet, basename='personal')

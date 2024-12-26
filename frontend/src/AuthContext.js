@@ -37,23 +37,28 @@ export const AuthProvider = ({ children }) => {
         try {
             // Obtener token
             const tokenResponse = await axiosInstance.post('/token/', credentials);
-            console.log('Token Response:', tokenResponse.data); // Debug
+            console.log('Token Response:', tokenResponse.data);
 
             const { access, refresh } = tokenResponse.data;
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
 
+            // Configurar el token para la siguiente petición
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/user/current/');
-            console.log('User Response:', userResponse.data); // Debug
+            console.log('User Response:', userResponse.data);
 
-            if (userResponse.data && userResponse.data.perfil) {
-                setUser(userResponse.data);
-                setUserRole(userResponse.data.perfil.rol);
-                setIsAuthenticated(true);
-                return true;
+            if (!userResponse.data || !userResponse.data.perfil) {
+                console.error('Respuesta del usuario no contiene perfil:', userResponse.data);
+                throw new Error('Perfil de usuario no encontrado');
             }
-            return false;
+
+            setUser(userResponse.data);
+            setUserRole(userResponse.data.perfil.rol);
+            setIsAuthenticated(true);
+            return true;
         } catch (error) {
             console.error('Error en login:', error);
             if (error.response) {
