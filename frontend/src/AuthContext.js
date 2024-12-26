@@ -13,21 +13,19 @@ export const AuthProvider = ({ children }) => {
         const token = localStorage.getItem('token');
         if (token) {
             try {
+                // Asegurarse de que el token esté configurado en axios
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
                 const response = await axiosInstance.get('/api/user/current/');
                 if (response.data && response.data.perfil) {
                     setUser(response.data);
                     setUserRole(response.data.perfil.rol);
                     setIsAuthenticated(true);
-                } else {
-                    throw new Error('Perfil de usuario no encontrado');
                 }
             } catch (error) {
                 console.error('Error validando token:', error);
                 localStorage.removeItem('token');
                 localStorage.removeItem('refreshToken');
-                setIsAuthenticated(false);
-                setUser(null);
-                setUserRole(null);
+                delete axiosInstance.defaults.headers.common['Authorization'];
             }
         }
         setIsLoading(false);
@@ -39,9 +37,11 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            const response = await axiosInstance.post('/api/token/', credentials);
-            const { access, refresh } = response.data;
+            // Primero obtener el token
+            const tokenResponse = await axiosInstance.post('/api/token/', credentials);
+            const { access, refresh } = tokenResponse.data;
             
+            // Guardar tokens
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
             
@@ -50,14 +50,14 @@ export const AuthProvider = ({ children }) => {
             
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/api/user/current/');
+            
             if (userResponse.data && userResponse.data.perfil) {
                 setUser(userResponse.data);
                 setUserRole(userResponse.data.perfil.rol);
                 setIsAuthenticated(true);
                 return true;
-            } else {
-                throw new Error('Perfil de usuario no encontrado');
             }
+            return false;
         } catch (error) {
             console.error('Error en login:', error);
             throw error;

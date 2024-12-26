@@ -1,39 +1,19 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: 'http://localhost:8000',
+    timeout: 5000,
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    },
-    withCredentials: false
+        'Accept': 'application/json'
+    }
 });
 
-axiosInstance.interceptors.request.use(
-    config => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    error => {
-        console.error('Error en la petición:', error);
-        return Promise.reject(error);
-    }
-);
-
+// Interceptor para manejar errores
 axiosInstance.interceptors.response.use(
     response => response,
     error => {
-        if (error.response) {
-            console.error('Error del servidor:', error.response.data);
-            console.error('Status:', error.response.status);
-        } else if (error.request) {
-            console.error('Error de red:', error.request);
-        } else {
-            console.error('Error:', error.message);
-        }
+        console.error('Request Error:', error);
         return Promise.reject(error);
     }
 );
