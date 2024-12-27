@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from './axiosInstance';
+import axios from 'axios';
 
 export const AuthContext = createContext(null);
 
@@ -35,24 +36,28 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            // Limpiar cualquier token anterior
+            // Limpiar tokens anteriores
             localStorage.removeItem('token');
             localStorage.removeItem('refreshToken');
             
             // Obtener token
-            const tokenResponse = await axiosInstance.post('/token/', credentials);
-            console.log('Token Response:', tokenResponse.data);
+            const tokenResponse = await axios.post('http://localhost:8000/api/token/', credentials, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Origin': 'http://localhost:3000'
+                }
+            });
 
             const { access, refresh } = tokenResponse.data;
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
 
-            // Configurar el token para la siguiente petición
+            // Configurar el token para futuras peticiones
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/user/current/');
-            console.log('User Response:', userResponse.data);
 
             if (!userResponse.data || !userResponse.data.perfil) {
                 throw new Error('Perfil de usuario no encontrado');
@@ -64,10 +69,6 @@ export const AuthProvider = ({ children }) => {
             return true;
         } catch (error) {
             console.error('Error en login:', error);
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-            }
             throw error;
         }
     };

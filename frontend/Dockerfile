@@ -3,14 +3,11 @@ FROM node:20-alpine
 
 WORKDIR /app/frontend
 
-# Copiar package.json y package-lock.json primero
+# Copiar package.json y package-lock.json
 COPY package*.json ./
 
 # Limpiar cache e instalar dependencias
-#20
-RUN rm -rf /root/.npm && \
-    rm -f package-lock.json && \
-    npm cache clean --force && \
+RUN npm cache clean --force && \
     npm install -g npm@latest && \
     npm install --legacy-peer-deps --force
 
@@ -23,6 +20,6 @@ COPY . .
 # Exponer el puerto
 EXPOSE 3000
 
-# Comando para iniciar la aplicación en modo desarrollo (sin build)
+# Comando para iniciar la aplicación
 CMD ["npm", "start"]
 
