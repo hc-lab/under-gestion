@@ -53,18 +53,28 @@ export const AuthProvider = ({ children }) => {
             // Configurar el token para futuras peticiones
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            // Obtener información del usuario
-            const userResponse = await axiosInstance.get('/user/current/');
-            console.log('Datos del usuario:', userResponse.data);
+            try {
+                // Intentar verificar el usuario primero
+                await axiosInstance.post('/verify-user/', {
+                    username: credentials.username
+                });
 
-            if (!userResponse.data || !userResponse.data.perfil) {
-                throw new Error('No se pudo obtener la información del usuario');
+                // Obtener información del usuario
+                const userResponse = await axiosInstance.get('/user/current/');
+                console.log('Datos del usuario:', userResponse.data);
+
+                if (!userResponse.data) {
+                    throw new Error('No se pudo obtener la información del usuario');
+                }
+
+                setUser(userResponse.data);
+                setUserRole(userResponse.data.perfil?.rol || 'OPERADOR');
+                setIsAuthenticated(true);
+                return true;
+            } catch (error) {
+                console.error('Error verificando usuario:', error);
+                throw error;
             }
-
-            setUser(userResponse.data);
-            setUserRole(userResponse.data.perfil.rol);
-            setIsAuthenticated(true);
-            return true;
         } catch (error) {
             console.error('Error detallado en login:', error);
             if (error.response) {
