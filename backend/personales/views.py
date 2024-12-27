@@ -151,24 +151,14 @@ def current_user(request):
         user = request.user
         print(f"Usuario encontrado: {user.username}")
         print(f"Usuario es superuser: {user.is_superuser}")
-        print(f"Usuario ID: {user.id}")
         
         # Asegurar que existe el perfil
         perfil, created = Perfil.objects.get_or_create(
             user=user,
             defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
         )
-        
-        if created:
-            print(f"Se creó nuevo perfil para {user.username}")
-        else:
-            print(f"Se encontró perfil existente para {user.username}")
-        
-        # Forzar el rol ADMIN para superusuarios
-        if user.is_superuser and perfil.rol != 'ADMIN':
-            perfil.rol = 'ADMIN'
-            perfil.save()
-        
+        print(f"Perfil {'creado' if created else 'existente'}: {perfil.rol}")
+
         data = {
             'id': user.id,
             'username': user.username,
@@ -184,41 +174,11 @@ def current_user(request):
         }
         print(f"Datos a enviar: {data}")
         return Response(data)
-        
     except Exception as e:
         print(f"Error en current_user: {str(e)}")
         import traceback
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_profile(request):
-    try:
-        user = request.user
-        print(f"Intentando crear/obtener perfil para: {user.username}")
-        
-        # Intentar obtener el perfil existente
-        perfil, created = Perfil.objects.get_or_create(
-            user=user,
-            defaults={'rol': request.data.get('rol', 'OPERADOR')}
-        )
-        
-        print(f"Perfil {'creado' if created else 'recuperado'}: {perfil}")
-        
-        return Response({
-            "id": perfil.id,
-            "rol": perfil.rol,
-            "user": perfil.user.id
-        })
-    except Exception as e:
-        print(f"Error en create_profile: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return Response(
-            {"error": str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
 
 @api_view(['POST'])
 def verify_user(request):
