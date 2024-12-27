@@ -188,3 +188,28 @@ def current_user(request):
         import traceback
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_profile(request):
+    try:
+        user = request.user
+        if hasattr(user, 'perfil'):
+            return Response({"message": "Profile already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        rol = request.data.get('rol', 'OPERADOR')
+        perfil = Perfil.objects.create(
+            user=user,
+            rol=rol
+        )
+        
+        return Response({
+            "id": perfil.id,
+            "rol": perfil.rol,
+            "user": perfil.user.id
+        })
+    except Exception as e:
+        return Response(
+            {"error": str(e)}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

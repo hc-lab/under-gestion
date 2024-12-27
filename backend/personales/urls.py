@@ -5,7 +5,8 @@ from .views import (
     TareoViewSet, 
     PersonalSearchView, 
     PersonalListView,
-    current_user
+    current_user,
+    create_profile
 )
 
 router = DefaultRouter()
@@ -17,4 +18,5 @@ urlpatterns = [
     path('buscar-personal/', PersonalSearchView.as_view(), name='buscar-personal'),
     path('lista-personal/', PersonalListView.as_view(), name='lista-personal'),
     path('user/current/', current_user, name='current-user'),
+    path('user/create-profile/', create_profile, name='create-profile'),
 ] 
