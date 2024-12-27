@@ -44,8 +44,7 @@ export const AuthProvider = ({ children }) => {
             const tokenResponse = await axios.post('http://localhost:8000/api/token/', credentials, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'Origin': 'http://localhost:3000'
+                    'Accept': 'application/json'
                 }
             });
 
@@ -58,17 +57,30 @@ export const AuthProvider = ({ children }) => {
 
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/user/current/');
+            console.log('Respuesta del usuario:', userResponse.data);
 
-            if (!userResponse.data || !userResponse.data.perfil) {
-                throw new Error('Perfil de usuario no encontrado');
+            if (!userResponse.data) {
+                throw new Error('No se pudo obtener la información del usuario');
+            }
+
+            // Crear perfil si no existe
+            if (!userResponse.data.perfil) {
+                console.log('Perfil no encontrado, intentando crear uno...');
+                const createProfileResponse = await axiosInstance.post('/user/create-profile/', {
+                    rol: credentials.username === 'admin' ? 'ADMIN' : 'OPERADOR'
+                });
+                userResponse.data.perfil = createProfileResponse.data;
             }
 
             setUser(userResponse.data);
-            setUserRole(userResponse.data.perfil.rol);
+            setUserRole(userResponse.data.perfil?.rol);
             setIsAuthenticated(true);
             return true;
         } catch (error) {
             console.error('Error en login:', error);
+            if (error.response) {
+                console.error('Detalles del error:', error.response.data);
+            }
             throw error;
         }
     };

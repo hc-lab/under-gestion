@@ -93,14 +93,15 @@ class Perfil(models.Model):
 def ensure_profile_exists(sender, instance, created, **kwargs):
     """
     Asegura que exista un perfil para cada usuario.
-    Si el usuario es nuevo (created=True), crea un perfil.
-    Si el usuario ya existe pero no tiene perfil, también crea uno.
     """
     if not hasattr(instance, 'perfil'):
         print(f"Creando perfil para {instance.username}")
-        # Si el usuario es superuser, crear perfil como ADMIN
-        rol = 'ADMIN' if instance.is_superuser else 'OPERADOR'
-        Perfil.objects.create(user=instance, rol=rol)
-    else:
-        print(f"Perfil ya existe para {instance.username}")
+        try:
+            Perfil.objects.create(
+                user=instance,
+                rol='ADMIN' if instance.is_superuser else 'OPERADOR'
+            )
+            print(f"Perfil creado exitosamente para {instance.username}")
+        except Exception as e:
+            print(f"Error creando perfil para {instance.username}: {str(e)}")
 
