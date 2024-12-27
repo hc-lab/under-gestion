@@ -1,5 +1,5 @@
 # proyecto_root/frontend/Dockerfile
-FROM node:20-alpine
+FROM node:20-alpine 
 
 WORKDIR /app/frontend
 
@@ -7,7 +7,10 @@ WORKDIR /app/frontend
 COPY package*.json ./
 
 # Limpiar cache e instalar dependencias
-RUN npm cache clean --force && \
+#20
+RUN rm -rf /root/.npm && \
+    rm -f package-lock.json && \
+    npm cache clean --force && \
     npm install -g npm@latest && \
     npm install --legacy-peer-deps --force
 
