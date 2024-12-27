@@ -182,7 +182,6 @@ def current_user(request):
 
 @api_view(['POST'])
 def verify_user(request):
-    from django.contrib.auth.models import User
     try:
         username = request.data.get('username')
         print(f"Verificando usuario: {username}")

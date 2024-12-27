@@ -6,7 +6,6 @@ from .views import (
     PersonalSearchView, 
     PersonalListView,
     current_user,
-    create_profile,
     verify_user
 )
 
@@ -19,6 +18,5 @@ urlpatterns = [
     path('buscar-personal/', PersonalSearchView.as_view(), name='buscar-personal'),
     path('lista-personal/', PersonalListView.as_view(), name='lista-personal'),
     path('user/current/', current_user, name='current-user'),
-    path('user/create-profile/', create_profile, name='create-profile'),
     path('verify-user/', verify_user, name='verify-user'),
 ] 
