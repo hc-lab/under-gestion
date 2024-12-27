@@ -34,20 +34,23 @@ python manage.py shell << END
 from django.contrib.auth.models import User
 from personales.models import Perfil
 try:
-    if not User.objects.filter(username='admin').exists():
-        user = User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
-        perfil, created = Perfil.objects.get_or_create(
-            user=user,
-            defaults={'rol': 'ADMIN'}
-        )
-        print(f"Superuser created successfully with profile: {perfil}")
-    else:
-        user = User.objects.get(username='admin')
-        perfil, created = Perfil.objects.get_or_create(
-            user=user,
-            defaults={'rol': 'ADMIN'}
-        )
-        print(f"Existing superuser profile: {perfil}")
+    # Eliminar usuario si existe (para asegurar credenciales correctas)
+    User.objects.filter(username='admin').delete()
+    
+    # Crear nuevo superusuario
+    user = User.objects.create_superuser(
+        username='admin',
+        email='admin@example.com',
+        password='admin123'
+    )
+    
+    # Crear o actualizar perfil
+    perfil, created = Perfil.objects.get_or_create(
+        user=user,
+        defaults={'rol': 'ADMIN'}
+    )
+    print(f"Superuser created/updated successfully with profile: {perfil}")
+    
 except Exception as e:
     print(f"Error in superuser creation: {str(e)}")
 END
