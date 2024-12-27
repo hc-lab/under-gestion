@@ -81,6 +81,12 @@ class Perfil(models.Model):
     area = models.CharField(max_length=100, blank=True, null=True)
     activo = models.BooleanField(default=True)
 
+    def save(self, *args, **kwargs):
+        # Asegurar que los superusuarios siempre sean ADMIN
+        if self.user.is_superuser:
+            self.rol = 'ADMIN'
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.user.username} - {self.get_rol_display()}"
 

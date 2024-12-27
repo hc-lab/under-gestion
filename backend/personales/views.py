@@ -150,6 +150,15 @@ def current_user(request):
         print("\n=== DEBUG CURRENT_USER ===")
         user = request.user
         print(f"Usuario encontrado: {user.username}")
+        print(f"Usuario es superuser: {user.is_superuser}")
+        print(f"Usuario ID: {user.id}")
+        
+        # Verificar si ya existe el perfil
+        existing_profile = Perfil.objects.filter(user=user).first()
+        if existing_profile:
+            print(f"Perfil existente encontrado: {existing_profile.rol}")
+        else:
+            print("No se encontró perfil existente")
         
         # Asegurar que existe el perfil
         perfil, created = Perfil.objects.get_or_create(
@@ -157,6 +166,7 @@ def current_user(request):
             defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
         )
         print(f"Perfil {'creado' if created else 'existente'}: {perfil}")
+        print(f"Rol del perfil: {perfil.rol}")
         
         # Serializar la respuesta
         data = {
@@ -165,12 +175,14 @@ def current_user(request):
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name,
+            'is_superuser': user.is_superuser,
             'perfil': {
                 'id': perfil.id,
                 'rol': perfil.rol,
                 'area': perfil.area
             }
         }
+        print(f"Datos a enviar: {data}")
         
         return Response(data)
         

@@ -57,10 +57,16 @@ export const AuthProvider = ({ children }) => {
 
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/user/current/');
-            console.log('Respuesta del usuario:', userResponse.data);
+            console.log('Respuesta completa del usuario:', userResponse);
+            console.log('Datos del usuario:', userResponse.data);
 
-            if (!userResponse.data || !userResponse.data.perfil) {
+            if (!userResponse.data) {
                 throw new Error('No se pudo obtener la información del usuario');
+            }
+
+            if (!userResponse.data.perfil) {
+                console.error('Respuesta sin perfil:', userResponse.data);
+                throw new Error('El usuario no tiene perfil asignado');
             }
 
             setUser(userResponse.data);
@@ -68,9 +74,11 @@ export const AuthProvider = ({ children }) => {
             setIsAuthenticated(true);
             return true;
         } catch (error) {
-            console.error('Error en login:', error);
+            console.error('Error detallado en login:', error);
             if (error.response) {
-                console.error('Detalles del error:', error.response.data);
+                console.error('Datos de la respuesta:', error.response.data);
+                console.error('Estado de la respuesta:', error.response.status);
+                console.error('Headers de la respuesta:', error.response.headers);
             }
             throw error;
         }
