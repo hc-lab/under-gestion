@@ -67,7 +67,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = True  # Solo para desarrollo
+CORS_ALLOW_ALL_ORIGINS = False  # Cambiado a False
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -91,10 +91,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Exponer headers
-CORS_EXPOSE_HEADERS = [
-    'content-type',
-    'x-csrftoken',
-]
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Tiempo de cache para las opciones preflight
 CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
@@ -228,6 +225,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
 }
 
 # Agregar estas líneas
