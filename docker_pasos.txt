@@ -50,3 +50,15 @@ docker-compose down
 docker-compose exec backend python manage.py makemigrations
 docker-compose exec backend python manage.py migrate
 
+docker-compose exec backend python manage.py createsuperuser
+
+
+REINICIAR COMPLETAMENTE LOS CONTENEDORES
+# Detener y eliminar todos los contenedores
+docker-compose down -v
+
+# Reconstruir las imágenes
+docker-compose build --no-cache
+
+# Iniciar los contenedores
+docker-compose up

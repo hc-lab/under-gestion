@@ -1,14 +1,18 @@
 # proyecto_root/frontend/Dockerfile
-FROM node:20-alpine
+FROM node:20-alpine 
 
 WORKDIR /app/frontend
 
 # Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Instalar dependencias específicas
-RUN npm install --production --silent && \
-    npm install react-scripts@5.0.1 -g --silent
+# Limpiar cache e instalar dependencias
+RUN npm cache clean --force && \
+    npm install -g npm@latest && \
+    npm install --legacy-peer-deps --force
+
+# Instalar ajv explícitamente (para resolver el error de ajv/dist/compile/codegen)
+RUN npm install ajv@latest ajv-keywords@latest
 
 # Copiar el resto de los archivos
 COPY . .
