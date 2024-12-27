@@ -148,38 +148,29 @@ class TareoViewSet(viewsets.ModelViewSet):
 def current_user(request):
     try:
         print("\n=== DEBUG CURRENT_USER ===")
-        user = User.objects.select_related('perfil').get(id=request.user.id)
+        user = request.user
         print(f"Usuario encontrado: {user.username}")
-        print(f"¿Tiene perfil? {hasattr(user, 'perfil')}")
         
-        # Intentar obtener o crear el perfil
-        if not hasattr(user, 'perfil'):
-            print("Creando perfil...")
-            perfil, created = Perfil.objects.get_or_create(
-                user=user,
-                defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
-            )
-            print(f"Perfil {'creado' if created else 'existente'}: {perfil}")
-            # Recargar el usuario
-            user.refresh_from_db()
+        # Asegurar que existe el perfil
+        perfil, created = Perfil.objects.get_or_create(
+            user=user,
+            defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
+        )
+        print(f"Perfil {'creado' if created else 'existente'}: {perfil}")
         
-        print(f"Perfil actual: {user.perfil if hasattr(user, 'perfil') else 'No tiene'}")
-        
-        # Serializar
-        serializer = UserSerializer(user)
-        data = serializer.data
-        print(f"Datos serializados: {data}")
-        
-        if 'perfil' not in data:
-            print("ERROR: Perfil no incluido en la serialización")
-            # Intentar una última vez crear el perfil
-            Perfil.objects.get_or_create(
-                user=user,
-                defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
-            )
-            user.refresh_from_db()
-            serializer = UserSerializer(user)
-            data = serializer.data
+        # Serializar la respuesta
+        data = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'perfil': {
+                'id': perfil.id,
+                'rol': perfil.rol,
+                'area': perfil.area
+            }
+        }
         
         return Response(data)
         
@@ -194,14 +185,15 @@ def current_user(request):
 def create_profile(request):
     try:
         user = request.user
-        if hasattr(user, 'perfil'):
-            return Response({"message": "Profile already exists"}, status=status.HTTP_400_BAD_REQUEST)
+        print(f"Intentando crear/obtener perfil para: {user.username}")
         
-        rol = request.data.get('rol', 'OPERADOR')
-        perfil = Perfil.objects.create(
+        # Intentar obtener el perfil existente
+        perfil, created = Perfil.objects.get_or_create(
             user=user,
-            rol=rol
+            defaults={'rol': request.data.get('rol', 'OPERADOR')}
         )
+        
+        print(f"Perfil {'creado' if created else 'recuperado'}: {perfil}")
         
         return Response({
             "id": perfil.id,
@@ -209,6 +201,9 @@ def create_profile(request):
             "user": perfil.user.id
         })
     except Exception as e:
+        print(f"Error en create_profile: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return Response(
             {"error": str(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR

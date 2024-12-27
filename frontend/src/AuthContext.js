@@ -59,31 +59,12 @@ export const AuthProvider = ({ children }) => {
             const userResponse = await axiosInstance.get('/user/current/');
             console.log('Respuesta del usuario:', userResponse.data);
 
-            if (!userResponse.data) {
+            if (!userResponse.data || !userResponse.data.perfil) {
                 throw new Error('No se pudo obtener la información del usuario');
             }
 
-            // Crear perfil si no existe
-            if (!userResponse.data.perfil) {
-                console.log('Perfil no encontrado, intentando crear uno...');
-                try {
-                    const createProfileResponse = await axiosInstance.post('/user/create-profile/', {
-                        rol: credentials.username === 'admin' ? 'ADMIN' : 'OPERADOR'
-                    });
-                    userResponse.data.perfil = createProfileResponse.data;
-                } catch (profileError) {
-                    console.error('Error creando perfil:', profileError);
-                    // Intentar obtener el usuario nuevamente
-                    const updatedUserResponse = await axiosInstance.get('/user/current/');
-                    if (!updatedUserResponse.data.perfil) {
-                        throw new Error('No se pudo crear el perfil de usuario');
-                    }
-                    userResponse.data = updatedUserResponse.data;
-                }
-            }
-
             setUser(userResponse.data);
-            setUserRole(userResponse.data.perfil?.rol);
+            setUserRole(userResponse.data.perfil.rol);
             setIsAuthenticated(true);
             return true;
         } catch (error) {
