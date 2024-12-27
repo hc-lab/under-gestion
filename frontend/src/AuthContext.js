@@ -36,32 +36,15 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            console.log('Intentando login con:', {
-                username: credentials.username,
-                passwordLength: credentials.password?.length
-            });
-
-            // Verificar usuario primero
-            try {
-                const verifyResponse = await axiosInstance.post('/verify-user/', {
-                    username: credentials.username
-                });
-                console.log('Verificación de usuario:', verifyResponse.data);
-            } catch (verifyError) {
-                console.error('Error verificando usuario:', verifyError);
-            }
-
             // Limpiar tokens anteriores
             localStorage.removeItem('token');
             localStorage.removeItem('refreshToken');
             
-            // Obtener token
+            // Obtener token primero
             const tokenResponse = await axiosInstance.post('/token/', {
                 username: credentials.username,
                 password: credentials.password
             });
-
-            console.log('Respuesta de token:', tokenResponse.data);
 
             const { access, refresh } = tokenResponse.data;
             localStorage.setItem('token', access);
@@ -120,6 +103,10 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
+        throw new Error('useAuth debe ser usado dentro de un AuthProvider');
+    }
+    return context;
+};
         throw new Error('useAuth debe ser usado dentro de un AuthProvider');
     }
     return context;

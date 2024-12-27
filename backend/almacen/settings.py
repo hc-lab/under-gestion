@@ -68,7 +68,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False  # Cambiado a False
+CORS_ALLOW_ALL_ORIGINS = False  # Debe ser False cuando usas CORS_ALLOWED_ORIGINS
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -240,3 +240,7 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 # Configuración de sesión
 SESSION_COOKIE_SECURE = False  # Cambiar a True en producción
 CSRF_COOKIE_SECURE = False    # Cambiar a True en producción
+CSRF_COOKIE_HTTPONLY = False
+SESSION_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
