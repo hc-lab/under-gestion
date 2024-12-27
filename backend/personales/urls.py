@@ -6,7 +6,8 @@ from .views import (
     PersonalSearchView, 
     PersonalListView,
     current_user,
-    create_profile
+    create_profile,
+    verify_user
 )
 
 router = DefaultRouter()
@@ -19,4 +20,5 @@ urlpatterns = [
     path('lista-personal/', PersonalListView.as_view(), name='lista-personal'),
     path('user/current/', current_user, name='current-user'),
     path('user/create-profile/', create_profile, name='create-profile'),
+    path('verify-user/', verify_user, name='verify-user'),
 ] 

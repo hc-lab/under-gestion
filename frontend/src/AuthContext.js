@@ -36,17 +36,37 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
+            console.log('Intentando login con:', {
+                username: credentials.username,
+                passwordLength: credentials.password?.length
+            });
+
+            // Verificar usuario primero
+            try {
+                const verifyResponse = await axios.post('http://localhost:8000/api/verify-user/', {
+                    username: credentials.username
+                });
+                console.log('Verificación de usuario:', verifyResponse.data);
+            } catch (verifyError) {
+                console.error('Error verificando usuario:', verifyError);
+            }
+
             // Limpiar tokens anteriores
             localStorage.removeItem('token');
             localStorage.removeItem('refreshToken');
             
             // Obtener token
-            const tokenResponse = await axios.post('http://localhost:8000/api/token/', credentials, {
+            const tokenResponse = await axios.post('http://localhost:8000/api/token/', {
+                username: credentials.username,
+                password: credentials.password
+            }, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json'
                 }
             });
+
+            console.log('Respuesta de token:', tokenResponse.data);
 
             const { access, refresh } = tokenResponse.data;
             localStorage.setItem('token', access);
@@ -80,7 +100,7 @@ export const AuthProvider = ({ children }) => {
                 console.error('Estado de la respuesta:', error.response.status);
                 console.error('Headers de la respuesta:', error.response.headers);
             }
-            throw error;
+            throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
         }
     };
 

@@ -220,3 +220,21 @@ def create_profile(request):
             {"error": str(e)}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+@api_view(['POST'])
+def verify_user(request):
+    from django.contrib.auth.models import User
+    try:
+        username = request.data.get('username')
+        users = User.objects.filter(username=username)
+        if users.exists():
+            user = users.first()
+            return Response({
+                'exists': True,
+                'is_active': user.is_active,
+                'is_superuser': user.is_superuser,
+                'has_profile': hasattr(user, 'perfil')
+            })
+        return Response({'exists': False})
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
