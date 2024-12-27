@@ -153,22 +153,22 @@ def current_user(request):
         print(f"Usuario es superuser: {user.is_superuser}")
         print(f"Usuario ID: {user.id}")
         
-        # Verificar si ya existe el perfil
-        existing_profile = Perfil.objects.filter(user=user).first()
-        if existing_profile:
-            print(f"Perfil existente encontrado: {existing_profile.rol}")
-        else:
-            print("No se encontró perfil existente")
-        
         # Asegurar que existe el perfil
         perfil, created = Perfil.objects.get_or_create(
             user=user,
             defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
         )
-        print(f"Perfil {'creado' if created else 'existente'}: {perfil}")
-        print(f"Rol del perfil: {perfil.rol}")
         
-        # Serializar la respuesta
+        if created:
+            print(f"Se creó nuevo perfil para {user.username}")
+        else:
+            print(f"Se encontró perfil existente para {user.username}")
+        
+        # Forzar el rol ADMIN para superusuarios
+        if user.is_superuser and perfil.rol != 'ADMIN':
+            perfil.rol = 'ADMIN'
+            perfil.save()
+        
         data = {
             'id': user.id,
             'username': user.username,
@@ -183,7 +183,6 @@ def current_user(request):
             }
         }
         print(f"Datos a enviar: {data}")
-        
         return Response(data)
         
     except Exception as e:
@@ -226,15 +225,26 @@ def verify_user(request):
     from django.contrib.auth.models import User
     try:
         username = request.data.get('username')
+        print(f"Verificando usuario: {username}")
         users = User.objects.filter(username=username)
         if users.exists():
             user = users.first()
+            # Asegurar que el usuario tiene perfil
+            perfil, created = Perfil.objects.get_or_create(
+                user=user,
+                defaults={'rol': 'ADMIN' if user.is_superuser else 'OPERADOR'}
+            )
+            print(f"Usuario encontrado: {user.username} (perfil: {perfil.rol})")
             return Response({
                 'exists': True,
                 'is_active': user.is_active,
                 'is_superuser': user.is_superuser,
-                'has_profile': hasattr(user, 'perfil')
+                'has_profile': True,
+                'profile_role': perfil.rol
             })
         return Response({'exists': False})
     except Exception as e:
+        print(f"Error en verify_user: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return Response({'error': str(e)}, status=500)
