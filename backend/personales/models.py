@@ -85,6 +85,7 @@ class Perfil(models.Model):
         # Asegurar que los superusuarios siempre sean ADMIN
         if self.user.is_superuser:
             self.rol = 'ADMIN'
+            print(f"Asignando rol ADMIN a superusuario {self.user.username}")
         super().save(*args, **kwargs)
 
     def __str__(self):
