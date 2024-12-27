@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
 
             // Verificar usuario primero
             try {
-                const verifyResponse = await axios.post('http://localhost:8000/api/verify-user/', {
+                const verifyResponse = await axiosInstance.post('/verify-user/', {
                     username: credentials.username
                 });
                 console.log('Verificación de usuario:', verifyResponse.data);
@@ -56,14 +56,9 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('refreshToken');
             
             // Obtener token
-            const tokenResponse = await axios.post('http://localhost:8000/api/token/', {
+            const tokenResponse = await axiosInstance.post('/token/', {
                 username: credentials.username,
                 password: credentials.password
-            }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
             });
 
             console.log('Respuesta de token:', tokenResponse.data);
@@ -77,16 +72,10 @@ export const AuthProvider = ({ children }) => {
 
             // Obtener información del usuario
             const userResponse = await axiosInstance.get('/user/current/');
-            console.log('Respuesta completa del usuario:', userResponse);
             console.log('Datos del usuario:', userResponse.data);
 
-            if (!userResponse.data) {
+            if (!userResponse.data || !userResponse.data.perfil) {
                 throw new Error('No se pudo obtener la información del usuario');
-            }
-
-            if (!userResponse.data.perfil) {
-                console.error('Respuesta sin perfil:', userResponse.data);
-                throw new Error('El usuario no tiene perfil asignado');
             }
 
             setUser(userResponse.data);
@@ -97,8 +86,6 @@ export const AuthProvider = ({ children }) => {
             console.error('Error detallado en login:', error);
             if (error.response) {
                 console.error('Datos de la respuesta:', error.response.data);
-                console.error('Estado de la respuesta:', error.response.status);
-                console.error('Headers de la respuesta:', error.response.headers);
             }
             throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
         }
