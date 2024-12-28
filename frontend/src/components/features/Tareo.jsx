@@ -180,7 +180,7 @@ const Tareo = () => {
                 />
             </div>
 
-            <div ref={contentRef}>
+            <div ref={contentRef} className="bg-white p-8 rounded-lg shadow-lg">
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-gray-900">Control de Asistencia</h1>
                     <div className="flex gap-4 mt-4">

@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { DocumentIcon } from '@heroicons/react/24/outline';
+import { toast } from 'react-hot-toast';
 
 const ExportPDF = ({ targetRef, fileName = 'control-asistencia' }) => {
     useEffect(() => {
-        // Cargar scripts desde CDN
         const loadScript = (src) => {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
@@ -22,30 +22,68 @@ const ExportPDF = ({ targetRef, fileName = 'control-asistencia' }) => {
 
     const exportToPDF = async () => {
         try {
+            toast.loading('Generando PDF...');
             const element = targetRef.current;
+            
+            // Configuración mejorada para html2canvas
             // @ts-ignore
             const canvas = await window.html2canvas(element, {
-                scale: 2,
+                scale: 3, // Aumentar la escala para mejor calidad
+                useCORS: true,
                 logging: false,
-                useCORS: true
+                allowTaint: true,
+                foreignObjectRendering: true,
+                letterRendering: true,
+                removeContainer: true,
+                backgroundColor: '#ffffff',
+                windowWidth: element.scrollWidth,
+                windowHeight: element.scrollHeight,
             });
             
-            const imgData = canvas.toDataURL('image/png');
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
             // @ts-ignore
             const pdf = new window.jspdf.jsPDF({
                 orientation: 'landscape',
                 unit: 'mm',
-                format: 'a4'
+                format: 'a3', // Cambiar a A3 para más espacio
+                compress: true
             });
 
+            // Calcular dimensiones manteniendo el aspect ratio
             const imgProps = pdf.getImageProperties(imgData);
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            // Agregar márgenes y ajustar el tamaño
+            const margin = 10; // 10mm de margen
+            pdf.addImage(
+                imgData, 
+                'JPEG', 
+                margin, // X
+                margin, // Y
+                pdfWidth - (margin * 2), // Ancho con márgenes
+                pdfHeight - (margin * 2), // Alto con márgenes
+                undefined,
+                'FAST' // Mejor rendimiento
+            );
+
+            // Agregar metadatos
+            pdf.setProperties({
+                title: fileName,
+                subject: 'Control de Asistencia',
+                author: 'Sistema de Control',
+                keywords: 'asistencia, control, reporte',
+                creator: 'Sistema de Control'
+            });
+
             pdf.save(`${fileName}.pdf`);
+            toast.dismiss();
+            toast.success('PDF generado exitosamente');
         } catch (error) {
             console.error('Error al exportar PDF:', error);
+            toast.dismiss();
+            toast.error('Error al generar el PDF');
         }
     };
 
