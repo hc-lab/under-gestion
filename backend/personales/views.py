@@ -155,9 +155,42 @@ class TareoViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(tareos, many=True)
             return Response(serializer.data)
         except Exception as e:
+            print(f"Error en por_fecha: {str(e)}")
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=False, methods=['post'])
+    def actualizar_tareo(self, request):
+        """Actualizar o crear un tareo para una fecha específica"""
+        try:
+            personal_id = request.data.get('personal')
+            fecha = request.data.get('fecha')
+            tipo = request.data.get('tipo')
+            
+            # Si tipo está vacío, eliminar el registro si existe
+            if not tipo:
+                Tareo.objects.filter(personal_id=personal_id, fecha=fecha).delete()
+                return Response({'message': 'Registro eliminado'})
+            
+            # Si existe, actualizar; si no, crear
+            tareo, created = Tareo.objects.update_or_create(
+                personal_id=personal_id,
+                fecha=fecha,
+                defaults={
+                    'tipo': tipo,
+                    'registrado_por': request.user
+                }
+            )
+            
+            serializer = self.get_serializer(tareo)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error en actualizar_tareo: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 @api_view(['GET'])

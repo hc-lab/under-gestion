@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axiosInstance';
-import { format } from 'date-fns';
+import { format, isBefore, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toast } from 'react-hot-toast';
 
 const Tareo = () => {
     const [personal, setPersonal] = useState([]);
@@ -9,6 +10,7 @@ const Tareo = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(true);
     const [tareos, setTareos] = useState({});
+    const [editingCell, setEditingCell] = useState(null);
 
     // Definir los códigos de asistencia con un valor por defecto
     const CODIGOS = {
@@ -66,8 +68,11 @@ const Tareo = () => {
 
     // Generar array de días
     const generateDays = () => {
+        const today = new Date();
+        const isCurrentMonth = selectedYear === today.getFullYear() && selectedMonth === today.getMonth();
         const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
-        return Array.from({ length: daysInMonth }, (_, i) => i + 1);
+        const lastDay = isCurrentMonth ? today.getDate() - 1 : daysInMonth;
+        return Array.from({ length: lastDay }, (_, i) => i + 1);
     };
 
     useEffect(() => {
@@ -76,20 +81,26 @@ const Tareo = () => {
 
     const fetchTareos = async (year, month) => {
         try {
-            setLoading(true);
             const daysInMonth = getDaysInMonth(year, month);
             const tareosByDay = {};
+            const today = new Date();
+            const lastDay = (year === today.getFullYear() && month === today.getMonth()) 
+                ? today.getDate() - 1 
+                : daysInMonth;
 
-            // Obtener tareos para cada día del mes
-            for (let day = 1; day <= daysInMonth; day++) {
+            // Obtener tareos solo hasta el día anterior
+            for (let day = 1; day <= lastDay; day++) {
                 const fecha = format(new Date(year, month, day), 'yyyy-MM-dd');
                 const response = await axiosInstance.get(`/tareos/por_fecha/?fecha=${fecha}`);
-                tareosByDay[day] = response.data;
+                if (response.data) {
+                    tareosByDay[day] = response.data;
+                }
             }
 
             return tareosByDay;
         } catch (error) {
             console.error('Error fetching tareos:', error);
+            toast.error('Error al cargar los registros');
             return {};
         }
     };
@@ -108,6 +119,42 @@ const Tareo = () => {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Función para verificar si una fecha es editable (pasada)
+    const isDateEditable = (year, month, day) => {
+        const cellDate = new Date(year, month, day);
+        return isBefore(cellDate, startOfToday());
+    };
+
+    // Función para manejar el click en una celda
+    const handleCellClick = (persona, day) => {
+        const isEditable = isDateEditable(selectedYear, selectedMonth, day);
+        if (!isEditable) return;
+
+        setEditingCell({
+            personalId: persona.id,
+            day: day
+        });
+    };
+
+    // Función para actualizar el tareo
+    const handleTareoUpdate = async (persona, day, tipo) => {
+        try {
+            const fecha = format(new Date(selectedYear, selectedMonth, day), 'yyyy-MM-dd');
+            const data = {
+                personal: persona.id,
+                fecha: fecha,
+                tipo: tipo
+            };
+
+            await axiosInstance.post('/tareos/actualizar_tareo/', data);
+            await fetchData(); // Recargar datos
+            setEditingCell(null);
+        } catch (error) {
+            console.error('Error updating tareo:', error);
+            toast.error('Error al actualizar el registro');
         }
     };
 
@@ -167,33 +214,61 @@ const Tareo = () => {
                         </tr>
                     </thead>
                     <tbody className="text-xs divide-y divide-gray-200">
-                        {personal.map((persona, index) => {
-                            return (
-                                <tr key={persona.id} className="hover:bg-gray-50">
-                                    <td className="px-2 py-1 text-gray-500 border-r">
-                                        {index + 1}
-                                    </td>
-                                    <td className="px-2 py-1 border-r">
-                                        <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
-                                            {persona.apellidos} {persona.nombres}
-                                        </div>
-                                    </td>
-                                    {days.map(day => {
-                                        const tareo = tareos[day]?.find(t => t.personal === persona.id);
-                                        const codigo = tareo?.tipo || 'F';
-                                        const codigoInfo = CODIGOS[codigo] || CODIGOS['default'];
-                                        
+                        {personal.map((persona, index) => (
+                            <tr key={persona.id} className="hover:bg-gray-50">
+                                <td className="px-2 py-1 text-gray-500 border-r">
+                                    {index + 1}
+                                </td>
+                                <td className="px-2 py-1 border-r">
+                                    <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
+                                        {persona.apellidos} {persona.nombres}
+                                    </div>
+                                </td>
+                                {days.map(day => {
+                                    const tareo = tareos[day]?.find(t => t.personal === persona.id);
+                                    const isEditable = isDateEditable(selectedYear, selectedMonth, day);
+                                    const isEditing = editingCell?.personalId === persona.id && editingCell?.day === day;
+
+                                    if (isEditing) {
                                         return (
-                                            <td key={day} 
-                                                className={`px-1 py-1 text-center border-r last:border-r-0 ${codigoInfo.color}`}
-                                            >
-                                                {codigoInfo.text}
+                                            <td key={day} className="px-1 py-1 text-center border-r">
+                                                <select
+                                                    className="w-full text-xs border-none focus:ring-1 focus:ring-blue-500"
+                                                    value={tareo?.tipo || ''}
+                                                    onChange={(e) => handleTareoUpdate(persona, day, e.target.value)}
+                                                    autoFocus
+                                                    onBlur={() => setEditingCell(null)}
+                                                >
+                                                    <option value="">-</option>
+                                                    {Object.entries(CODIGOS)
+                                                        .filter(([code]) => code !== 'default')
+                                                        .map(([code, { text, description }]) => (
+                                                            <option key={code} value={code}>
+                                                                {text} - {description}
+                                                            </option>
+                                                        ))}
+                                                </select>
                                             </td>
                                         );
-                                    })}
-                                </tr>
-                            );
-                        })}
+                                    }
+
+                                    const codigo = tareo?.tipo;
+                                    const codigoInfo = codigo ? CODIGOS[codigo] : CODIGOS['default'];
+                                    
+                                    return (
+                                        <td 
+                                            key={day} 
+                                            className={`px-1 py-1 text-center border-r last:border-r-0 
+                                                ${codigo ? codigoInfo.color : 'bg-white'}
+                                                ${isEditable ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                                            onClick={() => isEditable && handleCellClick(persona, day)}
+                                        >
+                                            {codigo ? codigoInfo.text : ''}
+                                        </td>
+                                    );
+                                })}
+                            </tr>
+                        ))}
                     </tbody>
                 </table>
 
