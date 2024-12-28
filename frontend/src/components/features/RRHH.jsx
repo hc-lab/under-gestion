@@ -119,13 +119,13 @@ const RRHH = () => {
 
     const getStatusColor = (tipo) => {
         switch (tipo) {
-            case 'T': return '#4ade80';  // verde
-            case 'PS': return '#f87171'; // rojo
-            case 'DL': return '#fbbf24'; // amarillo
-            case 'DM': return '#60a5fa'; // azul
-            case 'TL': return '#a78bfa'; // púrpura
-            case 'PC': return '#34d399'; // verde esmeralda
-            default: return '#9ca3af';   // gris
+            case 'T': return '#60a5fa';    // azul celeste (En Unidad)
+            case 'PS': return '#93c5fd';   // azul celeste claro (Permiso Sin Goce)
+            case 'DL': return '#94a3b8';   // gris (Días Libres)
+            case 'DM': return '#86efac';   // verde claro (Descanso Médico)
+            case 'TL': return '#c4b5fd';   // violeta claro (Trabaja en Lima)
+            case 'PC': return '#6ee7b7';   // verde menta (Permiso Con Goce)
+            default: return '#e5e7eb';     // gris muy claro (No Registrado)
         }
     };
 
@@ -268,31 +268,57 @@ const RRHH = () => {
                                         cy="50%"
                                         labelLine={false}
                                         label={({name, value}) => `${value}`}
-                                        outerRadius={100}
+                                        outerRadius={90}
+                                        innerRadius={60}
                                         fill="#8884d8"
+                                        paddingAngle={5}
                                         dataKey="value"
                                     >
                                         {calcularResumen().map((entry, index) => (
                                             <Cell 
                                                 key={`cell-${index}`} 
                                                 fill={getStatusColor(entry.tipo)}
+                                                stroke="#fff"
+                                                strokeWidth={2}
                                             />
                                         ))}
                                     </Pie>
                                     <Tooltip 
-                                        formatter={(value, name) => [`${value} personas`, name]}
+                                        formatter={(value, name) => [
+                                            `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
+                                            name
+                                        ]}
                                         contentStyle={{
-                                            backgroundColor: 'white',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px',
-                                            padding: '8px'
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            padding: '8px 12px',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                        }}
+                                        itemStyle={{
+                                            color: '#374151',
+                                            fontSize: '12px',
+                                            fontWeight: 500
                                         }}
                                     />
                                     <Legend 
-                                        formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
+                                        formatter={(value) => (
+                                            <span style={{
+                                                color: '#374151',
+                                                fontSize: '12px',
+                                                fontWeight: 500
+                                            }}>
+                                                {value}
+                                            </span>
+                                        )}
                                         layout="vertical"
                                         align="right"
                                         verticalAlign="middle"
+                                        iconType="circle"
+                                        iconSize={10}
+                                        wrapperStyle={{
+                                            paddingLeft: '20px'
+                                        }}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
