@@ -16,6 +16,7 @@ import ActivityHistory from './components/features/ActivityHistory';
 import Reports from './components/features/Reports';
 import Personal from './components/features/Personal';
 import RRHH from './components/features/RRHH';
+import Tareo from './components/features/Tareo';
 
 const App = () => {
     return (
@@ -73,7 +74,7 @@ const App = () => {
                                 path="/rrhh" 
                                 element={
                                     <ProtectedRoute>
-                                        <RRHH />
+                                        <Tareo />
                                     </ProtectedRoute>
                                 } 
                             />

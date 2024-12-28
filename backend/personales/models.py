@@ -40,30 +40,27 @@ class Personal(models.Model):
 
 class Tareo(models.Model):
     TIPO_CHOICES = [
-        ('UNIDAD', 'En Unidad'),
-        ('PERMISO', 'Permiso'),
-        ('FALTA', 'Falta'),
-        ('DESCANSO', 'Descanso Médico'),
-        ('DIAS_LIBRES', 'Días Libres'),
-        ('OTROS', 'Otros')
+        ('T', 'En Unidad'),
+        ('PS', 'Permiso Sin Goce'),
+        ('DL', 'Días Libres'),
+        ('DM', 'Descanso Médico'),
+        ('TL', 'Trabaja en Lima'),
+        ('PC', 'Permiso Con Goce'),
     ]
 
-    personal = models.ForeignKey(Personal, on_delete=models.CASCADE, related_name='tareos')
+    personal = models.ForeignKey('Personal', on_delete=models.CASCADE)
     fecha = models.DateField()
-    tipo = models.CharField(
-        max_length=20, 
-        choices=TIPO_CHOICES,
-        default='UNIDAD'
-    )
-    motivo = models.TextField(blank=True, null=True)
+    tipo = models.CharField(max_length=2, choices=TIPO_CHOICES)
+    observaciones = models.TextField(blank=True, null=True)
+    registrado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-fecha', 'personal__apellidos']
         unique_together = ['personal', 'fecha']
+        ordering = ['fecha', 'personal']
 
     def __str__(self):
-        return f"{self.personal} - {self.get_tipo_display()} ({self.fecha})"
+        return f"{self.personal} - {self.fecha} - {self.get_tipo_display()}"
 
     def clean(self):
         # Validaciones personalizadas si son necesarias
