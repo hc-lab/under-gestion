@@ -263,43 +263,83 @@ const RRHH = () => {
                         </h3>
                         <div className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                    data={calcularResumen()}
-                                    layout="vertical"
-                                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                                    <XAxis type="number" />
-                                    <YAxis 
-                                        type="category" 
-                                        dataKey="name" 
-                                        width={100}
-                                        tick={{ fontSize: 12 }}
-                                    />
+                                <PieChart>
+                                    <Pie
+                                        data={calcularResumen()}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={true}
+                                        label={({
+                                            cx,
+                                            cy,
+                                            midAngle,
+                                            innerRadius,
+                                            outerRadius,
+                                            percent,
+                                            value,
+                                            name
+                                        }) => {
+                                            const RADIAN = Math.PI / 180;
+                                            const radius = outerRadius * 1.2;
+                                            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                                            return percent > 0.05 ? (
+                                                <text
+                                                    x={x}
+                                                    y={y}
+                                                    fill="#374151"
+                                                    textAnchor={x > cx ? 'start' : 'end'}
+                                                    dominantBaseline="central"
+                                                    className="text-xs font-medium"
+                                                >
+                                                    {`${name} (${(percent * 100).toFixed(0)}%)`}
+                                                </text>
+                                            ) : null;
+                                        }}
+                                        outerRadius={90}
+                                        innerRadius={40}
+                                        paddingAngle={2}
+                                        dataKey="value"
+                                    >
+                                        {calcularResumen().map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={getStatusColor(entry.tipo)}
+                                                stroke="#ffffff"
+                                                strokeWidth={2}
+                                            />
+                                        ))}
+                                    </Pie>
                                     <Tooltip
                                         formatter={(value, name) => [
                                             `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
-                                            'Cantidad'
+                                            name
                                         ]}
                                         contentStyle={{
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                             borderRadius: '8px',
                                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                             border: 'none',
+                                            padding: '8px 12px',
                                         }}
                                     />
-                                    <Bar 
-                                        dataKey="value" 
-                                        radius={[0, 4, 4, 0]}
-                                    >
-                                        {calcularResumen().map((entry, index) => (
-                                            <Cell 
-                                                key={`cell-${index}`} 
-                                                fill={getStatusColor(entry.tipo)}
-                                            />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
+                                    <Legend
+                                        layout="vertical"
+                                        align="right"
+                                        verticalAlign="middle"
+                                        iconType="circle"
+                                        formatter={(value) => (
+                                            <span style={{
+                                                color: '#374151',
+                                                fontSize: '12px',
+                                                fontWeight: 500
+                                            }}>
+                                                {value}
+                                            </span>
+                                        )}
+                                    />
+                                </PieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
