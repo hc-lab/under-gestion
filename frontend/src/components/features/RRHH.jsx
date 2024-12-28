@@ -192,7 +192,7 @@ const RRHH = () => {
                 />
             </div>
 
-            <div ref={contentRef} className="bg-white p-8 rounded-lg shadow-lg">
+            <div ref={contentRef} className="bg-white p-8 rounded-lg shadow-lg print:shadow-none">
                 <div className="mb-6">
                     <div className="relative">
                         <input
