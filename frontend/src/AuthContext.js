@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axiosInstance from './axiosInstance';
-import axios from 'axios';
 
 export const AuthContext = createContext(null);
 
@@ -11,23 +10,37 @@ export const AuthProvider = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     const checkAuth = async () => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            try {
-                const response = await axiosInstance.get('/user/current/');
-                console.log('Verificando autenticación...', response.data);
-                if (response.data && response.data.perfil) {
-                    setUser(response.data);
-                    setUserRole(response.data.perfil.rol);
-                    setIsAuthenticated(true);
-                }
-            } catch (error) {
-                console.error('Error validando token:', error);
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                setIsLoading(false);
+                return;
+            }
+
+            // Configurar el token para la petición
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            const response = await axiosInstance.get('/user/current/');
+            console.log('Verificando autenticación...', response.data);
+            
+            if (response.data && response.data.perfil) {
+                setUser(response.data);
+                setUserRole(response.data.perfil.rol);
+                setIsAuthenticated(true);
+            }
+        } catch (error) {
+            console.error('Error validando token:', error);
+            // Solo limpiar tokens si hay un error de autenticación
+            if (error.response?.status === 401) {
                 localStorage.removeItem('token');
                 localStorage.removeItem('refreshToken');
+                setIsAuthenticated(false);
+                setUser(null);
+                setUserRole(null);
             }
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -47,39 +60,35 @@ export const AuthProvider = ({ children }) => {
             });
 
             const { access, refresh } = tokenResponse.data;
+            
+            // Guardar tokens
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
 
             // Configurar el token para futuras peticiones
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            try {
-                // Intentar verificar el usuario primero
-                await axiosInstance.post('/verify-user/', {
-                    username: credentials.username
-                });
+            // Verificar usuario y obtener información
+            await axiosInstance.post('/verify-user/', {
+                username: credentials.username
+            });
 
-                // Obtener información del usuario
-                const userResponse = await axiosInstance.get('/user/current/');
-                console.log('Datos del usuario:', userResponse.data);
+            const userResponse = await axiosInstance.get('/user/current/');
+            console.log('Datos del usuario:', userResponse.data);
 
-                if (!userResponse.data) {
-                    throw new Error('No se pudo obtener la información del usuario');
-                }
-
-                setUser(userResponse.data);
-                setUserRole(userResponse.data.perfil?.rol || 'OPERADOR');
-                setIsAuthenticated(true);
-                return true;
-            } catch (error) {
-                console.error('Error verificando usuario:', error);
-                throw error;
+            if (!userResponse.data) {
+                throw new Error('No se pudo obtener la información del usuario');
             }
+
+            setUser(userResponse.data);
+            setUserRole(userResponse.data.perfil?.rol || 'OPERADOR');
+            setIsAuthenticated(true);
+            
+            return true;
         } catch (error) {
             console.error('Error detallado en login:', error);
-            if (error.response) {
-                console.error('Datos de la respuesta:', error.response.data);
-            }
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
             throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
         }
     };
@@ -90,6 +99,8 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(false);
         setUser(null);
         setUserRole(null);
+        // Limpiar el header de autorización
+        delete axiosInstance.defaults.headers.common['Authorization'];
     };
 
     if (isLoading) {
