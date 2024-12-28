@@ -108,11 +108,10 @@ const RRHH = () => {
     const getTipoNombre = (tipo) => {
         switch (tipo) {
             case 'T': return 'En Unidad';
-            case 'PS': return 'Permiso Sin Goce';
+            case 'P': return 'Permiso';
             case 'DL': return 'Días Libres';
             case 'DM': return 'Descanso Médico';
             case 'TL': return 'Trabaja en Lima';
-            case 'PC': return 'Permiso Con Goce';
             default: return 'No Registrado';
         }
     };
@@ -275,7 +274,7 @@ const RRHH = () => {
                     <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
                         <div className="text-sm font-medium text-gray-500">Permisos</div>
                         <div className="mt-1 text-2xl font-semibold text-indigo-600">
-                            {personal.filter(p => p.tareo?.tipo === 'PS' || p.tareo?.tipo === 'PC').length}
+                            {personal.filter(p => p.tareo?.tipo === 'P').length}
                         </div>
                     </div>
 
@@ -491,11 +490,10 @@ const RRHH = () => {
                                         className="w-full border rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                         <option value="T">En Unidad</option>
-                                        <option value="PS">Permiso Sin Goce</option>
+                                        <option value="P">Permiso</option>
                                         <option value="DL">Días Libres</option>
                                         <option value="DM">Descanso Médico</option>
                                         <option value="TL">Trabaja en Lima</option>
-                                        <option value="PC">Permiso Con Goce</option>
                                     </select>
                                 </div>
                                 <div className="mb-4">

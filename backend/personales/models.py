@@ -41,11 +41,10 @@ class Personal(models.Model):
 class Tareo(models.Model):
     TIPO_CHOICES = [
         ('T', 'En Unidad'),
-        ('PS', 'Permiso Sin Goce'),
+        ('P', 'Permiso'),
         ('DL', 'Días Libres'),
         ('DM', 'Descanso Médico'),
         ('TL', 'Trabaja en Lima'),
-        ('PC', 'Permiso Con Goce'),
     ]
 
     personal = models.ForeignKey('Personal', on_delete=models.CASCADE)

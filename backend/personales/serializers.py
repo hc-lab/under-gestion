@@ -28,6 +28,12 @@ class TareoSerializer(serializers.ModelSerializer):
         fields = ['id', 'personal', 'fecha', 'tipo', 'observaciones', 'registrado_por', 'fecha_registro']
         read_only_fields = ['fecha_registro']
 
+    def validate_tipo(self, value):
+        valid_tipos = ['T', 'P', 'DL', 'DM', 'TL']
+        if value not in valid_tipos:
+            raise serializers.ValidationError(f"Tipo debe ser uno de: {', '.join(valid_tipos)}")
+        return value
+
 class PerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Perfil
