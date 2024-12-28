@@ -31,21 +31,24 @@ const RRHH = () => {
     const fetchPersonalWithTareos = async () => {
         try {
             setLoading(true);
-            const [personalRes, tareosRes] = await Promise.all([
-                axiosInstance.get('personal/'),
-                axiosInstance.get('tareos/hoy/')
-            ]);
+            // Primero obtenemos el personal
+            const personalRes = await axiosInstance.get('personal/');
+            
+            let tareos = [];
+            try {
+                // Intentamos obtener los tareos
+                const tareosRes = await axiosInstance.get('tareos/hoy/');
+                tareos = tareosRes.data;
+            } catch (error) {
+                console.warn('No se pudieron cargar los tareos:', error);
+                // Continuamos sin los tareos
+            }
 
-            const personalConTareos = personalRes.data.map(persona => {
-                const tareoHoy = tareosRes.data.find(
-                    tareo => tareo.personal === persona.id
-                ) || null;
-
-                return {
-                    ...persona,
-                    tareo: tareoHoy
-                };
-            });
+            // Combinamos la información
+            const personalConTareos = personalRes.data.map(persona => ({
+                ...persona,
+                tareo: tareos.find(t => t.personal === persona.id) || null
+            }));
 
             setPersonal(personalConTareos);
         } catch (error) {
@@ -74,10 +77,8 @@ const RRHH = () => {
                 personal: selectedPersonal.id,
                 fecha: format(new Date(), 'yyyy-MM-dd'),
                 tipo: formData.tipo,
-                motivo: formData.observaciones || ''
+                observaciones: formData.observaciones || ''
             };
-
-            console.log('Enviando datos:', data);
 
             let response;
             if (selectedPersonal.tareo?.id) {
@@ -89,22 +90,12 @@ const RRHH = () => {
                 response = await axiosInstance.post('tareos/', data);
             }
 
-            console.log('Respuesta:', response.data);
-
             toast.success('Tareo actualizado exitosamente');
             setIsModalOpen(false);
             await fetchPersonalWithTareos();
         } catch (error) {
             console.error('Error al actualizar tareo:', error);
-            if (error.response?.data) {
-                console.error('Detalles del error:', error.response.data);
-                const errorMessage = error.response.data.non_field_errors?.[0] || 
-                                   error.response.data.error ||
-                                   'Error al actualizar el tareo';
-                toast.error(errorMessage);
-            } else {
-                toast.error('Error al actualizar el tareo');
-            }
+            toast.error(error.response?.data?.detail || 'Error al actualizar el tareo');
         }
     };
 

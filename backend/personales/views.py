@@ -98,23 +98,21 @@ class TareoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def hoy(self, request):
         """Obtener todos los tareos de hoy"""
-        fecha_actual = timezone.now().date()
-        tareos = Tareo.objects.filter(fecha=fecha_actual)
-        
-        if not tareos.exists():
-            personal = Personal.objects.all()
-            tareos_nuevos = []
-            for persona in personal:
-                tareos_nuevos.append(Tareo(
-                    personal=persona,
-                    fecha=fecha_actual,
-                    tipo='UNIDAD'
-                ))
-            Tareo.objects.bulk_create(tareos_nuevos)
+        try:
+            fecha_actual = timezone.now().date()
+            print(f"Buscando tareos para la fecha: {fecha_actual}")
+            
             tareos = Tareo.objects.filter(fecha=fecha_actual)
-        
-        serializer = self.get_serializer(tareos, many=True)
-        return Response(serializer.data)
+            print(f"Tareos encontrados: {tareos.count()}")
+            
+            serializer = self.get_serializer(tareos, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error en la vista hoy: {str(e)}")
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=False, methods=['post'])
     def actualizar_estado(self, request):

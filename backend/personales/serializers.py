@@ -9,7 +9,7 @@ class PersonalSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Personal
-        fields = ['id', 'nombres', 'apellidos', 'dni_protegido', 'cargo', 'telefono_protegido', 'procedencia']
+        fields = '__all__'
 
     def get_telefono_protegido(self, obj):
         if obj.telefono:
@@ -23,44 +23,10 @@ class PersonalSerializer(serializers.ModelSerializer):
 
 # Nuevos serializers para el Tareo
 class TareoSerializer(serializers.ModelSerializer):
-    nombre_personal = serializers.CharField(source='personal.nombres', read_only=True)
-    apellidos_personal = serializers.CharField(source='personal.apellidos', read_only=True)
-    cargo_personal = serializers.CharField(source='personal.cargo', read_only=True)
-
     class Meta:
         model = Tareo
-        fields = [
-            'id', 
-            'personal', 
-            'nombre_personal',
-            'apellidos_personal',
-            'cargo_personal',
-            'fecha', 
-            'tipo', 
-            'motivo',
-            'fecha_registro'
-        ]
-
-    def validate(self, data):
-        """
-        Validar que no exista otro tareo para el mismo personal en la misma fecha
-        """
-        personal = data.get('personal')
-        fecha = data.get('fecha')
-        instance = self.instance
-
-        # Verificar si ya existe un tareo para este personal en esta fecha
-        existing_tareo = Tareo.objects.filter(
-            personal=personal,
-            fecha=fecha
-        ).exclude(id=instance.id if instance else None).first()
-
-        if existing_tareo:
-            raise serializers.ValidationError(
-                "Ya existe un tareo para este personal en esta fecha"
-            )
-
-        return data 
+        fields = ['id', 'personal', 'fecha', 'tipo', 'observaciones', 'registrado_por', 'fecha_registro']
+        read_only_fields = ['fecha_registro']
 
 class PerfilSerializer(serializers.ModelSerializer):
     class Meta:
