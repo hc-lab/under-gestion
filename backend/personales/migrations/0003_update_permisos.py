@@ -1,4 +1,4 @@
-from django.db import migrations
+from django.db import migrations, models
 
 def actualizar_permisos(apps, schema_editor):
     Tareo = apps.get_model('personales', 'Tareo')
@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
                     ('DM', 'Descanso Médico'),
                     ('TL', 'Trabaja en Lima'),
                 ],
+                default='T',
             ),
         ),
     ] 
