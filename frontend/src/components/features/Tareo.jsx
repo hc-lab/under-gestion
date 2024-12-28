@@ -11,12 +11,12 @@ const Tareo = () => {
 
     // Códigos de asistencia y sus colores
     const CODIGOS = {
-        'T': { text: 'T', color: 'bg-green-100', description: 'En Unidad' },
-        'PS': { text: 'PS', color: 'bg-red-100', description: 'Permiso Sin Goce' },
-        'DL': { text: 'DL', color: 'bg-yellow-100', description: 'Días Libres' },
-        'DM': { text: 'DM', color: 'bg-orange-100', description: 'Descanso Médico' },
-        'TL': { text: 'TL', color: 'bg-blue-100', description: 'Trabaja en Lima' },
-        'PC': { text: 'PC', color: 'bg-purple-100', description: 'Permiso Con Goce' }
+        'T': { text: 'T', color: 'bg-green-500 text-white', description: 'En Unidad' },
+        'PS': { text: 'PS', color: 'bg-red-500 text-white', description: 'Permiso Sin Goce' },
+        'DL': { text: 'DL', color: 'bg-yellow-500 text-white', description: 'Días Libres' },
+        'DM': { text: 'DM', color: 'bg-orange-500 text-white', description: 'Descanso Médico' },
+        'TL': { text: 'TL', color: 'bg-blue-500 text-white', description: 'Trabaja en Lima' },
+        'PC': { text: 'PC', color: 'bg-purple-500 text-white', description: 'Permiso Con Goce' }
     };
 
     // Obtener días del mes
@@ -38,20 +38,13 @@ const Tareo = () => {
         try {
             setLoading(true);
             const response = await axiosInstance.get('/personal/');
+            console.log('Personal data:', response.data); // Para debug
             setPersonal(response.data);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
-    };
-
-    // Calcular totales por persona
-    const calculateTotals = (asistencias) => {
-        return Object.keys(CODIGOS).reduce((acc, code) => {
-            acc[code] = asistencias.filter(a => a === code).length;
-            return acc;
-        }, {});
     };
 
     if (loading) {
@@ -103,20 +96,13 @@ const Tareo = () => {
                                     {day}
                                 </th>
                             ))}
-                            {Object.keys(CODIGOS).map(code => (
-                                <th key={code} className="border border-gray-200 px-2 py-2 text-center">
-                                    {code}
-                                </th>
-                            ))}
                         </tr>
                     </thead>
                     <tbody>
                         {personal.map((persona, index) => {
-                            // Simulación de asistencias (aquí deberías usar datos reales)
                             const asistencias = days.map(() => 
                                 Object.keys(CODIGOS)[Math.floor(Math.random() * Object.keys(CODIGOS).length)]
                             );
-                            const totales = calculateTotals(asistencias);
 
                             return (
                                 <tr key={persona.id} className="hover:bg-gray-50">
@@ -130,25 +116,20 @@ const Tareo = () => {
                                             {codigo}
                                         </td>
                                     ))}
-                                    {Object.keys(CODIGOS).map(code => (
-                                        <td key={code} className="border border-gray-200 px-2 py-2 text-center">
-                                            {totales[code]}
-                                        </td>
-                                    ))}
                                 </tr>
                             );
                         })}
                     </tbody>
                 </table>
-            </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-4">
-                {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
-                    <div key={code} className="flex items-center gap-2">
-                        <span className={`px-2 py-1 rounded ${color}`}>{text}</span>
-                        <span>{description}</span>
-                    </div>
-                ))}
+                <div className="mt-6 grid grid-cols-3 gap-4">
+                    {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
+                        <div key={code} className="flex items-center gap-2">
+                            <span className={`px-2 py-1 rounded ${color}`}>{text}</span>
+                            <span className="text-gray-700">{description}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
