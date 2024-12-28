@@ -8,7 +8,7 @@ class CORSMiddleware:
         response = self.get_response(request)
         response["Access-Control-Allow-Origin"] = "http://localhost:3000"
         response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
         response["Access-Control-Allow-Credentials"] = "true"
         return response
 

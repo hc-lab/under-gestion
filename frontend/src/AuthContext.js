@@ -136,9 +136,15 @@ export const AuthProvider = ({ children }) => {
         try {
             handleLogout(); // Limpiar estado anterior
             
-            const tokenResponse = await axiosInstance.post('/token/', {
+            const tokenResponse = await axios.post('http://localhost:8000/api/token/', {
                 username: credentials.username,
                 password: credentials.password
+            }, {
+                withCredentials: true,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
             });
 
             const { access, refresh } = tokenResponse.data;
