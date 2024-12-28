@@ -17,7 +17,7 @@ const RRHH = () => {
     const [selectedPersonal, setSelectedPersonal] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({
-        tipo: 'UNIDAD',
+        tipo: 'T',
         fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
         fecha_fin: '',
         observaciones: '',
@@ -62,7 +62,7 @@ const RRHH = () => {
     const handlePersonalClick = (persona) => {
         setSelectedPersonal(persona);
         setFormData({
-            tipo: persona.tareo?.tipo || 'UNIDAD',
+            tipo: persona.tareo?.tipo || 'T',
             fecha_inicio: format(new Date(), 'yyyy-MM-dd'),
             fecha_fin: persona.tareo?.fecha_fin || '',
             observaciones: persona.tareo?.observaciones || '',
@@ -288,6 +288,74 @@ const RRHH = () => {
                 <h2 className="text-2xl font-bold text-gray-900">TAREO</h2>
             </div>
             <Tareo />
+
+            {/* Modal para editar estado */}
+            <Transition show={isModalOpen} as={Fragment}>
+                <Dialog onClose={() => setIsModalOpen(false)} className="relative z-50">
+                    <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                    <div className="fixed inset-0 flex items-center justify-center p-4">
+                        <Dialog.Panel className="mx-auto max-w-sm rounded-lg bg-white p-6 shadow-xl">
+                            <Dialog.Title className="text-lg font-medium text-gray-900 mb-4">
+                                Registrar Asistencia
+                            </Dialog.Title>
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Personal
+                                    </label>
+                                    <p className="text-gray-900 font-medium">
+                                        {selectedPersonal?.apellidos} {selectedPersonal?.nombres}
+                                    </p>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Estado
+                                    </label>
+                                    <select
+                                        value={formData.tipo}
+                                        onChange={(e) => setFormData({...formData, tipo: e.target.value})}
+                                        className="w-full border rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    >
+                                        <option value="T">En Unidad</option>
+                                        <option value="PS">Permiso Sin Goce</option>
+                                        <option value="DL">Días Libres</option>
+                                        <option value="DM">Descanso Médico</option>
+                                        <option value="TL">Trabaja en Lima</option>
+                                        <option value="PC">Permiso Con Goce</option>
+                                    </select>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Observaciones
+                                    </label>
+                                    <textarea
+                                        value={formData.observaciones}
+                                        onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
+                                        className="w-full border rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        rows="3"
+                                        placeholder="Ingrese las observaciones..."
+                                    />
+                                </div>
+                                <div className="flex justify-end space-x-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                    >
+                                        Guardar
+                                    </button>
+                                </div>
+                            </form>
+                        </Dialog.Panel>
+                    </div>
+                </Dialog>
+            </Transition>
         </div>
     );
 };
