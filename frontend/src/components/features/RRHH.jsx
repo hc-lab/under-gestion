@@ -184,10 +184,13 @@ const RRHH = () => {
                                     Cargo
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Procedencia
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Estado
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Acciones
+                                    Observaciones
                                 </th>
                             </tr>
                         </thead>
@@ -196,12 +199,13 @@ const RRHH = () => {
                                 <tr 
                                     key={persona.id}
                                     className="hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => handlePersonalClick(persona)}
                                 >
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {index + 1}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900">
+                                        <div className="text-sm font-medium text-gray-900 hover:text-indigo-600">
                                             {persona.apellidos} {persona.nombres}
                                         </div>
                                     </td>
@@ -209,18 +213,16 @@ const RRHH = () => {
                                         <div className="text-sm text-gray-900">{persona.cargo}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="text-sm text-gray-900">{persona.procedencia}</div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                             ${persona.tareo ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                            {persona.tareo?.tipo || 'No registrado'}
+                                            {getTipoNombre(persona.tareo?.tipo) || 'No registrado'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <button
-                                            onClick={() => handlePersonalClick(persona)}
-                                            className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                            Editar
-                                        </button>
+                                        {persona.tareo?.observaciones || '-'}
                                     </td>
                                 </tr>
                             ))}
