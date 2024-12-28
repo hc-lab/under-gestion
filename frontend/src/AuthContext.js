@@ -4,7 +4,10 @@ import axiosInstance from './axiosInstance';
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        // Inicializar el estado de autenticación basado en la existencia del token
+        return !!localStorage.getItem('token');
+    });
     const [user, setUser] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -26,19 +29,16 @@ export const AuthProvider = ({ children }) => {
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
             try {
-                // Intentar obtener los datos del usuario
                 const response = await axiosInstance.get('/user/current/');
-                
                 if (response.data && response.data.perfil) {
                     setUser(response.data);
                     setUserRole(response.data.perfil.rol);
                     setIsAuthenticated(true);
                 }
             } catch (error) {
-                // Si hay error de autenticación, intentar refrescar el token
                 if (error.response?.status === 401) {
                     try {
-                        const refreshResponse = await axiosInstance.post('/token/refresh/', {
+                        const refreshResponse = await axios.post('http://localhost:8000/api/token/refresh/', {
                             refresh: refreshToken
                         });
                         
@@ -46,6 +46,7 @@ export const AuthProvider = ({ children }) => {
                         localStorage.setItem('token', newToken);
                         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
+                        // Reintentar obtener datos del usuario con el nuevo token
                         const userResponse = await axiosInstance.get('/user/current/');
                         if (userResponse.data && userResponse.data.perfil) {
                             setUser(userResponse.data);
@@ -54,32 +55,46 @@ export const AuthProvider = ({ children }) => {
                         }
                     } catch (refreshError) {
                         console.error('Error refreshing token:', refreshError);
-                        logout();
+                        handleLogout();
                     }
                 } else {
                     console.error('Error checking auth:', error);
-                    logout();
+                    handleLogout();
                 }
             }
         } catch (error) {
             console.error('Error in checkAuth:', error);
-            logout();
+            handleLogout();
         } finally {
             setIsLoading(false);
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        delete axiosInstance.defaults.headers.common['Authorization'];
+        setIsAuthenticated(false);
+        setUser(null);
+        setUserRole(null);
+    };
+
     useEffect(() => {
         checkAuth();
+        // Agregar un listener para eventos de storage
+        const handleStorageChange = (e) => {
+            if (e.key === 'token' && !e.newValue) {
+                handleLogout();
+            }
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
     }, []);
 
     const login = async (credentials) => {
         try {
-            // Limpiar tokens anteriores
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
+            handleLogout(); // Limpiar estado anterior
             
-            // Obtener token primero
             const tokenResponse = await axiosInstance.post('/token/', {
                 username: credentials.username,
                 password: credentials.password
@@ -87,21 +102,11 @@ export const AuthProvider = ({ children }) => {
 
             const { access, refresh } = tokenResponse.data;
             
-            // Guardar tokens
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
-
-            // Configurar el token para futuras peticiones
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            // Verificar usuario y obtener información
-            await axiosInstance.post('/verify-user/', {
-                username: credentials.username
-            });
-
             const userResponse = await axiosInstance.get('/user/current/');
-            console.log('Datos del usuario:', userResponse.data);
-
             if (!userResponse.data) {
                 throw new Error('No se pudo obtener la información del usuario');
             }
@@ -112,21 +117,10 @@ export const AuthProvider = ({ children }) => {
             
             return true;
         } catch (error) {
-            console.error('Error detallado en login:', error);
-            localStorage.removeItem('token');
-            localStorage.removeItem('refreshToken');
+            console.error('Error en login:', error);
+            handleLogout();
             throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
         }
-    };
-
-    const logout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        setIsAuthenticated(false);
-        setUser(null);
-        setUserRole(null);
-        // Limpiar el header de autorización
-        delete axiosInstance.defaults.headers.common['Authorization'];
     };
 
     if (isLoading) {
@@ -139,7 +133,7 @@ export const AuthProvider = ({ children }) => {
             user,
             userRole,
             login,
-            logout,
+            logout: handleLogout,
             isLoading
         }}>
             {children}
