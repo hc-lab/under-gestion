@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../axiosInstance';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
 import { useTareo } from '../../context/TareoContext';
+import ExportPDF from './ExportPDF';
 
 const Tareo = () => {
     const { tareos, setTareos, shouldRefresh, refreshTareos } = useTareo();
@@ -12,6 +13,7 @@ const Tareo = () => {
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(true);
     const [editingCell, setEditingCell] = useState(null);
+    const contentRef = useRef(null);
 
     // Definir los códigos de asistencia con un valor por defecto
     const CODIGOS = {
@@ -170,122 +172,132 @@ const Tareo = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Control de Asistencia</h1>
-                <div className="flex gap-4 mt-4">
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        {Array.from({ length: 12 }, (_, i) => (
-                            <option key={i} value={i}>
-                                {format(new Date(2024, i, 1), 'MMMM', { locale: es })}
-                            </option>
-                        ))}
-                    </select>
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                        {Array.from({ length: 5 }, (_, i) => (
-                            <option key={i} value={2024 - i}>
-                                {2024 - i}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">TAREO</h2>
+                <ExportPDF 
+                    targetRef={contentRef} 
+                    fileName={`tareo-${format(new Date(), 'yyyy-MM-dd')}`}
+                />
             </div>
 
-            <div className="overflow-x-auto bg-white rounded-lg shadow">
-                <table className="min-w-full border-collapse text-sm">
-                    <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
-                                N°
-                            </th>
-                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
-                                Apellidos y Nombres
-                            </th>
-                            {days.map(day => (
-                                <th key={day} className="px-1 py-1 text-center text-xs font-medium text-gray-500 w-7 border-r last:border-r-0">
-                                    {day}
-                                </th>
+            <div ref={contentRef}>
+                <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900">Control de Asistencia</h1>
+                    <div className="flex gap-4 mt-4">
+                        <select
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                            className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            {Array.from({ length: 12 }, (_, i) => (
+                                <option key={i} value={i}>
+                                    {format(new Date(2024, i, 1), 'MMMM', { locale: es })}
+                                </option>
                             ))}
-                        </tr>
-                    </thead>
-                    <tbody className="text-xs divide-y divide-gray-200">
-                        {personal.map((persona, index) => (
-                            <tr key={persona.id} className="hover:bg-gray-50">
-                                <td className="px-2 py-1 text-gray-500 border-r">
-                                    {index + 1}
-                                </td>
-                                <td className="px-2 py-1 border-r">
-                                    <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
-                                        {persona.apellidos} {persona.nombres}
-                                    </div>
-                                </td>
-                                {days.map(day => {
-                                    const tareo = tareos[day]?.find(t => t.personal === persona.id);
-                                    const isEditable = isDateEditable(selectedYear, selectedMonth, day);
-                                    const isEditing = editingCell?.personalId === persona.id && editingCell?.day === day;
+                        </select>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                            className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                            {Array.from({ length: 5 }, (_, i) => (
+                                <option key={i} value={2024 - i}>
+                                    {2024 - i}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
 
-                                    if (isEditing) {
+                <div className="overflow-x-auto bg-white rounded-lg shadow">
+                    <table className="min-w-full border-collapse text-sm">
+                        <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                    N°
+                                </th>
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                    Apellidos y Nombres
+                                </th>
+                                {days.map(day => (
+                                    <th key={day} className="px-1 py-1 text-center text-xs font-medium text-gray-500 w-7 border-r last:border-r-0">
+                                        {day}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="text-xs divide-y divide-gray-200">
+                            {personal.map((persona, index) => (
+                                <tr key={persona.id} className="hover:bg-gray-50">
+                                    <td className="px-2 py-1 text-gray-500 border-r">
+                                        {index + 1}
+                                    </td>
+                                    <td className="px-2 py-1 border-r">
+                                        <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
+                                            {persona.apellidos} {persona.nombres}
+                                        </div>
+                                    </td>
+                                    {days.map(day => {
+                                        const tareo = tareos[day]?.find(t => t.personal === persona.id);
+                                        const isEditable = isDateEditable(selectedYear, selectedMonth, day);
+                                        const isEditing = editingCell?.personalId === persona.id && editingCell?.day === day;
+
+                                        if (isEditing) {
+                                            return (
+                                                <td key={day} className="px-1 py-1 text-center border-r">
+                                                    <select
+                                                        className="w-full text-xs border-none focus:ring-1 focus:ring-blue-500"
+                                                        value={tareo?.tipo || ''}
+                                                        onChange={(e) => handleTareoUpdate(persona, day, e.target.value)}
+                                                        autoFocus
+                                                        onBlur={() => setEditingCell(null)}
+                                                    >
+                                                        <option value="">-</option>
+                                                        {Object.entries(CODIGOS)
+                                                            .filter(([code]) => code !== 'default')
+                                                            .map(([code, { text, description }]) => (
+                                                                <option key={code} value={code}>
+                                                                    {text} - {description}
+                                                                </option>
+                                                            ))}
+                                                    </select>
+                                                </td>
+                                            );
+                                        }
+
+                                        const codigo = tareo?.tipo;
+                                        const codigoInfo = codigo ? CODIGOS[codigo] : CODIGOS['default'];
+                                        
                                         return (
-                                            <td key={day} className="px-1 py-1 text-center border-r">
-                                                <select
-                                                    className="w-full text-xs border-none focus:ring-1 focus:ring-blue-500"
-                                                    value={tareo?.tipo || ''}
-                                                    onChange={(e) => handleTareoUpdate(persona, day, e.target.value)}
-                                                    autoFocus
-                                                    onBlur={() => setEditingCell(null)}
-                                                >
-                                                    <option value="">-</option>
-                                                    {Object.entries(CODIGOS)
-                                                        .filter(([code]) => code !== 'default')
-                                                        .map(([code, { text, description }]) => (
-                                                            <option key={code} value={code}>
-                                                                {text} - {description}
-                                                            </option>
-                                                        ))}
-                                                </select>
+                                            <td 
+                                                key={day} 
+                                                className={`px-1 py-1 text-center border-r last:border-r-0 
+                                                    ${codigo ? codigoInfo.color : 'bg-white'}
+                                                    ${isEditable ? 'cursor-pointer hover:bg-gray-50' : ''}`}
+                                                onClick={() => isEditable && handleCellClick(persona, day)}
+                                            >
+                                                {codigo ? codigoInfo.text : ''}
                                             </td>
                                         );
-                                    }
+                                    })}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                                    const codigo = tareo?.tipo;
-                                    const codigoInfo = codigo ? CODIGOS[codigo] : CODIGOS['default'];
-                                    
-                                    return (
-                                        <td 
-                                            key={day} 
-                                            className={`px-1 py-1 text-center border-r last:border-r-0 
-                                                ${codigo ? codigoInfo.color : 'bg-white'}
-                                                ${isEditable ? 'cursor-pointer hover:bg-gray-50' : ''}`}
-                                            onClick={() => isEditable && handleCellClick(persona, day)}
-                                        >
-                                            {codigo ? codigoInfo.text : ''}
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-
-                <div className="mt-4 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-                    <div className="grid grid-cols-3 gap-3 text-xs">
-                        {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
-                            <div key={code} className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-md font-medium ${color}`}>
-                                    {text}
-                                </span>
-                                <span className="text-gray-600">
-                                    {description}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="mt-4 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                        <div className="grid grid-cols-3 gap-3 text-xs">
+                            {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
+                                <div key={code} className="flex items-center gap-2">
+                                    <span className={`px-2 py-1 rounded-md font-medium ${color}`}>
+                                        {text}
+                                    </span>
+                                    <span className="text-gray-600">
+                                        {description}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>

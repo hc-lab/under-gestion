@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../axiosInstance';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -9,6 +9,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Tareo from './Tareo';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { useTareo } from '../../context/TareoContext';
+import ExportPDF from './ExportPDF';
 
 const RRHH = () => {
     const { refreshTareos } = useTareo();
@@ -25,6 +26,7 @@ const RRHH = () => {
         observaciones: '',
         unidad_trabajo: '',
     });
+    const contentRef = useRef(null);
 
     useEffect(() => {
         fetchPersonalWithTareos();
@@ -180,11 +182,17 @@ const RRHH = () => {
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">
                     Control de Asistencia - {format(new Date(), 'dd/MM/yyyy')}
                 </h2>
-                
+                <ExportPDF 
+                    targetRef={contentRef} 
+                    fileName={`control-asistencia-${format(new Date(), 'yyyy-MM-dd')}`}
+                />
+            </div>
+
+            <div ref={contentRef}>
                 <div className="mb-6">
                     <div className="relative">
                         <input
