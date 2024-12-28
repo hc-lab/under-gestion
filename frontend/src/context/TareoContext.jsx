@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-const TareoContext = createContext();
+const TareoContext = createContext(null);
 
 export const TareoProvider = ({ children }) => {
     const [tareos, setTareos] = useState({});
@@ -10,11 +10,26 @@ export const TareoProvider = ({ children }) => {
         setShouldRefresh(prev => !prev);
     };
 
+    const value = {
+        tareos,
+        setTareos,
+        refreshTareos,
+        shouldRefresh
+    };
+
     return (
-        <TareoContext.Provider value={{ tareos, setTareos, refreshTareos, shouldRefresh }}>
+        <TareoContext.Provider value={value}>
             {children}
         </TareoContext.Provider>
     );
 };
 
-export const useTareo = () => useContext(TareoContext); 
+export const useTareo = () => {
+    const context = useContext(TareoContext);
+    if (context === null) {
+        throw new Error('useTareo must be used within a TareoProvider');
+    }
+    return context;
+};
+
+export default TareoContext; 
