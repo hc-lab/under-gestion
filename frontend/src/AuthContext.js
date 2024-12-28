@@ -12,32 +12,48 @@ export const AuthProvider = ({ children }) => {
     const checkAuth = async () => {
         try {
             const token = localStorage.getItem('token');
-            if (!token) {
+            const refreshToken = localStorage.getItem('refreshToken');
+            
+            if (!token || !refreshToken) {
                 setIsLoading(false);
                 return;
             }
 
-            // Configurar el token para la petición
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-            const response = await axiosInstance.get('/user/current/');
-            console.log('Verificando autenticación...', response.data);
-            
-            if (response.data && response.data.perfil) {
-                setUser(response.data);
-                setUserRole(response.data.perfil.rol);
-                setIsAuthenticated(true);
+            try {
+                // Intentar obtener los datos del usuario
+                const response = await axiosInstance.get('/user/current/');
+                
+                if (response.data && response.data.perfil) {
+                    setUser(response.data);
+                    setUserRole(response.data.perfil.rol);
+                    setIsAuthenticated(true);
+                }
+            } catch (error) {
+                // Si hay error de autenticación, intentar refrescar el token
+                if (error.response?.status === 401) {
+                    try {
+                        const refreshResponse = await axiosInstance.post('/token/refresh/', {
+                            refresh: refreshToken
+                        });
+                        
+                        localStorage.setItem('token', refreshResponse.data.access);
+                        
+                        // Reintentar obtener datos del usuario
+                        const userResponse = await axiosInstance.get('/user/current/');
+                        if (userResponse.data && userResponse.data.perfil) {
+                            setUser(userResponse.data);
+                            setUserRole(userResponse.data.perfil.rol);
+                            setIsAuthenticated(true);
+                        }
+                    } catch (refreshError) {
+                        // Si falla el refresh, limpiar todo
+                        logout();
+                    }
+                }
             }
         } catch (error) {
-            console.error('Error validando token:', error);
-            // Solo limpiar tokens si hay un error de autenticación
-            if (error.response?.status === 401) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                setIsAuthenticated(false);
-                setUser(null);
-                setUserRole(null);
-            }
+            console.error('Error en checkAuth:', error);
+            logout();
         } finally {
             setIsLoading(false);
         }
