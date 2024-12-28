@@ -164,6 +164,105 @@ const RRHH = () => {
                     Control de Asistencia - {format(new Date(), 'dd/MM/yyyy')}
                 </h2>
                 
+                <div className="mb-6">
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Buscar personal..."
+                            className="w-full px-4 py-2 border rounded-lg"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <MagnifyingGlassIcon className="h-5 w-5 absolute right-3 top-3 text-gray-400" />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    {filteredPersonal.map(persona => (
+                        <div
+                            key={persona.id}
+                            onClick={() => handlePersonalClick(persona)}
+                            className={`p-4 rounded-lg border cursor-pointer transition-colors
+                                ${persona.tareo ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}
+                                hover:bg-gray-100`}
+                        >
+                            <h3 className="font-semibold">{persona.apellidos} {persona.nombres}</h3>
+                            <p className="text-sm text-gray-600">{persona.cargo}</p>
+                            <p className="text-sm mt-2">
+                                Estado: <span className="font-medium">
+                                    {persona.tareo?.tipo || 'No registrado'}
+                                </span>
+                            </p>
+                        </div>
+                    ))}
+                </div>
+
+                <Transition show={isModalOpen} as={Fragment}>
+                    <Dialog onClose={() => setIsModalOpen(false)} className="relative z-50">
+                        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
+                        <div className="fixed inset-0 flex items-center justify-center p-4">
+                            <Dialog.Panel className="mx-auto max-w-sm rounded bg-white p-6">
+                                <Dialog.Title className="text-lg font-medium mb-4">
+                                    Registrar Asistencia
+                                </Dialog.Title>
+                                <form onSubmit={handleSubmit}>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Personal
+                                        </label>
+                                        <p className="text-gray-900">
+                                            {selectedPersonal?.apellidos} {selectedPersonal?.nombres}
+                                        </p>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Tipo
+                                        </label>
+                                        <select
+                                            value={formData.tipo}
+                                            onChange={(e) => setFormData({...formData, tipo: e.target.value})}
+                                            className="w-full border rounded-md p-2"
+                                        >
+                                            <option value="T">En Unidad</option>
+                                            <option value="PS">Permiso Sin Goce</option>
+                                            <option value="DL">Días Libres</option>
+                                            <option value="DM">Descanso Médico</option>
+                                            <option value="TL">Trabaja en Lima</option>
+                                            <option value="PC">Permiso Con Goce</option>
+                                        </select>
+                                    </div>
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Observaciones
+                                        </label>
+                                        <textarea
+                                            value={formData.observaciones}
+                                            onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
+                                            className="w-full border rounded-md p-2"
+                                            rows="3"
+                                        />
+                                    </div>
+                                    <div className="flex justify-end space-x-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                                        >
+                                            Guardar
+                                        </button>
+                                    </div>
+                                </form>
+                            </Dialog.Panel>
+                        </div>
+                    </Dialog>
+                </Transition>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white p-4 rounded-lg">
                         <ResponsiveContainer width="100%" height={300}>
