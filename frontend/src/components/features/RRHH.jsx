@@ -157,14 +157,15 @@ const RRHH = () => {
 
     const getCargoColor = (cargo) => {
         const colores = {
-            'OPERADOR': '#3b82f6',  // azul
-            'SUPERVISOR': '#10b981', // verde esmeralda
-            'GERENTE': '#8b5cf6',   // violeta
-            'ADMINISTRATIVO': '#f59e0b', // ámbar
-            'TÉCNICO': '#ef4444',   // rojo
-            'AUXILIAR': '#6366f1',  // índigo
+            'OPERADOR': '#2dd4bf',       // turquesa
+            'SUPERVISOR': '#f97316',     // naranja vibrante
+            'GERENTE': '#6366f1',       // índigo real
+            'ADMINISTRATIVO': '#ec4899', // rosa intenso
+            'TÉCNICO': '#14b8a6',       // verde azulado
+            'AUXILIAR': '#8b5cf6',      // violeta
+            'OTROS': '#64748b'          // gris pizarra
         };
-        return colores[cargo] || '#9ca3af'; // gris por defecto
+        return colores[cargo] || '#94a3b8'; // gris por defecto
     };
 
     if (loading) {
@@ -298,8 +299,10 @@ const RRHH = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-4">Distribución por Cargo</h3>
+                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl shadow-lg border border-slate-200">
+                        <h3 className="text-xl font-bold mb-4 text-gray-800">
+                            Distribución por Cargo
+                        </h3>
                         <div className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
@@ -307,33 +310,85 @@ const RRHH = () => {
                                         data={calcularResumenPorCargo()}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={true}
-                                        label={({name, value, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                        outerRadius={100}
+                                        labelLine={false}
+                                        label={({
+                                            cx,
+                                            cy,
+                                            midAngle,
+                                            innerRadius,
+                                            outerRadius,
+                                            value,
+                                            name
+                                        }) => {
+                                            const RADIAN = Math.PI / 180;
+                                            const radius = 25 + innerRadius + (outerRadius - innerRadius);
+                                            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                                            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                                            return (
+                                                <text
+                                                    x={x}
+                                                    y={y}
+                                                    fill="#374151"
+                                                    textAnchor={x > cx ? 'start' : 'end'}
+                                                    dominantBaseline="central"
+                                                    className="text-xs font-medium"
+                                                >
+                                                    {`${name} (${value})`}
+                                                </text>
+                                            );
+                                        }}
+                                        outerRadius={90}
+                                        innerRadius={60}
                                         fill="#8884d8"
+                                        paddingAngle={5}
                                         dataKey="value"
                                     >
                                         {calcularResumenPorCargo().map((entry, index) => (
                                             <Cell 
                                                 key={`cell-${index}`} 
                                                 fill={getCargoColor(entry.cargo)}
+                                                stroke="#fff"
+                                                strokeWidth={2}
                                             />
                                         ))}
                                     </Pie>
                                     <Tooltip 
-                                        formatter={(value, name) => [`${value} personas`, name]}
+                                        formatter={(value, name) => [
+                                            `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
+                                            name
+                                        ]}
                                         contentStyle={{
-                                            backgroundColor: 'white',
-                                            border: '1px solid #ccc',
-                                            borderRadius: '4px',
-                                            padding: '8px'
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            padding: '8px 12px',
+                                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                        }}
+                                        itemStyle={{
+                                            color: '#374151',
+                                            fontSize: '12px',
+                                            fontWeight: 500
                                         }}
                                     />
                                     <Legend 
-                                        formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
+                                        formatter={(value) => (
+                                            <span style={{
+                                                color: '#374151',
+                                                fontSize: '12px',
+                                                fontWeight: 500
+                                            }}>
+                                                {value}
+                                            </span>
+                                        )}
                                         layout="vertical"
                                         align="right"
                                         verticalAlign="middle"
+                                        iconType="circle"
+                                        iconSize={10}
+                                        wrapperStyle={{
+                                            paddingLeft: '20px'
+                                        }}
                                     />
                                 </PieChart>
                             </ResponsiveContainer>
