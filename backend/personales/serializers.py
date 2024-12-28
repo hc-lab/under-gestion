@@ -29,7 +29,7 @@ class TareoSerializer(serializers.ModelSerializer):
         read_only_fields = ['fecha_registro']
 
     def validate_tipo(self, value):
-        valid_tipos = ['T', 'P', 'DL', 'DM', 'TL']
+        valid_tipos = ['T', 'PS', 'PC', 'DL', 'DM', 'TL', 'F', 'R']
         if value not in valid_tipos:
             raise serializers.ValidationError(f"Tipo debe ser uno de: {', '.join(valid_tipos)}")
         return value
