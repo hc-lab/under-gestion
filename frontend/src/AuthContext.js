@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
                     },
-                    withCredentials: true
+                    withCredentials: false
                 }
             );
 

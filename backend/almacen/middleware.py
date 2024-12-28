@@ -1,21 +1,23 @@
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 
 class CORSMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.method == "OPTIONS":
-            response = HttpResponse()
-        else:
-            response = self.get_response(request)
+        response = self.get_response(request)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Max-Age"] = "86400"
+        return response
 
-        response["Access-Control-Allow-Origin"] = "http://localhost:3000"
-        response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-        response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
-        response["Access-Control-Allow-Credentials"] = "true"
-        response["Access-Control-Max-Age"] = "86400"  # 24 horas
-
+    def process_options_request(self, request):
+        response = HttpResponse()
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "*"
+        response["Access-Control-Allow-Headers"] = "*"
+        response["Access-Control-Max-Age"] = "86400"
         return response
 
 class RoleMiddleware:

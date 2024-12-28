@@ -6,7 +6,7 @@ const axiosInstance = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json'
     },
-    withCredentials: true
+    withCredentials: false
 });
 
 let isRefreshing = false;
