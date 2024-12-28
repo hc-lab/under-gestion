@@ -185,7 +185,13 @@ class TareoViewSet(viewsets.ModelViewSet):
             )
             
             serializer = self.get_serializer(tareo)
-            return Response(serializer.data)
+            
+            # Devolver también la fecha para facilitar la actualización en el frontend
+            response_data = {
+                'tareo': serializer.data,
+                'fecha': fecha
+            }
+            return Response(response_data)
         except Exception as e:
             print(f"Error en actualizar_tareo: {str(e)}")
             return Response(

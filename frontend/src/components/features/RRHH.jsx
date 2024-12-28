@@ -8,8 +8,10 @@ import { Fragment } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Tareo from './Tareo';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { useTareo } from '../../context/TareoContext';
 
 const RRHH = () => {
+    const { refreshTareos } = useTareo();
     const [tareos, setTareos] = useState([]);
     const [personal, setPersonal] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -93,6 +95,7 @@ const RRHH = () => {
             toast.success('Tareo actualizado exitosamente');
             setIsModalOpen(false);
             await fetchPersonalWithTareos();
+            refreshTareos();
         } catch (error) {
             console.error('Error al actualizar tareo:', error);
             toast.error(error.response?.data?.detail || 'Error al actualizar el tareo');

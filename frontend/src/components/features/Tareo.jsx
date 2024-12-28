@@ -3,13 +3,14 @@ import axiosInstance from '../../axiosInstance';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
+import { useTareo } from '../../context/TareoContext';
 
 const Tareo = () => {
+    const { tareos, setTareos, shouldRefresh, refreshTareos } = useTareo();
     const [personal, setPersonal] = useState([]);
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(true);
-    const [tareos, setTareos] = useState({});
     const [editingCell, setEditingCell] = useState(null);
 
     // Definir los códigos de asistencia con un valor por defecto
@@ -77,7 +78,7 @@ const Tareo = () => {
 
     useEffect(() => {
         fetchData();
-    }, [selectedMonth, selectedYear]);
+    }, [selectedMonth, selectedYear, shouldRefresh]);
 
     const fetchTareos = async (year, month) => {
         try {
@@ -150,8 +151,9 @@ const Tareo = () => {
             };
 
             await axiosInstance.post('/tareos/actualizar_tareo/', data);
-            await fetchData(); // Recargar datos
+            await fetchData();
             setEditingCell(null);
+            refreshTareos();
         } catch (error) {
             console.error('Error updating tareo:', error);
             toast.error('Error al actualizar el registro');
