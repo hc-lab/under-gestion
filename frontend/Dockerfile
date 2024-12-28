@@ -6,17 +6,14 @@ WORKDIR /app/frontend
 # Copiar package.json y package-lock.json
 COPY package*.json ./
 
-#20
+# Limpiar caché e instalar dependencias
 RUN rm -rf /root/.npm && \
     rm -f package-lock.json && \
     npm cache clean --force && \
-    RUN npm install\
-    RUN npm install @react-pdf/renderer html2canvas jspdf\ 
     npm install -g npm@latest && \
-    npm install --legacy-peer-deps --force
-
-# Instalar ajv explícitamente (para resolver el error de ajv/dist/compile/codegen)
-RUN npm install ajv@latest ajv-keywords@latest
+    npm install --legacy-peer-deps --force && \
+    npm install html2canvas jspdf @react-pdf/renderer --legacy-peer-deps && \
+    npm install ajv@latest ajv-keywords@latest
 
 # Copiar el resto de los archivos
 COPY . .
