@@ -11,12 +11,31 @@ const Tareo = () => {
 
     // Códigos de asistencia y sus colores
     const CODIGOS = {
-        'T': { text: 'T', color: 'bg-green-500 text-white', description: 'En Unidad' },
-        'PS': { text: 'PS', color: 'bg-red-500 text-white', description: 'Permiso Sin Goce' },
-        'DL': { text: 'DL', color: 'bg-yellow-500 text-white', description: 'Días Libres' },
-        'DM': { text: 'DM', color: 'bg-orange-500 text-white', description: 'Descanso Médico' },
-        'TL': { text: 'TL', color: 'bg-blue-500 text-white', description: 'Trabaja en Lima' },
-        'PC': { text: 'PC', color: 'bg-purple-500 text-white', description: 'Permiso Con Goce' }
+        'T': { 
+            text: 'T', 
+            color: 'bg-blue-100 text-blue-800 border border-blue-200', 
+            description: 'En Unidad' 
+        },
+        'P': { 
+            text: 'P', 
+            color: 'bg-amber-50 text-amber-800 border border-amber-200', 
+            description: 'Permiso' 
+        },
+        'DL': { 
+            text: 'DL', 
+            color: 'bg-slate-100 text-slate-800 border border-slate-200', 
+            description: 'Días Libres' 
+        },
+        'DM': { 
+            text: 'DM', 
+            color: 'bg-emerald-50 text-emerald-800 border border-emerald-200', 
+            description: 'Descanso Médico' 
+        },
+        'TL': { 
+            text: 'TL', 
+            color: 'bg-indigo-50 text-indigo-800 border border-indigo-200', 
+            description: 'Trabaja en Lima' 
+        }
     };
 
     // Obtener días del mes
@@ -63,7 +82,7 @@ const Tareo = () => {
                     <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-                        className="border rounded-md px-3 py-2"
+                        className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                         {Array.from({ length: 12 }, (_, i) => (
                             <option key={i} value={i}>
@@ -74,7 +93,7 @@ const Tareo = () => {
                     <select
                         value={selectedYear}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        className="border rounded-md px-3 py-2"
+                        className="border rounded-md px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     >
                         {Array.from({ length: 5 }, (_, i) => (
                             <option key={i} value={2024 - i}>
@@ -85,24 +104,24 @@ const Tareo = () => {
                 </div>
             </div>
 
-            <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse border border-gray-200 text-sm">
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
+                <table className="min-w-full border-collapse text-sm">
                     <thead>
-                        <tr className="bg-gray-50">
-                            <th className="border border-gray-200 px-2 py-1 text-left text-xs font-medium text-gray-500">
+                        <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
                                 N°
                             </th>
-                            <th className="border border-gray-200 px-2 py-1 text-left text-xs font-medium text-gray-500">
+                            <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
                                 Apellidos y Nombres
                             </th>
                             {days.map(day => (
-                                <th key={day} className="border border-gray-200 px-1 py-1 text-center text-xs font-medium text-gray-500 w-7">
+                                <th key={day} className="px-1 py-1 text-center text-xs font-medium text-gray-500 w-7 border-r last:border-r-0">
                                     {day}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-white text-xs">
+                    <tbody className="text-xs divide-y divide-gray-200">
                         {personal.map((persona, index) => {
                             const asistencias = days.map(() => 
                                 Object.keys(CODIGOS)[Math.floor(Math.random() * Object.keys(CODIGOS).length)]
@@ -110,17 +129,17 @@ const Tareo = () => {
 
                             return (
                                 <tr key={persona.id} className="hover:bg-gray-50">
-                                    <td className="border border-gray-200 px-2 py-1 text-gray-500">
+                                    <td className="px-2 py-1 text-gray-500 border-r">
                                         {index + 1}
                                     </td>
-                                    <td className="border border-gray-200 px-2 py-1">
+                                    <td className="px-2 py-1 border-r">
                                         <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
                                             {persona.apellidos} {persona.nombres}
                                         </div>
                                     </td>
                                     {asistencias.map((codigo, dayIndex) => (
                                         <td key={dayIndex} 
-                                            className={`border border-gray-200 px-1 py-1 text-center ${CODIGOS[codigo].color}`}
+                                            className={`px-1 py-1 text-center border-r last:border-r-0 ${CODIGOS[codigo].color}`}
                                         >
                                             {codigo}
                                         </td>
@@ -131,13 +150,19 @@ const Tareo = () => {
                     </tbody>
                 </table>
 
-                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
-                    {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
-                        <div key={code} className="flex items-center gap-1">
-                            <span className={`px-1 py-0.5 rounded ${color}`}>{text}</span>
-                            <span className="text-gray-600">{description}</span>
-                        </div>
-                    ))}
+                <div className="mt-4 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+                    <div className="grid grid-cols-3 gap-3 text-xs">
+                        {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
+                            <div key={code} className="flex items-center gap-2">
+                                <span className={`px-2 py-1 rounded-md font-medium ${color}`}>
+                                    {text}
+                                </span>
+                                <span className="text-gray-600">
+                                    {description}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
