@@ -76,17 +76,16 @@ class SalidaProducto(models.Model):
     cantidad = models.IntegerField()
     fecha_hora = models.DateTimeField(auto_now_add=True)
     entregado_a = models.ForeignKey(
-        'personales.Personal',  # Asegúrate de que esta referencia sea correcta
-        on_delete=models.SET_NULL, 
+        'personales.Personal',
+        on_delete=models.SET_NULL,
         null=True,
         related_name='salidas_recibidas'
     )
-    motivo = models.TextField()
+    motivo = models.TextField(blank=True)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
-        usuario_nombre = self.usuario.username if self.usuario else 'Usuario Eliminado'
-        return f"{self.producto.nombre} - {self.fecha_hora} - {self.cantidad} por {usuario_nombre}"
+        return f"{self.producto.nombre} - {self.cantidad} - {self.fecha_hora}"
 
     def clean(self):
         if self.cantidad > self.producto.stock:

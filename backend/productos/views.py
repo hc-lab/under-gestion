@@ -135,43 +135,20 @@ class HistorialProductoViewSet(viewsets.ModelViewSet):
             return HistorialProducto.objects.none()
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    queryset = SalidaProducto.objects.all()
     serializer_class = SalidaProductoSerializer
-    queryset = SalidaProducto.objects.select_related('producto', 'usuario').all()
+    permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        fecha = self.request.query_params.get('fecha', None)
-        if fecha:
-            fecha_inicio = datetime.strptime(fecha, '%Y-%m-%d')
-            fecha_fin = fecha_inicio + timedelta(days=1)
-            queryset = queryset.filter(fecha_hora__gte=fecha_inicio, fecha_hora__lt=fecha_fin)
-        else:
-            today = timezone.now().date()
-            queryset = queryset.filter(fecha_hora__date=today)
-        return queryset.order_by('-fecha_hora')
+    def perform_create(self, serializer):
+        serializer.save(usuario=self.request.user)
 
-    @transaction.atomic
     def create(self, request, *args, **kwargs):
         try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            salida_producto = serializer.save(usuario=self.request.user)
-
-            # Devolver el producto actualizado junto con la salida
-            producto_serializer = ProductoSerializer(salida_producto.producto)
-            response_data = {
-                'salida': serializer.data,
-                'producto': producto_serializer.data
-            }
-
-            return Response(response_data, status=status.HTTP_201_CREATED)
-        except ValidationError as e:
-            return Response({'error': str(e)}, status=400)
+            return super().create(request, *args, **kwargs)
         except Exception as e:
             return Response(
-                {'error': 'Error interno del servidor', 'details': str(e)}, 
-                status=500
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
             )
 
 class CustomAuthToken(ObtainAuthToken):

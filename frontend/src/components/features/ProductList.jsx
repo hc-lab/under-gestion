@@ -88,14 +88,20 @@ const ProductList = () => {
                 return;
             }
 
-            const salidaData = {
+            // Imprimir los datos antes de enviar para debug
+            console.log('Datos a enviar:', {
                 producto: selectedProducto.id,
                 cantidad: cantidadNum,
                 entregado_a: selectedPerson.id,
-                motivo: motivo
-            };
+                motivo: motivo || 'Sin motivo especificado'
+            });
 
-            const response = await axiosInstance.post('/salidas/', salidaData);
+            const response = await axiosInstance.post('/salidas/', {
+                producto: selectedProducto.id,
+                cantidad: cantidadNum,
+                entregado_a: selectedPerson.id,
+                motivo: motivo || 'Sin motivo especificado'
+            });
             
             if (response.status === 201) {
                 toast.success('Salida registrada correctamente');
@@ -109,8 +115,10 @@ const ProductList = () => {
             console.error('Error detallado:', error);
             if (error.response?.data) {
                 console.error('Respuesta del servidor:', error.response.data);
+                toast.error(error.response.data.error || 'Error al registrar la salida');
+            } else {
+                toast.error('Error al registrar la salida');
             }
-            toast.error(error.response?.data?.detail || 'Error al registrar la salida');
         }
     };
 
