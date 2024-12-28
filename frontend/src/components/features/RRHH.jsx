@@ -142,6 +142,31 @@ const RRHH = () => {
         }));
     };
 
+    const calcularResumenPorCargo = () => {
+        const resumen = {};
+        personal.forEach(persona => {
+            const cargo = persona.cargo || 'No Asignado';
+            resumen[cargo] = (resumen[cargo] || 0) + 1;
+        });
+        return Object.entries(resumen).map(([cargo, cantidad]) => ({
+            name: cargo,
+            value: cantidad,
+            cargo: cargo
+        }));
+    };
+
+    const getCargoColor = (cargo) => {
+        const colores = {
+            'OPERADOR': '#3b82f6',  // azul
+            'SUPERVISOR': '#10b981', // verde esmeralda
+            'GERENTE': '#8b5cf6',   // violeta
+            'ADMINISTRATIVO': '#f59e0b', // ámbar
+            'TÉCNICO': '#ef4444',   // rojo
+            'AUXILIAR': '#6366f1',  // índigo
+        };
+        return colores[cargo] || '#9ca3af'; // gris por defecto
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen">
@@ -230,54 +255,89 @@ const RRHH = () => {
                     </table>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                    <div className="bg-white p-4 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-4">Distribución de Personal</h3>
-                        <ResponsiveContainer width="100%" height={300}>
-                            <PieChart>
-                                <Pie
-                                    data={calcularResumen()}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({name, value}) => `${value}`}
-                                    outerRadius={100}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {calcularResumen().map((entry, index) => (
-                                        <Cell 
-                                            key={`cell-${index}`} 
-                                            fill={getStatusColor(entry.tipo)}
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip 
-                                    formatter={(value, name) => [`${value} personas`, name]}
-                                />
-                                <Legend 
-                                    formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
-                                />
-                            </PieChart>
-                        </ResponsiveContainer>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold mb-4">Distribución por Estado</h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={calcularResumen()}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={false}
+                                        label={({name, value}) => `${value}`}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {calcularResumen().map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={getStatusColor(entry.tipo)}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(value, name) => [`${value} personas`, name]}
+                                        contentStyle={{
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px',
+                                            padding: '8px'
+                                        }}
+                                    />
+                                    <Legend 
+                                        formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
+                                        layout="vertical"
+                                        align="right"
+                                        verticalAlign="middle"
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 items-start content-start">
-                        {calcularResumen().map((item) => (
-                            <div 
-                                key={item.tipo} 
-                                className="flex items-center p-3 rounded-lg bg-gray-50"
-                            >
-                                <div 
-                                    className="w-4 h-4 rounded-full mr-2"
-                                    style={{ backgroundColor: getStatusColor(item.tipo) }}
-                                ></div>
-                                <div>
-                                    <span className="font-medium">{item.name}</span>
-                                    <span className="ml-2 text-gray-600">({item.value})</span>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="bg-white p-6 rounded-lg shadow">
+                        <h3 className="text-lg font-semibold mb-4">Distribución por Cargo</h3>
+                        <div className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={calcularResumenPorCargo()}
+                                        cx="50%"
+                                        cy="50%"
+                                        labelLine={true}
+                                        label={({name, value, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                        outerRadius={100}
+                                        fill="#8884d8"
+                                        dataKey="value"
+                                    >
+                                        {calcularResumenPorCargo().map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={getCargoColor(entry.cargo)}
+                                            />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        formatter={(value, name) => [`${value} personas`, name]}
+                                        contentStyle={{
+                                            backgroundColor: 'white',
+                                            border: '1px solid #ccc',
+                                            borderRadius: '4px',
+                                            padding: '8px'
+                                        }}
+                                    />
+                                    <Legend 
+                                        formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
+                                        layout="vertical"
+                                        align="right"
+                                        verticalAlign="middle"
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             </div>
