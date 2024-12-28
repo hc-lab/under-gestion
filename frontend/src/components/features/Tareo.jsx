@@ -10,7 +10,7 @@ const Tareo = () => {
     const [loading, setLoading] = useState(true);
     const [tareos, setTareos] = useState({});
 
-    // Códigos de asistencia y sus colores
+    // Definir los códigos de asistencia con un valor por defecto
     const CODIGOS = {
         'T': { 
             text: 'T', 
@@ -26,6 +26,11 @@ const Tareo = () => {
             text: 'PC', 
             color: 'bg-green-100 text-green-800 border border-green-200', 
             description: 'Permiso Con Goce' 
+        },
+        'DL': { 
+            text: 'DL', 
+            color: 'bg-slate-100 text-slate-800 border border-slate-200', 
+            description: 'Días Libres' 
         },
         'DM': { 
             text: 'DM', 
@@ -46,6 +51,11 @@ const Tareo = () => {
             text: 'R', 
             color: 'bg-purple-100 text-purple-800 border border-purple-200', 
             description: 'Renuncia' 
+        },
+        'default': {  // Valor por defecto
+            text: '-',
+            color: 'bg-gray-100 text-gray-800 border border-gray-200',
+            description: 'No registrado'
         }
     };
 
@@ -170,13 +180,14 @@ const Tareo = () => {
                                     </td>
                                     {days.map(day => {
                                         const tareo = tareos[day]?.find(t => t.personal === persona.id);
+                                        const codigo = tareo?.tipo || 'F';
+                                        const codigoInfo = CODIGOS[codigo] || CODIGOS['default'];
+                                        
                                         return (
                                             <td key={day} 
-                                                className={`px-1 py-1 text-center border-r last:border-r-0 ${
-                                                    CODIGOS[tareo?.tipo || 'F'].color
-                                                }`}
+                                                className={`px-1 py-1 text-center border-r last:border-r-0 ${codigoInfo.color}`}
                                             >
-                                                {tareo?.tipo || 'F'}
+                                                {codigoInfo.text}
                                             </td>
                                         );
                                     })}
