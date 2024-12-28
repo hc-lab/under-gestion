@@ -105,39 +105,41 @@ const RRHH = () => {
         persona.cargo.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getTipoNombre = (tipo) => {
+        switch (tipo) {
+            case 'T': return 'En Unidad';
+            case 'PS': return 'Permiso Sin Goce';
+            case 'DL': return 'Días Libres';
+            case 'DM': return 'Descanso Médico';
+            case 'TL': return 'Trabaja en Lima';
+            case 'PC': return 'Permiso Con Goce';
+            default: return 'No Registrado';
+        }
+    };
+
     const getStatusColor = (tipo) => {
         switch (tipo) {
-            case 'UNIDAD':
-                return '#4ade80';
-            case 'PERMISO':
-                return '#60a5fa';
-            case 'FALTA':
-                return '#f87171';
-            case 'DESCANSO':
-                return '#fbbf24';
-            case 'DIAS_LIBRES':
-                return '#a78bfa';
-            default:
-                return '#9ca3af';
+            case 'T': return '#4ade80';  // verde
+            case 'PS': return '#f87171'; // rojo
+            case 'DL': return '#fbbf24'; // amarillo
+            case 'DM': return '#60a5fa'; // azul
+            case 'TL': return '#a78bfa'; // púrpura
+            case 'PC': return '#34d399'; // verde esmeralda
+            default: return '#9ca3af';   // gris
         }
     };
 
     const calcularResumen = () => {
-        const resumen = {
-            UNIDAD: 0,
-            PERMISO: 0,
-            FALTA: 0,
-            DESCANSO: 0,
-            DIAS_LIBRES: 0,
-            OTROS: 0
-        };
-
+        const resumen = {};
         personal.forEach(persona => {
-            const tipo = persona.tareo?.tipo || 'UNIDAD';
+            const tipo = persona.tareo?.tipo || 'NR';
             resumen[tipo] = (resumen[tipo] || 0) + 1;
         });
-
-        return resumen;
+        return Object.entries(resumen).map(([tipo, cantidad]) => ({
+            name: getTipoNombre(tipo),
+            value: cantidad,
+            tipo: tipo
+        }));
     };
 
     if (loading) {
@@ -226,133 +228,51 @@ const RRHH = () => {
                     </table>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                    {filteredPersonal.map(persona => (
-                        <div
-                            key={persona.id}
-                            onClick={() => handlePersonalClick(persona)}
-                            className={`p-4 rounded-lg border cursor-pointer transition-colors
-                                ${persona.tareo ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}
-                                hover:bg-gray-100`}
-                        >
-                            <h3 className="font-semibold">{persona.apellidos} {persona.nombres}</h3>
-                            <p className="text-sm text-gray-600">{persona.cargo}</p>
-                            <p className="text-sm mt-2">
-                                Estado: <span className="font-medium">
-                                    {persona.tareo?.tipo || 'No registrado'}
-                                </span>
-                            </p>
-                        </div>
-                    ))}
-                </div>
-
-                <Transition show={isModalOpen} as={Fragment}>
-                    <Dialog onClose={() => setIsModalOpen(false)} className="relative z-50">
-                        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-                        <div className="fixed inset-0 flex items-center justify-center p-4">
-                            <Dialog.Panel className="mx-auto max-w-sm rounded bg-white p-6">
-                                <Dialog.Title className="text-lg font-medium mb-4">
-                                    Registrar Asistencia
-                                </Dialog.Title>
-                                <form onSubmit={handleSubmit}>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Personal
-                                        </label>
-                                        <p className="text-gray-900">
-                                            {selectedPersonal?.apellidos} {selectedPersonal?.nombres}
-                                        </p>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Tipo
-                                        </label>
-                                        <select
-                                            value={formData.tipo}
-                                            onChange={(e) => setFormData({...formData, tipo: e.target.value})}
-                                            className="w-full border rounded-md p-2"
-                                        >
-                                            <option value="T">En Unidad</option>
-                                            <option value="PS">Permiso Sin Goce</option>
-                                            <option value="DL">Días Libres</option>
-                                            <option value="DM">Descanso Médico</option>
-                                            <option value="TL">Trabaja en Lima</option>
-                                            <option value="PC">Permiso Con Goce</option>
-                                        </select>
-                                    </div>
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                                            Observaciones
-                                        </label>
-                                        <textarea
-                                            value={formData.observaciones}
-                                            onChange={(e) => setFormData({...formData, observaciones: e.target.value})}
-                                            className="w-full border rounded-md p-2"
-                                            rows="3"
-                                        />
-                                    </div>
-                                    <div className="flex justify-end space-x-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsModalOpen(false)}
-                                            className="px-4 py-2 border rounded-md text-gray-600 hover:bg-gray-50"
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
-                                        >
-                                            Guardar
-                                        </button>
-                                    </div>
-                                </form>
-                            </Dialog.Panel>
-                        </div>
-                    </Dialog>
-                </Transition>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                     <div className="bg-white p-4 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4">Distribución de Personal</h3>
                         <ResponsiveContainer width="100%" height={300}>
                             <PieChart>
                                 <Pie
-                                    data={Object.entries(calcularResumen()).map(([key, value]) => ({
-                                        name: key,
-                                        value: value
-                                    }))}
+                                    data={calcularResumen()}
                                     cx="50%"
                                     cy="50%"
                                     labelLine={false}
-                                    label={({name, percent}) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                                    label={({name, value}) => `${value}`}
                                     outerRadius={100}
                                     fill="#8884d8"
                                     dataKey="value"
                                 >
-                                    {Object.entries(calcularResumen()).map(([key], index) => (
-                                        <Cell key={`cell-${index}`} fill={getStatusColor(key)} />
+                                    {calcularResumen().map((entry, index) => (
+                                        <Cell 
+                                            key={`cell-${index}`} 
+                                            fill={getStatusColor(entry.tipo)}
+                                        />
                                     ))}
                                 </Pie>
-                                <Tooltip />
-                                <Legend />
+                                <Tooltip 
+                                    formatter={(value, name) => [`${value} personas`, name]}
+                                />
+                                <Legend 
+                                    formatter={(value) => <span style={{color: '#374151'}}>{value}</span>}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        {Object.entries(calcularResumen()).map(([tipo, cantidad]) => (
+                    <div className="grid grid-cols-2 gap-4 items-start content-start">
+                        {calcularResumen().map((item) => (
                             <div 
-                                key={tipo} 
-                                className="flex items-center p-3 rounded-lg"
-                                style={{ backgroundColor: `${getStatusColor(tipo)}20` }}
+                                key={item.tipo} 
+                                className="flex items-center p-3 rounded-lg bg-gray-50"
                             >
                                 <div 
                                     className="w-4 h-4 rounded-full mr-2"
-                                    style={{ backgroundColor: getStatusColor(tipo) }}
+                                    style={{ backgroundColor: getStatusColor(item.tipo) }}
                                 ></div>
                                 <div>
-                                    <span className="font-medium">{tipo}</span>
-                                    <span className="ml-2 text-gray-600">({cantidad})</span>
+                                    <span className="font-medium">{item.name}</span>
+                                    <span className="ml-2 text-gray-600">({item.value})</span>
                                 </div>
                             </div>
                         ))}
