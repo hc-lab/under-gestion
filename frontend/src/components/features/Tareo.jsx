@@ -86,19 +86,23 @@ const Tareo = () => {
             </div>
 
             <div className="overflow-x-auto">
-                <table className="min-w-full border-collapse border border-gray-200">
+                <table className="min-w-full border-collapse border border-gray-200 text-sm">
                     <thead>
                         <tr className="bg-gray-50">
-                            <th className="border border-gray-200 px-4 py-2 text-left">N°</th>
-                            <th className="border border-gray-200 px-4 py-2 text-left">Apellidos y Nombres</th>
+                            <th className="border border-gray-200 px-2 py-1 text-left text-xs font-medium text-gray-500">
+                                N°
+                            </th>
+                            <th className="border border-gray-200 px-2 py-1 text-left text-xs font-medium text-gray-500">
+                                Apellidos y Nombres
+                            </th>
                             {days.map(day => (
-                                <th key={day} className="border border-gray-200 px-2 py-2 text-center w-10">
+                                <th key={day} className="border border-gray-200 px-1 py-1 text-center text-xs font-medium text-gray-500 w-7">
                                     {day}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white text-xs">
                         {personal.map((persona, index) => {
                             const asistencias = days.map(() => 
                                 Object.keys(CODIGOS)[Math.floor(Math.random() * Object.keys(CODIGOS).length)]
@@ -106,13 +110,18 @@ const Tareo = () => {
 
                             return (
                                 <tr key={persona.id} className="hover:bg-gray-50">
-                                    <td className="border border-gray-200 px-4 py-2">{index + 1}</td>
-                                    <td className="border border-gray-200 px-4 py-2">
-                                        {persona.apellidos} {persona.nombres}
+                                    <td className="border border-gray-200 px-2 py-1 text-gray-500">
+                                        {index + 1}
+                                    </td>
+                                    <td className="border border-gray-200 px-2 py-1">
+                                        <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
+                                            {persona.apellidos} {persona.nombres}
+                                        </div>
                                     </td>
                                     {asistencias.map((codigo, dayIndex) => (
                                         <td key={dayIndex} 
-                                            className={`border border-gray-200 px-2 py-2 text-center ${CODIGOS[codigo].color}`}>
+                                            className={`border border-gray-200 px-1 py-1 text-center ${CODIGOS[codigo].color}`}
+                                        >
                                             {codigo}
                                         </td>
                                     ))}
@@ -122,11 +131,11 @@ const Tareo = () => {
                     </tbody>
                 </table>
 
-                <div className="mt-6 grid grid-cols-3 gap-4">
+                <div className="mt-4 grid grid-cols-3 gap-2 text-xs">
                     {Object.entries(CODIGOS).map(([code, { text, color, description }]) => (
-                        <div key={code} className="flex items-center gap-2">
-                            <span className={`px-2 py-1 rounded ${color}`}>{text}</span>
-                            <span className="text-gray-700">{description}</span>
+                        <div key={code} className="flex items-center gap-1">
+                            <span className={`px-1 py-0.5 rounded ${color}`}>{text}</span>
+                            <span className="text-gray-600">{description}</span>
                         </div>
                     ))}
                 </div>
