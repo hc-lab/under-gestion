@@ -29,35 +29,19 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(Personal)
 class PersonalAdmin(admin.ModelAdmin):
-    list_display = (
-        'apellidos', 
-        'nombres', 
-        'dni', 
-        'cargo', 
-        'telefono', 
-        'procedencia',
-        'banco',
-        'numero_cuenta',
-        'numero_cci', 
-        'fecha_registro'
-    )
-    search_fields = ['nombres', 'apellidos', 'dni', 'numero_cuenta', 'numero_cci']
-    list_filter = ('cargo', 'procedencia', 'banco')
-    ordering = ('apellidos', 'nombres')
-    fieldsets = (
-        ('Información Personal', {
-            'fields': ('nombres', 'apellidos', 'dni', 'cargo', 'telefono', 'procedencia')
-        }),
-        ('Información Bancaria', {
-            'fields': ('banco', 'numero_cuenta', 'numero_cci')
-        }),
-    )
+    list_display = ('nombres', 'apellidos', 'dni', 'cargo', 'telefono')
+    search_fields = ('nombres', 'apellidos', 'dni')
+    list_filter = ('cargo',)
 
 @admin.register(Tareo)
 class TareoAdmin(admin.ModelAdmin):
-    list_display = ('personal', 'fecha', 'tipo', 'motivo', 'fecha_registro')
-    list_filter = ('tipo', 'fecha')
-    search_fields = ['personal__nombres', 'personal__apellidos', 'motivo']
+    list_display = ('personal', 'fecha', 'tipo', 'observaciones')
+    list_filter = ('fecha', 'tipo')
+    search_fields = ('personal__nombres', 'personal__apellidos')
     date_hierarchy = 'fecha'
-    raw_id_fields = ('personal',)
-    ordering = ('-fecha', 'personal__apellidos')
+
+@admin.register(Perfil)
+class PerfilAdmin(admin.ModelAdmin):
+    list_display = ('user', 'rol', 'area', 'activo')
+    list_filter = ('rol', 'activo')
+    search_fields = ('user__username', 'area')
