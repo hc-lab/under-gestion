@@ -5,11 +5,17 @@ class CORSMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        response = self.get_response(request)
+        if request.method == "OPTIONS":
+            response = HttpResponse()
+        else:
+            response = self.get_response(request)
+
         response["Access-Control-Allow-Origin"] = "http://localhost:3000"
         response["Access-Control-Allow-Methods"] = "GET, POST, PUT, PATCH, DELETE, OPTIONS"
         response["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With"
         response["Access-Control-Allow-Credentials"] = "true"
+        response["Access-Control-Max-Age"] = "86400"  # 24 horas
+
         return response
 
 class RoleMiddleware:
