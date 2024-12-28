@@ -61,13 +61,13 @@ MIDDLEWARE = [
     'almacen.middleware.RoleMiddleware',
 ]
 
-# Configuración CORS
-CORS_ORIGIN_ALLOW_ALL = True  # Cambiamos esto temporalmente para debug
-CORS_ALLOW_CREDENTIALS = True
+# Configuración básica
+DEBUG = True
+ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-]
+# Configuración CORS
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -92,19 +92,14 @@ CORS_ALLOW_HEADERS = [
 
 # Configuración de seguridad
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
-CSRF_COOKIE_NAME = 'csrftoken'
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SAMESITE = None
+CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_HTTPONLY = False
-SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = 'Lax'
 
-# Exponer headers
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
-
-# Tiempo de cache para las opciones preflight
-CORS_PREFLIGHT_MAX_AGE = 86400  # 24 horas
+# Elimina cualquier otra configuración CORS duplicada
 
 ROOT_URLCONF = 'almacen.urls'
 

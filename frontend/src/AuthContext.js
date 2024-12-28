@@ -134,17 +134,16 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (credentials) => {
         try {
-            handleLogout(); // Limpiar estado anterior
+            handleLogout();
             
             const tokenResponse = await axios.post(
-                'http://localhost:8000/api/token/', 
+                'http://localhost:8000/api/token/',
                 credentials,
                 {
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
                     },
-                    withCredentials: false
+                    withCredentials: true
                 }
             );
 
