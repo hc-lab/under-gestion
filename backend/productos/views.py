@@ -135,20 +135,31 @@ class HistorialProductoViewSet(viewsets.ModelViewSet):
             return HistorialProducto.objects.none()
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
-    queryset = SalidaProducto.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = SalidaProductoSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    queryset = SalidaProducto.objects.select_related('producto', 'usuario').all()
 
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
-
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
         try:
-            return super().create(request, *args, **kwargs)
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            salida_producto = serializer.save(usuario=self.request.user)
+
+            # Devolver el producto actualizado junto con la salida
+            producto_serializer = ProductoSerializer(salida_producto.producto)
+            response_data = {
+                'salida': serializer.data,
+                'producto': producto_serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_201_CREATED)
+        except ValidationError as e:
+            return Response({'error': str(e)}, status=400)
         except Exception as e:
             return Response(
-                {'error': str(e)},
-                status=status.HTTP_400_BAD_REQUEST
+                {'error': 'Error interno del servidor', 'details': str(e)}, 
+                status=500
             )
 
 class CustomAuthToken(ObtainAuthToken):

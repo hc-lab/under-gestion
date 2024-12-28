@@ -88,21 +88,13 @@ const ProductList = () => {
                 return;
             }
 
-            // Imprimir los datos antes de enviar para debug
-            console.log('Datos a enviar:', {
-                producto: selectedProducto.id,
-                cantidad: cantidadNum,
-                entregado_a: selectedPerson.id,
-                motivo: motivo || 'Sin motivo especificado'
-            });
-
             const response = await axiosInstance.post('/salidas/', {
                 producto: selectedProducto.id,
                 cantidad: cantidadNum,
                 entregado_a: selectedPerson.id,
                 motivo: motivo || 'Sin motivo especificado'
             });
-            
+
             if (response.status === 201) {
                 toast.success('Salida registrada correctamente');
                 setIsSalidaOpen(false);

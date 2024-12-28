@@ -45,35 +45,9 @@ class HistorialProductoSerializer(serializers.ModelSerializer):
         ]
 
 class SalidaProductoSerializer(serializers.ModelSerializer):
-    usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
-    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
-    entregado_a_nombre = serializers.CharField(source='entregado_a.nombres', read_only=True)
-    
     class Meta:
         model = SalidaProducto
-        fields = [
-            'id', 
-            'producto', 
-            'producto_nombre',
-            'cantidad', 
-            'fecha_hora', 
-            'entregado_a',
-            'entregado_a_nombre', 
-            'motivo',
-            'usuario',
-            'usuario_nombre'
-        ]
-        read_only_fields = ('usuario', 'fecha_hora')
-
-    def validate_entregado_a(self, value):
-        if not value:
-            raise serializers.ValidationError("Debe especificar a quién se entrega el producto")
-        return value
-
-    def validate_cantidad(self, value):
-        if value <= 0:
-            raise serializers.ValidationError("La cantidad debe ser mayor a 0")
-        return value
+        fields = ['id', 'producto', 'cantidad', 'fecha_hora', 'entregado_a', 'motivo']
 
 class HistorialSerializer(serializers.ModelSerializer):
     class Meta:
