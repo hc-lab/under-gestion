@@ -15,9 +15,15 @@ export const AuthProvider = ({ children }) => {
             const refreshToken = localStorage.getItem('refreshToken');
             
             if (!token || !refreshToken) {
+                setIsAuthenticated(false);
+                setUser(null);
+                setUserRole(null);
                 setIsLoading(false);
                 return;
             }
+
+            // Configurar el token en axios
+            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
             try {
                 // Intentar obtener los datos del usuario
@@ -36,9 +42,10 @@ export const AuthProvider = ({ children }) => {
                             refresh: refreshToken
                         });
                         
-                        localStorage.setItem('token', refreshResponse.data.access);
-                        
-                        // Reintentar obtener datos del usuario
+                        const newToken = refreshResponse.data.access;
+                        localStorage.setItem('token', newToken);
+                        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+
                         const userResponse = await axiosInstance.get('/user/current/');
                         if (userResponse.data && userResponse.data.perfil) {
                             setUser(userResponse.data);
@@ -46,13 +53,16 @@ export const AuthProvider = ({ children }) => {
                             setIsAuthenticated(true);
                         }
                     } catch (refreshError) {
-                        // Si falla el refresh, limpiar todo
+                        console.error('Error refreshing token:', refreshError);
                         logout();
                     }
+                } else {
+                    console.error('Error checking auth:', error);
+                    logout();
                 }
             }
         } catch (error) {
-            console.error('Error en checkAuth:', error);
+            console.error('Error in checkAuth:', error);
             logout();
         } finally {
             setIsLoading(false);
