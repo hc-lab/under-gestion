@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django_filters',
     'productos',
     'personales',
+    'django_crontab',
 ]
 
 REST_FRAMEWORK = {
@@ -243,3 +244,8 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
+
+# Agregar la configuración de CRONJOBS
+CRONJOBS = [
+    ('0 8 * * *', 'personales.tasks.crear_tareos_diarios')  # Ejecutar todos los días a las 8:00 AM
+]

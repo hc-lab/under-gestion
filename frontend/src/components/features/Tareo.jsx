@@ -8,6 +8,7 @@ const Tareo = () => {
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [loading, setLoading] = useState(true);
+    const [tareos, setTareos] = useState({});
 
     // Códigos de asistencia y sus colores
     const CODIGOS = {
@@ -63,12 +64,36 @@ const Tareo = () => {
         fetchData();
     }, [selectedMonth, selectedYear]);
 
+    const fetchTareos = async (year, month) => {
+        try {
+            setLoading(true);
+            const daysInMonth = getDaysInMonth(year, month);
+            const tareosByDay = {};
+
+            // Obtener tareos para cada día del mes
+            for (let day = 1; day <= daysInMonth; day++) {
+                const fecha = format(new Date(year, month, day), 'yyyy-MM-dd');
+                const response = await axiosInstance.get(`/tareos/por_fecha/?fecha=${fecha}`);
+                tareosByDay[day] = response.data;
+            }
+
+            return tareosByDay;
+        } catch (error) {
+            console.error('Error fetching tareos:', error);
+            return {};
+        }
+    };
+
     const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/personal/');
-            console.log('Personal data:', response.data); // Para debug
-            setPersonal(response.data);
+            const [personalRes, tareosData] = await Promise.all([
+                axiosInstance.get('/personal/'),
+                fetchTareos(selectedYear, selectedMonth)
+            ]);
+
+            setPersonal(personalRes.data);
+            setTareos(tareosData);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -133,10 +158,6 @@ const Tareo = () => {
                     </thead>
                     <tbody className="text-xs divide-y divide-gray-200">
                         {personal.map((persona, index) => {
-                            const asistencias = days.map(() => 
-                                Object.keys(CODIGOS)[Math.floor(Math.random() * Object.keys(CODIGOS).length)]
-                            );
-
                             return (
                                 <tr key={persona.id} className="hover:bg-gray-50">
                                     <td className="px-2 py-1 text-gray-500 border-r">
@@ -147,13 +168,18 @@ const Tareo = () => {
                                             {persona.apellidos} {persona.nombres}
                                         </div>
                                     </td>
-                                    {asistencias.map((codigo, dayIndex) => (
-                                        <td key={dayIndex} 
-                                            className={`px-1 py-1 text-center border-r last:border-r-0 ${CODIGOS[codigo].color}`}
-                                        >
-                                            {codigo}
-                                        </td>
-                                    ))}
+                                    {days.map(day => {
+                                        const tareo = tareos[day]?.find(t => t.personal === persona.id);
+                                        return (
+                                            <td key={day} 
+                                                className={`px-1 py-1 text-center border-r last:border-r-0 ${
+                                                    CODIGOS[tareo?.tipo || 'F'].color
+                                                }`}
+                                            >
+                                                {tareo?.tipo || 'F'}
+                                            </td>
+                                        );
+                                    })}
                                 </tr>
                             );
                         })}

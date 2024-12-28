@@ -11,4 +11,4 @@ sqlparse==0.5.3
 typing_extensions==4.12.2
 django-filter==24.3
 django-cors-headers==4.6.0
-
+django-crontab==0.7.1

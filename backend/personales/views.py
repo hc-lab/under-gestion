@@ -141,6 +141,25 @@ class TareoViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tareo)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'])
+    def por_fecha(self, request):
+        """Obtener tareos por fecha específica"""
+        try:
+            fecha_str = request.query_params.get('fecha')
+            if fecha_str:
+                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+            else:
+                fecha = timezone.now().date()
+
+            tareos = Tareo.objects.filter(fecha=fecha)
+            serializer = self.get_serializer(tareos, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
