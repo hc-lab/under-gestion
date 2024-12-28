@@ -7,7 +7,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Tareo from './Tareo';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 const RRHH = () => {
     const [tareos, setTareos] = useState([]);
@@ -263,33 +263,23 @@ const RRHH = () => {
                         </h3>
                         <div className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <RadialBarChart 
-                                    cx="50%" 
-                                    cy="50%" 
-                                    innerRadius="20%" 
-                                    outerRadius="90%" 
+                                <BarChart
                                     data={calcularResumen()}
-                                    startAngle={180} 
-                                    endAngle={0}
+                                    layout="vertical"
+                                    margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
                                 >
-                                    <RadialBar
-                                        minAngle={15}
-                                        background
-                                        clockWise={true}
-                                        dataKey="value"
-                                        cornerRadius={15}
-                                    >
-                                        {calcularResumen().map((entry, index) => (
-                                            <Cell 
-                                                key={`cell-${index}`} 
-                                                fill={getStatusColor(entry.tipo)}
-                                            />
-                                        ))}
-                                    </RadialBar>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                    <XAxis type="number" />
+                                    <YAxis 
+                                        type="category" 
+                                        dataKey="name" 
+                                        width={100}
+                                        tick={{ fontSize: 12 }}
+                                    />
                                     <Tooltip
                                         formatter={(value, name) => [
                                             `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
-                                            name
+                                            'Cantidad'
                                         ]}
                                         contentStyle={{
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -298,19 +288,18 @@ const RRHH = () => {
                                             border: 'none',
                                         }}
                                     />
-                                    <Legend
-                                        layout="vertical"
-                                        align="right"
-                                        verticalAlign="middle"
-                                        iconType="circle"
-                                        iconSize={10}
-                                        formatter={(value) => (
-                                            <span style={{ color: '#374151', fontSize: '12px', fontWeight: 500 }}>
-                                                {value}
-                                            </span>
-                                        )}
-                                    />
-                                </RadialBarChart>
+                                    <Bar 
+                                        dataKey="value" 
+                                        radius={[0, 4, 4, 0]}
+                                    >
+                                        {calcularResumen().map((entry, index) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={getStatusColor(entry.tipo)}
+                                            />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
@@ -326,7 +315,7 @@ const RRHH = () => {
                                         data={calcularResumenPorCargo()}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={true}
+                                        labelLine={false}
                                         label={({
                                             cx,
                                             cy,
@@ -334,10 +323,11 @@ const RRHH = () => {
                                             innerRadius,
                                             outerRadius,
                                             percent,
+                                            value,
                                             name
                                         }) => {
                                             const RADIAN = Math.PI / 180;
-                                            const radius = outerRadius * 1.2;
+                                            const radius = outerRadius * 1.1;
                                             const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                             const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -350,17 +340,26 @@ const RRHH = () => {
                                                     dominantBaseline="central"
                                                     className="text-xs font-medium"
                                                 >
-                                                    {`${name} (${(percent * 100).toFixed(0)}%)`}
+                                                    {`${name}: ${value}`}
                                                 </text>
                                             ) : null;
                                         }}
                                         outerRadius={100}
+                                        paddingAngle={3}
                                         dataKey="value"
                                     >
                                         {calcularResumenPorCargo().map((entry, index) => (
                                             <Cell 
                                                 key={`cell-${index}`} 
-                                                fill={getCargoColor(entry.cargo)}
+                                                fill={[
+                                                    '#60a5fa', // azul
+                                                    '#34d399', // verde
+                                                    '#a78bfa', // violeta
+                                                    '#f472b6', // rosa
+                                                    '#fbbf24', // amarillo
+                                                    '#f87171', // rojo
+                                                    '#6ee7b7', // turquesa
+                                                ][index % 7]}
                                                 stroke="#ffffff"
                                                 strokeWidth={2}
                                             />
