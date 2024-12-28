@@ -256,6 +256,37 @@ const RRHH = () => {
                     </table>
                 </div>
 
+                {/* Resumen de totales */}
+                <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div className="text-sm font-medium text-gray-500">En Unidad</div>
+                        <div className="mt-1 text-2xl font-semibold text-blue-600">
+                            {personal.filter(p => p.tareo?.tipo === 'T').length}
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div className="text-sm font-medium text-gray-500">Días Libres</div>
+                        <div className="mt-1 text-2xl font-semibold text-gray-600">
+                            {personal.filter(p => p.tareo?.tipo === 'DL').length}
+                        </div>
+                    </div>
+
+                    <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <div className="text-sm font-medium text-gray-500">Permisos</div>
+                        <div className="mt-1 text-2xl font-semibold text-indigo-600">
+                            {personal.filter(p => p.tareo?.tipo === 'PS' || p.tareo?.tipo === 'PC').length}
+                        </div>
+                    </div>
+
+                    <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div className="text-sm font-medium text-gray-500">Faltas</div>
+                        <div className="mt-1 text-2xl font-semibold text-red-600">
+                            {personal.filter(p => !p.tareo || !p.tareo.tipo).length}
+                        </div>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
                     <div className="bg-gradient-to-br from-white to-slate-50 p-6 rounded-xl shadow-lg border border-slate-200">
                         <h3 className="text-xl font-bold mb-4 text-gray-800">
