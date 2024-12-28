@@ -10,6 +10,8 @@ COPY package*.json ./
 RUN rm -rf /root/.npm && \
     rm -f package-lock.json && \
     npm cache clean --force && \
+    RUN npm install\
+    RUN npm install @react-pdf/renderer html2canvas jspdf\ 
     npm install -g npm@latest && \
     npm install --legacy-peer-deps --force
 
