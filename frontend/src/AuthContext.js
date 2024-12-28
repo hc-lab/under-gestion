@@ -1,19 +1,28 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import axios from 'axios';
 import axiosInstance from './axiosInstance';
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        // Inicializar el estado de autenticación basado en la existencia del token
         return !!localStorage.getItem('token');
     });
     const [user, setUser] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const abortControllerRef = useRef(null);
+    const checkAuthTimeoutRef = useRef(null);
 
     const checkAuth = async () => {
         try {
+            // Cancelar petición anterior si existe
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            // Crear nuevo controlador para esta petición
+            abortControllerRef.current = new AbortController();
+
             const token = localStorage.getItem('token');
             const refreshToken = localStorage.getItem('refreshToken');
             
@@ -25,50 +34,94 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
-            // Configurar el token en axios
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
             try {
-                const response = await axiosInstance.get('/user/current/');
+                const response = await axiosInstance.get('/user/current/', {
+                    signal: abortControllerRef.current.signal
+                });
+                
                 if (response.data && response.data.perfil) {
                     setUser(response.data);
                     setUserRole(response.data.perfil.rol);
                     setIsAuthenticated(true);
                 }
             } catch (error) {
+                if (axios.isCancel(error)) {
+                    console.log('Request canceled');
+                    return;
+                }
+
                 if (error.response?.status === 401) {
                     try {
-                        const refreshResponse = await axios.post('http://localhost:8000/api/token/refresh/', {
-                            refresh: refreshToken
-                        });
+                        const refreshResponse = await axios.post(
+                            'http://localhost:8000/api/token/refresh/',
+                            { refresh: refreshToken },
+                            { signal: abortControllerRef.current.signal }
+                        );
                         
                         const newToken = refreshResponse.data.access;
                         localStorage.setItem('token', newToken);
                         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-                        // Reintentar obtener datos del usuario con el nuevo token
-                        const userResponse = await axiosInstance.get('/user/current/');
+                        const userResponse = await axiosInstance.get('/user/current/', {
+                            signal: abortControllerRef.current.signal
+                        });
+                        
                         if (userResponse.data && userResponse.data.perfil) {
                             setUser(userResponse.data);
                             setUserRole(userResponse.data.perfil.rol);
                             setIsAuthenticated(true);
                         }
                     } catch (refreshError) {
-                        console.error('Error refreshing token:', refreshError);
-                        handleLogout();
+                        if (!axios.isCancel(refreshError)) {
+                            console.error('Error refreshing token:', refreshError);
+                            handleLogout();
+                        }
                     }
-                } else {
+                } else if (!axios.isCancel(error)) {
                     console.error('Error checking auth:', error);
                     handleLogout();
                 }
             }
         } catch (error) {
-            console.error('Error in checkAuth:', error);
-            handleLogout();
+            if (!axios.isCancel(error)) {
+                console.error('Error in checkAuth:', error);
+                handleLogout();
+            }
         } finally {
             setIsLoading(false);
         }
     };
+
+    const debouncedCheckAuth = () => {
+        if (checkAuthTimeoutRef.current) {
+            clearTimeout(checkAuthTimeoutRef.current);
+        }
+        checkAuthTimeoutRef.current = setTimeout(checkAuth, 100);
+    };
+
+    useEffect(() => {
+        debouncedCheckAuth();
+        
+        const handleStorageChange = (e) => {
+            if (e.key === 'token' && !e.newValue) {
+                handleLogout();
+            }
+        };
+        
+        window.addEventListener('storage', handleStorageChange);
+        
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+            if (checkAuthTimeoutRef.current) {
+                clearTimeout(checkAuthTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
@@ -78,18 +131,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setUserRole(null);
     };
-
-    useEffect(() => {
-        checkAuth();
-        // Agregar un listener para eventos de storage
-        const handleStorageChange = (e) => {
-            if (e.key === 'token' && !e.newValue) {
-                handleLogout();
-            }
-        };
-        window.addEventListener('storage', handleStorageChange);
-        return () => window.removeEventListener('storage', handleStorageChange);
-    }, []);
 
     const login = async (credentials) => {
         try {

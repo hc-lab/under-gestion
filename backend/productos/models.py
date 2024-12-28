@@ -76,7 +76,7 @@ class SalidaProducto(models.Model):
     cantidad = models.IntegerField()
     fecha_hora = models.DateTimeField(auto_now_add=True)
     entregado_a = models.ForeignKey(
-        Personal, 
+        'personales.Personal',  # Asegúrate de que esta referencia sea correcta
         on_delete=models.SET_NULL, 
         null=True,
         related_name='salidas_recibidas'

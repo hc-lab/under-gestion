@@ -83,42 +83,34 @@ const ProductList = () => {
                 return;
             }
 
-            if (selectedProducto?.stock - cantidadNum < 0) {
-                toast.error('No hay suficiente stock disponible');
+            if (!selectedPerson) {
+                toast.error('Debe seleccionar a quién se entrega el producto');
                 return;
             }
 
-            if (!entregadoA.trim()) {
-                toast.error('Debe especificar a quién se entrega el producto');
-                return;
-            }
-
-            const response = await axiosInstance.post('salidas/', {
+            const salidaData = {
                 producto: selectedProducto.id,
                 cantidad: cantidadNum,
-                entregado_a: entregadoA.trim(),
-                motivo: motivo.trim() || 'Sin motivo especificado',
-                fecha_hora: new Date().toISOString()
-            });
+                entregado_a: selectedPerson.id,
+                motivo: motivo
+            };
 
+            const response = await axiosInstance.post('/salidas/', salidaData);
+            
             if (response.status === 201) {
-                // Limpiar el formulario
-                setCantidad('');
-                setEntregadoA('');
-                setMotivo('');
-                setIsSalidaOpen(false);
                 toast.success('Salida registrada correctamente');
-
-                // Recargar los datos para asegurar sincronización
+                setIsSalidaOpen(false);
+                setCantidad('');
+                setSelectedPerson(null);
+                setMotivo('');
                 fetchData();
             }
         } catch (error) {
-            console.error('Error detallado:', error.response || error);
-            toast.error(
-                error.response?.data?.error ||
-                error.response?.data?.message ||
-                'Error al registrar la salida. Por favor, intente nuevamente.'
-            );
+            console.error('Error detallado:', error);
+            if (error.response?.data) {
+                console.error('Respuesta del servidor:', error.response.data);
+            }
+            toast.error(error.response?.data?.detail || 'Error al registrar la salida');
         }
     };
 
@@ -405,15 +397,7 @@ const ProductList = () => {
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 Entregado a
                                             </label>
-                                            <Combobox 
-                                                value={selectedPerson} 
-                                                onChange={(person) => {
-                                                    if (person) {
-                                                        setSelectedPerson(person);
-                                                        setEntregadoA(`${person.nombres} ${person.apellidos}`);
-                                                    }
-                                                }}
-                                            >
+                                            <Combobox value={selectedPerson} onChange={setSelectedPerson}>
                                                 <div className="relative mt-1">
                                                     <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left border border-gray-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-indigo-300 sm:text-sm">
                                                         <Combobox.Input
