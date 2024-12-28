@@ -74,7 +74,7 @@ const App = () => {
                                 path="/rrhh" 
                                 element={
                                     <ProtectedRoute>
-                                        <Tareo />
+                                        <RRHH />
                                     </ProtectedRoute>
                                 } 
                             />

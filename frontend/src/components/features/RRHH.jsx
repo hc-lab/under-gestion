@@ -6,6 +6,7 @@ import { toast } from 'react-hot-toast';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import Tareo from './Tareo';
 
 const RRHH = () => {
     const [tareos, setTareos] = useState([]);
@@ -158,7 +159,7 @@ const RRHH = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
                 <h2 className="text-2xl font-bold text-gray-900">
                     Control de Asistencia - {format(new Date(), 'dd/MM/yyyy')}
@@ -361,6 +362,12 @@ const RRHH = () => {
                     </div>
                 </Dialog>
             </Transition>
+
+            {/* Separador */}
+            <div className="border-t border-gray-200 my-8"></div>
+
+            {/* Nuevo componente Tareo */}
+            <Tareo />
         </div>
     );
 };
