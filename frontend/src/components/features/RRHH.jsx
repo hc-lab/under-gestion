@@ -7,7 +7,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Tareo from './Tareo';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar } from 'recharts';
 
 const RRHH = () => {
     const [tareos, setTareos] = useState([]);
@@ -157,15 +157,15 @@ const RRHH = () => {
 
     const getCargoColor = (cargo) => {
         const colores = {
-            'OPERADOR': '#2dd4bf',       // turquesa
-            'SUPERVISOR': '#f97316',     // naranja vibrante
-            'GERENTE': '#6366f1',       // índigo real
-            'ADMINISTRATIVO': '#ec4899', // rosa intenso
-            'TÉCNICO': '#14b8a6',       // verde azulado
-            'AUXILIAR': '#8b5cf6',      // violeta
-            'OTROS': '#64748b'          // gris pizarra
+            'OPERADOR': '#bfdbfe',      // azul muy suave
+            'SUPERVISOR': '#fde68a',    // amarillo suave
+            'GERENTE': '#ddd6fe',      // violeta suave
+            'ADMINISTRATIVO': '#fbcfe8', // rosa suave
+            'TÉCNICO': '#a7f3d0',      // verde menta suave
+            'AUXILIAR': '#fecaca',      // rojo suave
+            'OTROS': '#e5e7eb'         // gris suave
         };
-        return colores[cargo] || '#94a3b8'; // gris por defecto
+        return colores[cargo] || '#f3f4f6';
     };
 
     if (loading) {
@@ -257,75 +257,65 @@ const RRHH = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-                    <div className="bg-white p-6 rounded-lg shadow">
-                        <h3 className="text-lg font-semibold mb-4">Distribución por Estado</h3>
+                    <div className="bg-gradient-to-br from-white to-slate-50 p-6 rounded-xl shadow-lg border border-slate-200">
+                        <h3 className="text-xl font-bold mb-4 text-gray-800">
+                            Distribución por Estado
+                        </h3>
                         <div className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={calcularResumen()}
-                                        cx="50%"
-                                        cy="50%"
-                                        labelLine={false}
-                                        label={({name, value}) => `${value}`}
-                                        outerRadius={90}
-                                        innerRadius={60}
-                                        fill="#8884d8"
-                                        paddingAngle={5}
+                                <RadialBarChart 
+                                    cx="50%" 
+                                    cy="50%" 
+                                    innerRadius="20%" 
+                                    outerRadius="90%" 
+                                    data={calcularResumen()}
+                                    startAngle={180} 
+                                    endAngle={0}
+                                >
+                                    <RadialBar
+                                        minAngle={15}
+                                        background
+                                        clockWise={true}
                                         dataKey="value"
+                                        cornerRadius={15}
                                     >
                                         {calcularResumen().map((entry, index) => (
                                             <Cell 
                                                 key={`cell-${index}`} 
                                                 fill={getStatusColor(entry.tipo)}
-                                                stroke="#fff"
-                                                strokeWidth={2}
                                             />
                                         ))}
-                                    </Pie>
-                                    <Tooltip 
+                                    </RadialBar>
+                                    <Tooltip
                                         formatter={(value, name) => [
                                             `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
                                             name
                                         ]}
                                         contentStyle={{
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                            border: 'none',
                                             borderRadius: '8px',
-                                            padding: '8px 12px',
                                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                                        }}
-                                        itemStyle={{
-                                            color: '#374151',
-                                            fontSize: '12px',
-                                            fontWeight: 500
+                                            border: 'none',
                                         }}
                                     />
-                                    <Legend 
-                                        formatter={(value) => (
-                                            <span style={{
-                                                color: '#374151',
-                                                fontSize: '12px',
-                                                fontWeight: 500
-                                            }}>
-                                                {value}
-                                            </span>
-                                        )}
+                                    <Legend
                                         layout="vertical"
                                         align="right"
                                         verticalAlign="middle"
                                         iconType="circle"
                                         iconSize={10}
-                                        wrapperStyle={{
-                                            paddingLeft: '20px'
-                                        }}
+                                        formatter={(value) => (
+                                            <span style={{ color: '#374151', fontSize: '12px', fontWeight: 500 }}>
+                                                {value}
+                                            </span>
+                                        )}
                                     />
-                                </PieChart>
+                                </RadialBarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-6 rounded-xl shadow-lg border border-slate-200">
+                    <div className="bg-gradient-to-br from-white to-slate-50 p-6 rounded-xl shadow-lg border border-slate-200">
                         <h3 className="text-xl font-bold mb-4 text-gray-800">
                             Distribución por Cargo
                         </h3>
@@ -336,22 +326,22 @@ const RRHH = () => {
                                         data={calcularResumenPorCargo()}
                                         cx="50%"
                                         cy="50%"
-                                        labelLine={false}
+                                        labelLine={true}
                                         label={({
                                             cx,
                                             cy,
                                             midAngle,
                                             innerRadius,
                                             outerRadius,
-                                            value,
+                                            percent,
                                             name
                                         }) => {
                                             const RADIAN = Math.PI / 180;
-                                            const radius = 25 + innerRadius + (outerRadius - innerRadius);
+                                            const radius = outerRadius * 1.2;
                                             const x = cx + radius * Math.cos(-midAngle * RADIAN);
                                             const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-                                            return (
+                                            return percent > 0.05 ? (
                                                 <text
                                                     x={x}
                                                     y={y}
@@ -360,60 +350,33 @@ const RRHH = () => {
                                                     dominantBaseline="central"
                                                     className="text-xs font-medium"
                                                 >
-                                                    {`${name} (${value})`}
+                                                    {`${name} (${(percent * 100).toFixed(0)}%)`}
                                                 </text>
-                                            );
+                                            ) : null;
                                         }}
-                                        outerRadius={90}
-                                        innerRadius={60}
-                                        fill="#8884d8"
-                                        paddingAngle={5}
+                                        outerRadius={100}
                                         dataKey="value"
                                     >
                                         {calcularResumenPorCargo().map((entry, index) => (
                                             <Cell 
                                                 key={`cell-${index}`} 
                                                 fill={getCargoColor(entry.cargo)}
-                                                stroke="#fff"
+                                                stroke="#ffffff"
                                                 strokeWidth={2}
                                             />
                                         ))}
                                     </Pie>
-                                    <Tooltip 
+                                    <Tooltip
                                         formatter={(value, name) => [
                                             `${value} personas (${((value / personal.length) * 100).toFixed(1)}%)`,
                                             name
                                         ]}
                                         contentStyle={{
                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                            border: 'none',
                                             borderRadius: '8px',
-                                            padding: '8px 12px',
                                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                                        }}
-                                        itemStyle={{
-                                            color: '#374151',
-                                            fontSize: '12px',
-                                            fontWeight: 500
-                                        }}
-                                    />
-                                    <Legend 
-                                        formatter={(value) => (
-                                            <span style={{
-                                                color: '#374151',
-                                                fontSize: '12px',
-                                                fontWeight: 500
-                                            }}>
-                                                {value}
-                                            </span>
-                                        )}
-                                        layout="vertical"
-                                        align="right"
-                                        verticalAlign="middle"
-                                        iconType="circle"
-                                        iconSize={10}
-                                        wrapperStyle={{
-                                            paddingLeft: '20px'
+                                            border: 'none',
+                                            padding: '8px 12px',
                                         }}
                                     />
                                 </PieChart>
