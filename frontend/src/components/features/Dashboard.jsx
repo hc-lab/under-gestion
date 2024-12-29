@@ -13,6 +13,16 @@ import ActivityList from './ActivityList';
 import { Doughnut, Pie } from 'react-chartjs-2';
 import ReactSpeedometer from 'react-d3-speedometer';
 
+// Añadir un objeto para mapear los tipos a descripciones más claras
+const TIPO_TAREO_LABELS = {
+    'T': 'En Unidad',
+    'P': 'Permiso',
+    'V': 'Vacaciones',
+    'D': 'Descanso',
+    'F': 'Falta',
+    'NR': 'No Registrado'
+};
+
 const Dashboard = () => {
     const [stats, setStats] = useState({
         totalProductos: 0,
@@ -126,18 +136,16 @@ const Dashboard = () => {
         const totalPersonal = stats.totalPersonalRegistrado || 1;
         const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
 
-        // Definir los datos para el gráfico de productos
-        const productChartData = {
-            labels: ['En Stock', 'Alertas', 'Otros'],
-            datasets: [{
-                data: [
-                    stats.enStock,
-                    stats.alertas,
-                    stats.totalProductos - stats.enStock - stats.alertas
-                ],
-                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
-                borderWidth: 0
-            }]
+        // Función para calcular el personal no registrado
+        const calcularNoRegistrados = () => {
+            const totalTareos = Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0);
+            return stats.totalPersonalRegistrado - totalTareos;
+        };
+
+        // Combinar los conteos con el personal no registrado
+        const todosLosTipos = {
+            ...stats.conteoTareos,
+            'NR': calcularNoRegistrados()
         };
 
         return (
@@ -191,13 +199,26 @@ const Dashboard = () => {
                                     de {totalPersonal}
                                 </span>
                             </div>
-                            <div className="mt-2 text-sm text-gray-600">
-                                {stats.conteoTareos && Object.entries(stats.conteoTareos).map(([tipo, cantidad]) => (
-                                    <div key={tipo} className="flex justify-between px-4">
-                                        <span>{tipo}:</span>
-                                        <span>{cantidad}</span>
-                                    </div>
-                                ))}
+                            <div className="mt-4">
+                                <h4 className="font-medium text-gray-700 mb-2">Estado del Personal</h4>
+                                <div className="grid grid-cols-1 gap-2">
+                                    {Object.entries(todosLosTipos).map(([tipo, cantidad]) => (
+                                        <div key={tipo} 
+                                             className={`flex justify-between items-center px-3 py-1 rounded-lg ${
+                                                 tipo === 'T' ? 'bg-blue-50 text-blue-700' :
+                                                 tipo === 'NR' ? 'bg-red-50 text-red-700' :
+                                                 'bg-gray-50 text-gray-700'
+                                             }`}
+                                        >
+                                            <span className="font-medium">
+                                                {TIPO_TAREO_LABELS[tipo] || tipo}:
+                                            </span>
+                                            <span className="font-bold">
+                                                {cantidad}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
