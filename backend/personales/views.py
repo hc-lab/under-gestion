@@ -10,6 +10,7 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from .models import Personal, Tareo, Perfil
 from .serializers import PersonalSerializer, TareoSerializer, UserSerializer
+from django_filters.rest_framework import DjangoFilterBackend
 
 class PersonalViewSet(viewsets.ModelViewSet):
     serializer_class = PersonalSerializer
@@ -50,25 +51,24 @@ class PersonalListView(APIView):
         return Response(serializer.data)
 
 class TareoViewSet(viewsets.ModelViewSet):
+    queryset = Tareo.objects.all()
     serializer_class = TareoSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    filterset_fields = ['tipo', 'personal', 'fecha']
-    search_fields = ['motivo', 'personal__nombres', 'personal__apellidos']
-    ordering_fields = ['fecha', 'fecha_registro']
-    ordering = ['-fecha']
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = {
+        'fecha': ['exact', 'day', 'month', 'year'],
+        'tipo': ['exact'],
+        'personal': ['exact']
+    }
 
     def get_queryset(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Tareo.objects.all()
-        elif hasattr(user, 'perfil'):
-            if user.perfil.rol == 'SUPERVISOR':
-                # Supervisores ven los tareos de su área
-                return Tareo.objects.filter(personal__area=user.perfil.area)
-            elif user.perfil.rol == 'OPERADOR':
-                # Operadores solo ven sus propios tareos
-                return Tareo.objects.filter(personal__user=user)
-        return Tareo.objects.none()
+        queryset = super().get_queryset()
+        fecha = self.request.query_params.get('fecha', None)
+        
+        if fecha:
+            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
+            queryset = queryset.filter(fecha=fecha_obj)
+        
+        return queryset.select_related('personal')
 
     def create(self, request, *args, **kwargs):
         try:

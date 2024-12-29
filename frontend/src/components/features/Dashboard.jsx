@@ -122,33 +122,43 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const today = new Date().toISOString().split('T')[0];
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth() + 1; // getMonth() devuelve 0-11
+                const day = today.getDate();
+
+                // Usar los parámetros de filtro en la URL
+                const tareoUrl = `/tareos/por_fecha/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                
                 const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
                     axiosInstance.get('/personal/'),
-                    axiosInstance.get(`/tareos/por_fecha/?fecha=${today}`)
+                    axiosInstance.get(tareoUrl)
                 ]);
 
-                // Calcular totales de personal
-                const totalPersonalRegistrado = personalRes.data.length;
-                
                 // Obtener personal en unidad del día actual
                 const tareosDia = tareosRes.data;
-                console.log('Tareos del día:', tareosDia); // Para debug
-                
-                // Filtrar solo personal con tipo 'T' (En Unidad)
-                const personalEnUnidad = tareosDia.filter(tareo => {
-                    console.log('Tareo:', tareo); // Para debug
-                    return tareo.tipo === 'T';
+                console.log('URL de tareos:', tareoUrl);
+                console.log('Tareos del día:', tareosDia);
+
+                // Contar personal en unidad (tipo 'T')
+                const personalEnUnidad = tareosDia.reduce((count, tareo) => {
+                    return tareo.tipo === 'T' ? count + 1 : count;
+                }, 0);
+
+                // Total de personal registrado
+                const totalPersonalRegistrado = personalRes.data.length;
+
+                console.log('Personal en unidad:', personalEnUnidad);
+                console.log('Total personal registrado:', totalPersonalRegistrado);
+
+                const movimientosHoy = movimientosRes.data.filter(m => {
+                    const fechaMov = new Date(m.fecha);
+                    return fechaMov.getDate() === day && 
+                           fechaMov.getMonth() === month - 1 && 
+                           fechaMov.getFullYear() === year;
                 }).length;
-
-                console.log('Personal en unidad:', personalEnUnidad); // Para debug
-                console.log('Total personal registrado:', totalPersonalRegistrado); // Para debug
-
-                const movimientosHoy = movimientosRes.data.filter(m => 
-                    new Date(m.fecha).toDateString() === new Date().toDateString()
-                ).length;
 
                 const statsData = {
                     ...statsRes.data,
@@ -171,7 +181,7 @@ const Dashboard = () => {
                     datasets: [{
                         label: 'Métricas Actuales',
                         data: [
-                            personalEnUnidad || 0,  // Asegurar que no sea undefined
+                            personalEnUnidad,  // Ahora debería mostrar el número correcto
                             statsData.enStock,
                             movimientosHoy,
                             statsData.totalProductos,
