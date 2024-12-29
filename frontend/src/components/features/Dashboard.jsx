@@ -10,7 +10,7 @@ import axiosInstance from '../../axiosInstance';
 import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
-import { Doughnut } from 'react-chartjs-2';
+import { Doughnut, Pie } from 'react-chartjs-2';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -120,88 +120,130 @@ const Dashboard = () => {
         return values[label] || '';
     };
 
-    const renderHoneycombMetrics = () => {
-        const metrics = [
-            {
-                title: 'Personal en Unidad',
-                value: stats.personalEnUnidad,
-                total: stats.totalPersonalRegistrado,
-                color: 'bg-blue-50',
-                textColor: 'text-blue-600',
-                borderColor: 'border-blue-200',
-                percent: Math.round((stats.personalEnUnidad / stats.totalPersonalRegistrado) * 100)
-            },
-            {
-                title: 'Ocupación Almacén',
-                value: stats.enStock,
-                total: stats.totalProductos,
-                color: 'bg-emerald-50',
-                textColor: 'text-emerald-600',
-                borderColor: 'border-emerald-200',
-                percent: Math.round((stats.enStock / stats.totalProductos) * 100)
-            },
-            {
-                title: 'Actividad Diaria',
-                value: stats.movimientosHoy,
-                suffix: 'movimientos',
-                color: 'bg-amber-50',
-                textColor: 'text-amber-600',
-                borderColor: 'border-amber-200',
-                percent: stats.movimientosHoy
-            },
-            {
-                title: 'Productos Registrados',
-                value: stats.totalProductos,
-                suffix: 'items',
-                color: 'bg-purple-50',
-                textColor: 'text-purple-600',
-                borderColor: 'border-purple-200',
-                percent: 100
-            },
-            {
-                title: 'Alertas Activas',
-                value: stats.alertas,
-                suffix: 'productos',
-                color: 'bg-rose-50',
-                textColor: 'text-rose-600',
-                borderColor: 'border-rose-200',
-                percent: (stats.alertas / stats.totalProductos) * 100
-            },
-            {
-                title: 'Eficiencia General',
-                value: '95%',
-                color: 'bg-indigo-50',
-                textColor: 'text-indigo-600',
-                borderColor: 'border-indigo-200',
-                percent: 95
+    const renderMetricsOverview = () => {
+        // Datos para el gráfico circular principal
+        const mainChartData = {
+            labels: ['En Unidad', 'Otros'],
+            datasets: [{
+                data: [stats.personalEnUnidad, stats.totalPersonalRegistrado - stats.personalEnUnidad],
+                backgroundColor: ['#3B82F6', '#E5E7EB'],
+                borderWidth: 0,
+                cutout: '70%'
+            }]
+        };
+
+        // Datos para el gráfico de productos
+        const productChartData = {
+            labels: ['En Stock', 'Alertas', 'Otros'],
+            datasets: [{
+                data: [
+                    stats.enStock,
+                    stats.alertas,
+                    stats.totalProductos - stats.enStock - stats.alertas
+                ],
+                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
+                borderWidth: 0
+            }]
+        };
+
+        const mainChartOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    enabled: true,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw} personas`;
+                        }
+                    }
+                }
             }
-        ];
+        };
 
         return (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {metrics.map((metric, index) => (
-                    <div 
-                        key={index} 
-                        className={`relative hex-container ${metric.color} ${metric.borderColor} border rounded-xl p-4 transition-all duration-300 hover:shadow-md`}
-                    >
-                        <div className="flex flex-col items-center text-center">
-                            <h3 className="text-sm font-medium text-gray-600 mb-2">
-                                {metric.title}
-                            </h3>
-                            <div className={`text-2xl font-bold ${metric.textColor} mb-1`}>
-                                {metric.value}
-                                {metric.total && <span className="text-sm text-gray-500">/{metric.total}</span>}
-                                {metric.suffix && <span className="text-sm text-gray-500"> {metric.suffix}</span>}
+            <div className="space-y-6">
+                <div className="grid grid-cols-3 gap-6">
+                    {/* Gráfico Principal - Personal */}
+                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm relative">
+                        <div className="relative h-48">
+                            <Doughnut data={mainChartData} options={mainChartOptions} />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-3xl font-bold text-blue-600">
+                                    {stats.personalEnUnidad}
+                                </span>
+                                <span className="text-sm text-gray-500">en unidad</span>
                             </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                                <div 
-                                    className={`h-2 rounded-full ${metric.textColor.replace('text', 'bg')}`}
-                                    style={{ width: `${metric.percent}%` }}
-                                />
+                        </div>
+                        <div className="text-center mt-4">
+                            <h3 className="text-lg font-semibold text-gray-800">Personal Activo</h3>
+                            <p className="text-sm text-gray-500">
+                                de {stats.totalPersonalRegistrado} registrados
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Gráfico de Productos */}
+                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm">
+                        <div className="h-48">
+                            <Pie data={productChartData} />
+                        </div>
+                        <div className="text-center mt-4">
+                            <h3 className="text-lg font-semibold text-gray-800">Estado de Inventario</h3>
+                            <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
+                                <div className="text-emerald-600">
+                                    <div className="font-semibold">{stats.enStock}</div>
+                                    <div className="text-xs">En Stock</div>
+                                </div>
+                                <div className="text-red-600">
+                                    <div className="font-semibold">{stats.alertas}</div>
+                                    <div className="text-xs">Alertas</div>
+                                </div>
+                                <div className="text-gray-600">
+                                    <div className="font-semibold">{stats.totalProductos}</div>
+                                    <div className="text-xs">Total</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                ))}
+
+                    {/* Métricas de Actividad */}
+                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm">
+                        <div className="space-y-4">
+                            <div className="text-center">
+                                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                                    Actividad del Día
+                                </h3>
+                                <div className="text-4xl font-bold text-indigo-600">
+                                    {stats.movimientosHoy}
+                                </div>
+                                <div className="text-sm text-gray-500 mt-1">
+                                    movimientos registrados
+                                </div>
+                            </div>
+                            <div className="mt-6">
+                                <div className="relative pt-1">
+                                    <div className="flex mb-2 items-center justify-between">
+                                        <div className="text-xs text-gray-600">
+                                            Eficiencia del día
+                                        </div>
+                                        <div className="text-xs font-semibold text-indigo-600">
+                                            95%
+                                        </div>
+                                    </div>
+                                    <div className="overflow-hidden h-2 text-xs flex rounded bg-indigo-100">
+                                        <div 
+                                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
+                                            style={{ width: '95%' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     };
@@ -373,25 +415,12 @@ const Dashboard = () => {
 
             {/* Gráficos y Actividad Reciente */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Gráfico principal */}
+                {/* Panel Principal */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-6 text-gray-800">
-                        Panel de Control Gerencial
+                    <h2 className="text-xl font-bold mb-6 text-gray-800">
+                        Panel de Control
                     </h2>
-                    {renderHoneycombMetrics()}
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                        <div className="text-sm text-gray-600">
-                            <div className="font-medium mb-2">Leyenda de Indicadores:</div>
-                            <div className="grid grid-cols-2 gap-4 text-xs">
-                                <div>• Personal en Unidad: Personal activo vs. total registrado</div>
-                                <div>• Ocupación Almacén: Productos en stock vs. capacidad</div>
-                                <div>• Actividad Diaria: Movimientos realizados hoy</div>
-                                <div>• Productos: Total de items en catálogo</div>
-                                <div>• Alertas: Productos que requieren atención</div>
-                                <div>• Eficiencia: Rendimiento operativo general</div>
-                            </div>
-                        </div>
-                    </div>
+                    {renderMetricsOverview()}
                 </div>
 
                 {/* Actividad Reciente */}
