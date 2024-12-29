@@ -7,7 +7,7 @@ import {
     UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
-import { Bar } from 'react-chartjs-2';
+import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
 
@@ -35,33 +35,29 @@ const Dashboard = () => {
             },
             title: {
                 display: true,
-                text: 'Movimientos de Almacén'
-            },
-            tooltip: {
-                mode: 'index',
-                intersect: false,
+                text: 'Resumen General'
             }
         },
         scales: {
-            x: {
-                stacked: false,
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    maxRotation: 45,
-                    minRotation: 45
-                }
-            },
-            y: {
-                stacked: false,
+            r: {
                 beginAtZero: true,
+                ticks: {
+                    backdropColor: 'rgba(255, 255, 255, 0.8)',
+                    font: {
+                        size: 10
+                    }
+                },
                 grid: {
                     color: 'rgba(0, 0, 0, 0.1)',
                 },
-                title: {
-                    display: true,
-                    text: 'Cantidad'
+                pointLabels: {
+                    font: {
+                        size: 12,
+                        weight: 'bold'
+                    }
+                },
+                angleLines: {
+                    color: 'rgba(0, 0, 0, 0.1)'
                 }
             }
         }
@@ -70,60 +66,57 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                console.log('Fetching dashboard data...');
                 const [statsRes, movimientosRes, personalRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
                     axiosInstance.get('/personal/')
                 ]);
 
-                // Actualizar estadísticas incluyendo personal
-                setStats({
+                // Calcular métricas adicionales
+                const totalMovimientos = movimientosRes.data.length;
+                const movimientosHoy = movimientosRes.data.filter(mov => 
+                    new Date(mov.fecha).toDateString() === new Date().toDateString()
+                ).length;
+
+                const personalActivo = personalRes.data.filter(p => p.activo).length;
+                const totalPersonal = personalRes.data.length;
+
+                // Actualizar estadísticas
+                const statsData = {
                     ...statsRes.data,
-                    totalPersonal: personalRes.data.length,
-                    personalActivo: personalRes.data.filter(p => p.activo).length
-                });
+                    totalPersonal,
+                    personalActivo
+                };
+                setStats(statsData);
 
-                // Procesar datos para el gráfico
-                const movimientosPorFecha = {};
-                movimientosRes.data.forEach(mov => {
-                    const fecha = mov.fecha.split('T')[0];
-                    if (!movimientosPorFecha[fecha]) {
-                        movimientosPorFecha[fecha] = {
-                            ingresos: 0,
-                            salidas: 0
-                        };
-                    }
-                    if (mov.tipo_movimiento === 'Ingreso') {
-                        movimientosPorFecha[fecha].ingresos += mov.cantidad;
-                    } else {
-                        movimientosPorFecha[fecha].salidas += mov.cantidad;
-                    }
-                });
-
-                const fechas = Object.keys(movimientosPorFecha).sort();
+                // Configurar datos para el gráfico radar
                 setChartData({
-                    labels: fechas,
+                    labels: [
+                        'Personal Activo',
+                        'Productos en Stock',
+                        'Movimientos del Día',
+                        'Productos Totales',
+                        'Alertas de Stock',
+                        'Eficiencia de Inventario'
+                    ],
                     datasets: [
                         {
-                            label: 'Ingresos',
-                            data: fechas.map(fecha => movimientosPorFecha[fecha].ingresos),
-                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
-                            borderColor: 'rgb(34, 197, 94)',
-                            borderWidth: 1,
-                            borderRadius: 4,
-                            categoryPercentage: 0.7,
-                            barPercentage: 0.8
-                        },
-                        {
-                            label: 'Salidas',
-                            data: fechas.map(fecha => movimientosPorFecha[fecha].salidas),
-                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
-                            borderColor: 'rgb(239, 68, 68)',
-                            borderWidth: 1,
-                            borderRadius: 4,
-                            categoryPercentage: 0.7,
-                            barPercentage: 0.8
+                            label: 'Métricas Actuales',
+                            data: [
+                                (personalActivo / totalPersonal) * 100,
+                                (statsData.enStock / statsData.totalProductos) * 100,
+                                (movimientosHoy / totalMovimientos) * 100,
+                                statsData.totalProductos,
+                                statsData.alertas,
+                                95 // Ejemplo de eficiencia
+                            ],
+                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                            borderColor: 'rgba(99, 102, 241, 0.8)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(99, 102, 241, 1)'
                         }
                     ]
                 });
@@ -209,9 +202,9 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Gráfico principal */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Movimientos de Almacén</h2>
+                    <h2 className="text-lg font-semibold mb-4">Resumen General</h2>
                     <div className="h-[400px]">
-                        <Bar data={chartData} options={chartOptions} />
+                        <Radar data={chartData} options={chartOptions} />
                     </div>
                 </div>
 
