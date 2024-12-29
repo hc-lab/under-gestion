@@ -11,6 +11,7 @@ import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
 import { Doughnut, Pie } from 'react-chartjs-2';
+import ReactSpeedometer from 'react-d3-speedometer';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -121,67 +122,67 @@ const Dashboard = () => {
     };
 
     const renderMetricsOverview = () => {
-        // Datos para el gráfico circular principal
-        const mainChartData = {
-            labels: ['En Unidad', 'Otros'],
-            datasets: [{
-                data: [stats.personalEnUnidad, stats.totalPersonalRegistrado - stats.personalEnUnidad],
-                backgroundColor: ['#3B82F6', '#E5E7EB'],
-                borderWidth: 0,
-                cutout: '70%'
-            }]
-        };
-
-        // Datos para el gráfico de productos
-        const productChartData = {
-            labels: ['En Stock', 'Alertas', 'Otros'],
-            datasets: [{
-                data: [
-                    stats.enStock,
-                    stats.alertas,
-                    stats.totalProductos - stats.enStock - stats.alertas
-                ],
-                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
-                borderWidth: 0
-            }]
-        };
-
-        const mainChartOptions = {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    enabled: true,
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.label}: ${context.raw} personas`;
-                        }
-                    }
-                }
-            }
-        };
-
+        const percentageActive = Math.round((stats.personalEnUnidad / stats.totalPersonalRegistrado) * 100) || 0;
+        
         return (
             <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-6">
-                    {/* Gráfico Principal - Personal */}
+                    {/* Velocímetro de Personal */}
                     <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm relative">
-                        <div className="relative h-48">
-                            <Doughnut data={mainChartData} options={mainChartOptions} />
-                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="relative h-64">
+                            <ReactSpeedometer
+                                maxValue={100}
+                                value={percentageActive}
+                                currentValueText="Personal Activo"
+                                customSegmentLabels={[
+                                    {
+                                        text: 'Bajo',
+                                        position: 'INSIDE',
+                                        color: '#555',
+                                    },
+                                    {
+                                        text: 'Medio',
+                                        position: 'INSIDE',
+                                        color: '#555',
+                                    },
+                                    {
+                                        text: 'Alto',
+                                        position: 'INSIDE',
+                                        color: '#555',
+                                    },
+                                ]}
+                                ringWidth={25}
+                                needleHeightRatio={0.7}
+                                needleColor="#2563EB"
+                                textColor="#1F2937"
+                                valueTextFontSize="24px"
+                                labelFontSize="14px"
+                                segmentColors={[
+                                    "#FEE2E2",
+                                    "#FEF3C7",
+                                    "#DCFCE7"
+                                ]}
+                            />
+                        </div>
+                        <div className="text-center mt-4">
+                            <div className="flex justify-center items-center space-x-2">
                                 <span className="text-3xl font-bold text-blue-600">
                                     {stats.personalEnUnidad}
                                 </span>
-                                <span className="text-sm text-gray-500">en unidad</span>
+                                <span className="text-gray-500 text-sm">
+                                    de {stats.totalPersonalRegistrado}
+                                </span>
                             </div>
-                        </div>
-                        <div className="text-center mt-4">
-                            <h3 className="text-lg font-semibold text-gray-800">Personal Activo</h3>
-                            <p className="text-sm text-gray-500">
-                                de {stats.totalPersonalRegistrado} registrados
-                            </p>
+                            <div className="mt-2 flex justify-center items-center space-x-4">
+                                <div className="flex items-center">
+                                    <div className="h-3 w-3 rounded-full bg-green-100 mr-1"></div>
+                                    <span className="text-xs text-gray-600">En Unidad</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <div className="h-3 w-3 rounded-full bg-gray-100 mr-1"></div>
+                                    <span className="text-xs text-gray-600">Otros</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
