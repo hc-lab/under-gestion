@@ -7,7 +7,7 @@ import {
     UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
-import { Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
 
@@ -36,18 +36,32 @@ const Dashboard = () => {
             title: {
                 display: true,
                 text: 'Movimientos de Almacén'
+            },
+            tooltip: {
+                mode: 'index',
+                intersect: false,
             }
         },
         scales: {
+            x: {
+                stacked: false,
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    maxRotation: 45,
+                    minRotation: 45
+                }
+            },
             y: {
+                stacked: false,
                 beginAtZero: true,
                 grid: {
                     color: 'rgba(0, 0, 0, 0.1)',
-                }
-            },
-            x: {
-                grid: {
-                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Cantidad'
                 }
             }
         }
@@ -94,14 +108,22 @@ const Dashboard = () => {
                         {
                             label: 'Ingresos',
                             data: fechas.map(fecha => movimientosPorFecha[fecha].ingresos),
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: 'rgb(34, 197, 94)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            categoryPercentage: 0.7,
+                            barPercentage: 0.8
                         },
                         {
                             label: 'Salidas',
                             data: fechas.map(fecha => movimientosPorFecha[fecha].salidas),
-                            borderColor: 'rgb(255, 99, 132)',
-                            tension: 0.1
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                            borderColor: 'rgb(239, 68, 68)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            categoryPercentage: 0.7,
+                            barPercentage: 0.8
                         }
                     ]
                 });
@@ -189,7 +211,7 @@ const Dashboard = () => {
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <h2 className="text-lg font-semibold mb-4">Movimientos de Almacén</h2>
                     <div className="h-[400px]">
-                        <Line data={chartData} options={chartOptions} />
+                        <Bar data={chartData} options={chartOptions} />
                     </div>
                 </div>
 
