@@ -10,21 +10,46 @@ const ActivityList = () => {
 
     const formatMessage = (activity) => {
         if (!activity) return '';
-        const cantidad = activity.cantidad || 0;
-        const productoNombre = activity.producto?.nombre || 'Producto no especificado';
-        const unidadMedida = activity.producto?.unidad_medida || 'unidades';
         
-        return `${cantidad} ${unidadMedida} de ${productoNombre}`;
+        // Convertir la cantidad a número entero
+        const cantidad = Math.round(activity.cantidad) || 0;
+        
+        // Verificar si tenemos el nombre del producto directamente o a través de la relación
+        let productoNombre;
+        if (activity.producto_nombre) {
+            productoNombre = activity.producto_nombre;
+        } else if (activity.producto && activity.producto.nombre) {
+            productoNombre = activity.producto.nombre;
+        } else {
+            console.error('Datos del producto:', activity);
+            return `${cantidad} unidades - Error al cargar producto`;
+        }
+
+        return `${cantidad} unidades de ${productoNombre}`;
     };
 
     useEffect(() => {
         const fetchActivities = async () => {
             try {
                 const response = await axiosInstance.get('/historial-producto/');
+                console.log('Datos recibidos:', response.data); // Para debug
+                
                 const recentActivities = response.data
-                    .filter(activity => activity && activity.fecha)
+                    .filter(activity => {
+                        // Verificar que tengamos los datos necesarios
+                        const isValid = activity && 
+                                      activity.fecha && 
+                                      activity.cantidad && 
+                                      (activity.producto_nombre || (activity.producto && activity.producto.nombre));
+                        
+                        if (!isValid) {
+                            console.warn('Actividad inválida:', activity);
+                        }
+                        return isValid;
+                    })
                     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
                     .slice(0, 5);
+                
                 setActivities(recentActivities);
             } catch (error) {
                 console.error('Error fetching activities:', error);

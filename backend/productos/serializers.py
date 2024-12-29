@@ -32,16 +32,19 @@ class ProductoSerializer(serializers.ModelSerializer):
 
 class HistorialProductoSerializer(serializers.ModelSerializer):
     producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
-    unidad_medida = serializers.CharField(source='producto.unidad_medida', read_only=True)
     usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
     
     class Meta:
         model = HistorialProducto
         fields = [
-            'id', 'producto', 'producto_nombre',
-            'cantidad', 'tipo_movimiento', 'fecha',
-            'usuario_nombre', 'entregado_a', 'motivo',
-            'unidad_medida'
+            'id', 
+            'producto',
+            'producto_nombre',
+            'tipo_movimiento',
+            'cantidad',
+            'fecha',
+            'usuario_nombre',
+            'entregado_a'
         ]
 
 class SalidaProductoSerializer(serializers.ModelSerializer):
