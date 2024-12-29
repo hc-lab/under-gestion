@@ -12,6 +12,7 @@ import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
 import { Doughnut, Pie } from 'react-chartjs-2';
 import ReactSpeedometer from 'react-d3-speedometer';
+import { Line, Bar, Doughnut } from 'react-chartjs-2';
 
 // Añadir un objeto para mapear los tipos a descripciones más claras
 const TIPO_TAREO_LABELS = {
@@ -227,120 +228,196 @@ const Dashboard = () => {
             }
         };
 
+        // Datos para el gráfico de dona de Personal
+        const personalDonutData = {
+            labels: ['En Unidad', 'Otros Estados', 'No Registrados'],
+            datasets: [{
+                data: [
+                    stats.personalEnUnidad || 0,
+                    Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0) - (stats.personalEnUnidad || 0),
+                    stats.totalPersonalRegistrado - Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0)
+                ],
+                backgroundColor: ['#3B82F6', '#10B981', '#6B7280'],
+                borderWidth: 0
+            }]
+        };
+
+        // Datos para el gráfico de barras de Productos
+        const productBarData = {
+            labels: ['En Stock', 'Alertas', 'Total Productos'],
+            datasets: [{
+                label: 'Estado de Productos',
+                data: [stats.enStock, stats.alertas, stats.totalProductos],
+                backgroundColor: ['#10B981', '#EF4444', '#6366F1'],
+                borderRadius: 8
+            }]
+        };
+
         return (
-            <div className="space-y-8">
-                {/* Cards superiores con diseño mejorado */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {/* Card de Personal */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                                <UsersIcon className="h-6 w-6" />
+            <div className="grid grid-cols-12 gap-6">
+                {/* Panel Principal - 9 columnas */}
+                <div className="col-span-9 space-y-6">
+                    {/* Cards superiores - mantener el diseño anterior */}
+                    <div className="grid grid-cols-4 gap-6">
+                        {/* Card de Personal */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div className="flex items-center">
+                                <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                                    <UsersIcon className="h-6 w-6" />
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
+                                    <div className="flex items-baseline">
+                                        <p className="text-2xl font-semibold text-gray-900">
+                                            {personalEnUnidad}
+                                        </p>
+                                        <p className="ml-2 text-sm text-gray-500">
+                                            / {totalPersonal}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
-                                <div className="flex items-baseline">
-                                    <p className="text-2xl font-semibold text-gray-900">
-                                        {personalEnUnidad}
-                                    </p>
-                                    <p className="ml-2 text-sm text-gray-500">
-                                        / {totalPersonal}
-                                    </p>
+                        </div>
+
+                        {/* Card de Productos */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div className="flex items-center">
+                                <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                                    <CubeIcon className="h-6 w-6" />
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Productos en Stock</p>
+                                    <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card de Alertas */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div className="flex items-center">
+                                <div className="p-3 rounded-full bg-red-100 text-red-600">
+                                    <ExclamationTriangleIcon className="h-6 w-6" />
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Alertas Activas</p>
+                                    <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Card de Movimientos */}
+                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                            <div className="flex items-center">
+                                <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                                    <ClockIcon className="h-6 w-6" />
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
+                                    <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Card de Productos */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
-                                <CubeIcon className="h-6 w-6" />
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Productos en Stock</p>
-                                <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card de Alertas */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-red-100 text-red-600">
-                                <ExclamationTriangleIcon className="h-6 w-6" />
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Alertas Activas</p>
-                                <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card de Movimientos */}
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                                <ClockIcon className="h-6 w-6" />
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
-                                <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Panel Principal con nuevo diseño */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Gráfico Radar */}
-                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="p-6">
-                            <div className="h-[400px] relative">
+                    {/* Grid de Gráficos */}
+                    <div className="grid grid-cols-2 gap-6">
+                        {/* Gráfico Radar Principal */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Panel de Control General
+                            </h3>
+                            <div className="h-[300px]">
                                 <Radar data={mainChartData} options={enhancedChartOptions} />
                             </div>
                         </div>
-                        {/* Leyenda personalizada */}
-                        <div className="border-t border-gray-100 px-6 py-4 bg-gray-50">
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                        {/* Gráfico de Dona - Personal */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Distribución de Personal
+                            </h3>
+                            <div className="h-[300px]">
+                                <Doughnut 
+                                    data={personalDonutData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        cutout: '70%',
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom'
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Gráfico de Barras - Productos */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Estado de Inventario
+                            </h3>
+                            <div className="h-[300px]">
+                                <Bar 
+                                    data={productBarData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Panel de Resumen */}
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                                Resumen Ejecutivo
+                            </h3>
+                            <div className="space-y-4">
                                 {mainChartData.labels.map((label, index) => (
-                                    <div key={label} className="flex items-center space-x-2">
-                                        <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                                        <span className="text-sm text-gray-600">
-                                            {label.replace('\n', ' ')}: {mainChartData.datasets[0].data[index]}
-                                        </span>
+                                    <div key={label} className="flex flex-col">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-sm font-medium text-gray-600">
+                                                {label.replace('\n', ' ')}
+                                            </span>
+                                            <span className="text-sm font-semibold text-gray-900">
+                                                {mainChartData.datasets[0].data[index]}
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                            <div
+                                                className="bg-blue-600 h-1.5 rounded-full"
+                                                style={{
+                                                    width: `${(mainChartData.datasets[0].data[index] / enhancedChartOptions.scales.r.max) * 100}%`
+                                                }}
+                                            />
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Panel de Estadísticas */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                            Resumen Ejecutivo
-                        </h3>
-                        <div className="space-y-4">
-                            {mainChartData.labels.map((label, index) => (
-                                <div key={label} className="flex flex-col">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-sm font-medium text-gray-600">
-                                            {label.replace('\n', ' ')}
-                                        </span>
-                                        <span className="text-sm font-semibold text-gray-900">
-                                            {mainChartData.datasets[0].data[index]}
-                                        </span>
-                                    </div>
-                                    <div className="w-full bg-gray-100 rounded-full h-1.5">
-                                        <div
-                                            className="bg-blue-600 h-1.5 rounded-full"
-                                            style={{
-                                                width: `${(mainChartData.datasets[0].data[index] / enhancedChartOptions.scales.r.max) * 100}%`
-                                            }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            ))}
+                {/* Panel Lateral - 3 columnas */}
+                <div className="col-span-3">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+                        <div className="p-4 border-b border-gray-100">
+                            <h2 className="text-lg font-semibold text-gray-900">
+                                Actividad Reciente
+                            </h2>
+                        </div>
+                        <div className="p-4">
+                            <ActivityList />
                         </div>
                     </div>
                 </div>
