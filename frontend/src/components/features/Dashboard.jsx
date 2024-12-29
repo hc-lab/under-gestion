@@ -45,56 +45,29 @@ const Dashboard = () => {
                 callbacks: {
                     label: function(context) {
                         const value = context.raw || 0;
-                        const metrics = {
-                            'Asistencia de Personal': `Personal presente: ${value.toFixed(0)}%`,
-                            'Ocupación de Almacén': `Almacén ocupado: ${value.toFixed(0)}%`,
-                            'Actividad Diaria': `${value} movimientos hoy`,
-                            'Estado de Inventario': `Productos disponibles: ${value.toFixed(0)}%`,
-                            'Nivel de Alertas': `${value} productos requieren atención`,
-                            'Rendimiento General': `Eficiencia: ${value.toFixed(0)}%`
+                        const labels = {
+                            'Personal': `${value}% del personal en unidad`,
+                            'Stock': `${value}% de productos con stock`,
+                            'Movimientos': `${value} movimientos hoy`,
+                            'Productos': `${value} productos registrados`,
+                            'Alertas': `${value} productos en alerta`,
+                            'Eficiencia': `${value}% de eficiencia`
                         };
-                        return metrics[context.label] || '0';
+                        return labels[context.label] || value;
                     }
                 }
             }
         },
         scales: {
             r: {
-                beginAtZero: true,
                 min: 0,
                 max: 100,
                 ticks: {
                     stepSize: 20,
-                    backdropColor: 'rgba(255, 255, 255, 0.9)',
-                    font: {
-                        size: 11,
-                        weight: 'bold'
-                    },
-                    callback: function(value) {
-                        return value + '%';
-                    }
-                },
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
-                    circular: true
+                    font: { size: 10 }
                 },
                 pointLabels: {
-                    font: {
-                        size: 13,
-                        weight: 'bold'
-                    },
-                    callback: function(value) {
-                        return value.split(' ').map((word, i, arr) => {
-                            if (i === arr.length - 1) {
-                                return word;
-                            }
-                            return word + '\n';
-                        });
-                    }
-                },
-                angleLines: {
-                    color: 'rgba(0, 0, 0, 0.1)',
-                    lineWidth: 1
+                    font: { size: 12, weight: 'bold' }
                 }
             }
         }
@@ -103,73 +76,53 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const [statsRes, movimientosRes, personalRes] = await Promise.all([
+                const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
-                    axiosInstance.get('/personal/')
+                    axiosInstance.get('/personal/'),
+                    axiosInstance.get('/tareos/por_fecha/?fecha=' + new Date().toISOString().split('T')[0])
                 ]);
 
-                // Calcular métricas
-                const personalActivo = personalRes.data.filter(p => p.activo).length;
+                // Calcular personal en unidad (con estado 'T')
+                const personalEnUnidad = tareosRes.data.filter(t => t.tipo === 'T').length;
                 const totalPersonal = personalRes.data.length;
-                const movimientosHoy = movimientosRes.data.filter(mov => 
-                    new Date(mov.fecha).toDateString() === new Date().toDateString()
+
+                // Calcular métricas
+                const movimientosHoy = movimientosRes.data.filter(m => 
+                    new Date(m.fecha).toDateString() === new Date().toDateString()
                 ).length;
 
                 const statsData = {
                     ...statsRes.data,
                     totalPersonal,
-                    personalActivo
+                    personalEnUnidad
                 };
                 setStats(statsData);
 
-                // Configurar datos para el gráfico radar con métricas más significativas
+                // Actualizar datos del gráfico
                 setChartData({
                     labels: [
-                        'Asistencia\nde Personal',
-                        'Ocupación\nde Almacén',
-                        'Actividad\nDiaria',
-                        'Estado de\nInventario',
-                        'Nivel de\nAlertas',
-                        'Rendimiento\nGeneral'
+                        'Personal',
+                        'Stock',
+                        'Movimientos',
+                        'Productos',
+                        'Alertas',
+                        'Eficiencia'
                     ],
-                    datasets: [
-                        {
-                            label: 'Métricas Actuales',
-                            data: [
-                                Math.round((personalActivo / totalPersonal) * 100) || 0,
-                                Math.round((statsData.enStock / (statsData.capacidadMaxima || 100)) * 100) || 0,
-                                movimientosHoy || 0,
-                                Math.round((statsData.enStock / (statsData.totalProductos || 1)) * 100) || 0,
-                                statsData.alertas || 0,
-                                statsData.eficiencia || 0
-                            ],
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            borderColor: 'rgba(54, 162, 235, 0.8)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
-                            fill: true,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            datalabels: {
-                                color: '#333',
-                                font: {
-                                    weight: 'bold',
-                                    size: 11
-                                },
-                                formatter: function(value) {
-                                    if (value === 0) return '0';
-                                    return value.toFixed(0) + (value > 1 ? '%' : '');
-                                },
-                                anchor: 'end',
-                                align: 'start',
-                                offset: 5
-                            }
-                        }
-                    ]
+                    datasets: [{
+                        label: 'Métricas',
+                        data: [
+                            Math.round((personalEnUnidad / totalPersonal) * 100),
+                            Math.round((statsData.enStock / statsData.totalProductos) * 100),
+                            movimientosHoy,
+                            statsData.totalProductos,
+                            statsData.alertas,
+                            95 // Valor por defecto de eficiencia
+                        ],
+                        backgroundColor: 'rgba(53, 162, 235, 0.2)',
+                        borderColor: 'rgba(53, 162, 235, 0.7)',
+                        borderWidth: 2
+                    }]
                 });
 
                 setLoading(false);
@@ -193,10 +146,14 @@ const Dashboard = () => {
                             <UsersIcon className="h-6 w-6" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Personal en Operación</p>
+                            <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
                             <div className="flex items-baseline">
-                                <p className="text-2xl font-semibold text-gray-900">{stats.personalActivo}</p>
-                                <p className="ml-2 text-sm text-gray-500">/ {stats.totalPersonal} total</p>
+                                <p className="text-2xl font-semibold text-gray-900">
+                                    {stats.personalEnUnidad}
+                                </p>
+                                <p className="ml-2 text-sm text-gray-500">
+                                    / {stats.totalPersonal} total
+                                </p>
                             </div>
                         </div>
                     </div>
