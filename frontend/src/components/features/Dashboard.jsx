@@ -145,7 +145,7 @@ const Dashboard = () => {
         const totalPersonal = parseInt(stats.totalPersonalRegistrado) || 1;
         const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
 
-        // Datos para el gráfico principal
+        // Datos para el gráfico principal con diseño más elegante
         const mainChartData = {
             labels: [
                 'Personal\nOperativo',
@@ -153,7 +153,7 @@ const Dashboard = () => {
                 'Actividad\nDiaria',
                 'Catálogo\nProductos',
                 'Puntos de\nAtención',
-                'Índice de\nEficiencia'
+                'Eficiencia\nOperativa'
             ],
             datasets: [{
                 label: 'Métricas Actuales',
@@ -165,20 +165,71 @@ const Dashboard = () => {
                     stats.alertas,
                     95
                 ],
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderColor: 'rgba(59, 130, 246, 0.7)',
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: 'rgba(37, 99, 235, 0.8)',
                 borderWidth: 2,
-                pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-                pointRadius: 4
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: 'rgba(37, 99, 235, 0.8)',
+                pointHoverBackgroundColor: 'rgba(37, 99, 235, 1)',
+                pointBorderWidth: 2,
+                pointHoverBorderWidth: 3,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true
             }]
         };
 
+        // Opciones mejoradas para el gráfico
+        const enhancedChartOptions = {
+            ...chartOptions,
+            plugins: {
+                ...chartOptions.plugins,
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Panel de Control Gerencial',
+                    font: {
+                        size: 20,
+                        weight: 'bold',
+                        family: "'Inter', sans-serif"
+                    },
+                    padding: 25,
+                    color: '#1e293b'
+                }
+            },
+            scales: {
+                r: {
+                    angleLines: {
+                        color: 'rgba(203, 213, 225, 0.3)',
+                        lineWidth: 1
+                    },
+                    grid: {
+                        color: 'rgba(203, 213, 225, 0.3)',
+                        circular: true
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 12,
+                            weight: '600',
+                            family: "'Inter', sans-serif"
+                        },
+                        padding: 20,
+                        color: '#475569'
+                    },
+                    ticks: {
+                        display: false
+                    },
+                    min: 0,
+                    max: Math.max(...mainChartData.datasets[0].data) * 1.2
+                }
+            }
+        };
+
         return (
-            <div className="space-y-6">
-                {/* Cards superiores */}
+            <div className="space-y-8">
+                {/* Cards superiores con diseño mejorado */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Card de Personal */}
                     <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
@@ -240,11 +291,57 @@ const Dashboard = () => {
                     </div>
                 </div>
 
-                {/* Gráfico Principal */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Panel de Control</h2>
-                    <div className="h-[400px]">
-                        <Radar data={mainChartData} options={chartOptions} />
+                {/* Panel Principal con nuevo diseño */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Gráfico Radar */}
+                    <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div className="p-6">
+                            <div className="h-[400px] relative">
+                                <Radar data={mainChartData} options={enhancedChartOptions} />
+                            </div>
+                        </div>
+                        {/* Leyenda personalizada */}
+                        <div className="border-t border-gray-100 px-6 py-4 bg-gray-50">
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {mainChartData.labels.map((label, index) => (
+                                    <div key={label} className="flex items-center space-x-2">
+                                        <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                                        <span className="text-sm text-gray-600">
+                                            {label.replace('\n', ' ')}: {mainChartData.datasets[0].data[index]}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Panel de Estadísticas */}
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                            Resumen Ejecutivo
+                        </h3>
+                        <div className="space-y-4">
+                            {mainChartData.labels.map((label, index) => (
+                                <div key={label} className="flex flex-col">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-sm font-medium text-gray-600">
+                                            {label.replace('\n', ' ')}
+                                        </span>
+                                        <span className="text-sm font-semibold text-gray-900">
+                                            {mainChartData.datasets[0].data[index]}
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                        <div
+                                            className="bg-blue-600 h-1.5 rounded-full"
+                                            style={{
+                                                width: `${(mainChartData.datasets[0].data[index] / enhancedChartOptions.scales.r.max) * 100}%`
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
