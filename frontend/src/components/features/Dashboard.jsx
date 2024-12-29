@@ -124,6 +124,20 @@ const Dashboard = () => {
     const renderMetricsOverview = () => {
         const percentageActive = Math.round((stats.personalEnUnidad / stats.totalPersonalRegistrado) * 100) || 0;
         
+        // Definir los datos para el gráfico de productos
+        const productChartData = {
+            labels: ['En Stock', 'Alertas', 'Otros'],
+            datasets: [{
+                data: [
+                    stats.enStock,
+                    stats.alertas,
+                    stats.totalProductos - stats.enStock - stats.alertas
+                ],
+                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
+                borderWidth: 0
+            }]
+        };
+
         return (
             <div className="space-y-6">
                 <div className="grid grid-cols-3 gap-6">
@@ -133,7 +147,7 @@ const Dashboard = () => {
                             <ReactSpeedometer
                                 maxValue={100}
                                 value={percentageActive}
-                                currentValueText="Personal Activo"
+                                currentValueText={`${percentageActive}%`}
                                 customSegmentLabels={[
                                     {
                                         text: 'Bajo',
@@ -149,19 +163,21 @@ const Dashboard = () => {
                                         text: 'Alto',
                                         position: 'INSIDE',
                                         color: '#555',
-                                    },
+                                    }
                                 ]}
+                                segments={3}
                                 ringWidth={25}
                                 needleHeightRatio={0.7}
                                 needleColor="#2563EB"
                                 textColor="#1F2937"
-                                valueTextFontSize="24px"
+                                valueTextFontSize="20px"
                                 labelFontSize="14px"
                                 segmentColors={[
                                     "#FEE2E2",
                                     "#FEF3C7",
                                     "#DCFCE7"
                                 ]}
+                                forceRender={true}
                             />
                         </div>
                         <div className="text-center mt-4">
