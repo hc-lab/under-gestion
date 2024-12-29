@@ -10,6 +10,7 @@ import axiosInstance from '../../axiosInstance';
 import { Radar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
+import { Doughnut } from 'react-chartjs-2';
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -117,6 +118,92 @@ const Dashboard = () => {
             'Eficiencia': '95%'
         };
         return values[label] || '';
+    };
+
+    const renderHoneycombMetrics = () => {
+        const metrics = [
+            {
+                title: 'Personal en Unidad',
+                value: stats.personalEnUnidad,
+                total: stats.totalPersonalRegistrado,
+                color: 'bg-blue-50',
+                textColor: 'text-blue-600',
+                borderColor: 'border-blue-200',
+                percent: Math.round((stats.personalEnUnidad / stats.totalPersonalRegistrado) * 100)
+            },
+            {
+                title: 'Ocupación Almacén',
+                value: stats.enStock,
+                total: stats.totalProductos,
+                color: 'bg-emerald-50',
+                textColor: 'text-emerald-600',
+                borderColor: 'border-emerald-200',
+                percent: Math.round((stats.enStock / stats.totalProductos) * 100)
+            },
+            {
+                title: 'Actividad Diaria',
+                value: stats.movimientosHoy,
+                suffix: 'movimientos',
+                color: 'bg-amber-50',
+                textColor: 'text-amber-600',
+                borderColor: 'border-amber-200',
+                percent: stats.movimientosHoy
+            },
+            {
+                title: 'Productos Registrados',
+                value: stats.totalProductos,
+                suffix: 'items',
+                color: 'bg-purple-50',
+                textColor: 'text-purple-600',
+                borderColor: 'border-purple-200',
+                percent: 100
+            },
+            {
+                title: 'Alertas Activas',
+                value: stats.alertas,
+                suffix: 'productos',
+                color: 'bg-rose-50',
+                textColor: 'text-rose-600',
+                borderColor: 'border-rose-200',
+                percent: (stats.alertas / stats.totalProductos) * 100
+            },
+            {
+                title: 'Eficiencia General',
+                value: '95%',
+                color: 'bg-indigo-50',
+                textColor: 'text-indigo-600',
+                borderColor: 'border-indigo-200',
+                percent: 95
+            }
+        ];
+
+        return (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {metrics.map((metric, index) => (
+                    <div 
+                        key={index} 
+                        className={`relative hex-container ${metric.color} ${metric.borderColor} border rounded-xl p-4 transition-all duration-300 hover:shadow-md`}
+                    >
+                        <div className="flex flex-col items-center text-center">
+                            <h3 className="text-sm font-medium text-gray-600 mb-2">
+                                {metric.title}
+                            </h3>
+                            <div className={`text-2xl font-bold ${metric.textColor} mb-1`}>
+                                {metric.value}
+                                {metric.total && <span className="text-sm text-gray-500">/{metric.total}</span>}
+                                {metric.suffix && <span className="text-sm text-gray-500"> {metric.suffix}</span>}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div 
+                                    className={`h-2 rounded-full ${metric.textColor.replace('text', 'bg')}`}
+                                    style={{ width: `${metric.percent}%` }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     useEffect(() => {
@@ -288,83 +375,20 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Gráfico principal */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Panel de Control Gerencial</h2>
-                    <div className="h-[400px]">
-                        <Radar data={chartData} options={chartOptions} />
-                    </div>
-                    <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
-                        <div className="flex items-center mb-3">
-                            <div className="flex-shrink-0">
-                                <span className="text-lg font-bold bg-blue-600 text-white px-3 py-1 rounded">
-                                    KPIs
-                                </span>
-                            </div>
-                            <div className="ml-3 flex-grow">
-                                <h3 className="text-sm font-semibold text-gray-900">
-                                    Indicadores Clave de Rendimiento
-                                </h3>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Asistencia</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Personal presente en unidad hoy
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Ocupación</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Uso actual del almacén
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Actividad</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Movimientos registrados hoy
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Inventario</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Disponibilidad de productos
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Alertas</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Productos que requieren atención
-                                </p>
-                            </div>
-
-                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
-                                    <span className="font-medium text-sm">Rendimiento</span>
-                                </div>
-                                <p className="mt-1 text-xs text-gray-600 pl-5">
-                                    Eficiencia operativa general
-                                </p>
+                    <h2 className="text-lg font-semibold mb-6 text-gray-800">
+                        Panel de Control Gerencial
+                    </h2>
+                    {renderHoneycombMetrics()}
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="text-sm text-gray-600">
+                            <div className="font-medium mb-2">Leyenda de Indicadores:</div>
+                            <div className="grid grid-cols-2 gap-4 text-xs">
+                                <div>• Personal en Unidad: Personal activo vs. total registrado</div>
+                                <div>• Ocupación Almacén: Productos en stock vs. capacidad</div>
+                                <div>• Actividad Diaria: Movimientos realizados hoy</div>
+                                <div>• Productos: Total de items en catálogo</div>
+                                <div>• Alertas: Productos que requieren atención</div>
+                                <div>• Eficiencia: Rendimiento operativo general</div>
                             </div>
                         </div>
                     </div>
