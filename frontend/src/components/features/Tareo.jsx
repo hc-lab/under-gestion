@@ -71,11 +71,8 @@ const Tareo = () => {
 
     // Generar array de días
     const generateDays = () => {
-        const today = new Date();
-        const isCurrentMonth = selectedYear === today.getFullYear() && selectedMonth === today.getMonth();
         const daysInMonth = getDaysInMonth(selectedYear, selectedMonth);
-        const lastDay = isCurrentMonth ? today.getDate() - 1 : daysInMonth;
-        return Array.from({ length: lastDay }, (_, i) => i + 1);
+        return Array.from({ length: daysInMonth }, (_, i) => i + 1);
     };
 
     useEffect(() => {
@@ -213,13 +210,13 @@ const Tareo = () => {
                     <table className="min-w-full border-collapse text-sm">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r w-8">
                                     N°
                                 </th>
-                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r w-44">
                                     Apellidos y Nombres
                                 </th>
-                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r w-28">
                                     Cargo
                                 </th>
                                 {days.map(day => (
@@ -236,12 +233,12 @@ const Tareo = () => {
                                         {index + 1}
                                     </td>
                                     <td className="px-2 py-1 border-r">
-                                        <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
+                                        <div className="truncate w-44" title={`${persona.apellidos} ${persona.nombres}`}>
                                             {persona.apellidos} {persona.nombres}
                                         </div>
                                     </td>
                                     <td className="px-2 py-1 border-r">
-                                        <div className="truncate max-w-[150px]" title={persona.cargo}>
+                                        <div className="truncate w-28" title={persona.cargo}>
                                             {persona.cargo}
                                         </div>
                                     </td>
