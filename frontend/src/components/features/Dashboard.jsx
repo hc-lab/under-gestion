@@ -35,22 +35,25 @@ const Dashboard = () => {
             },
             title: {
                 display: true,
-                text: 'Panel de Control Gerencial'
+                text: 'Panel de Control Gerencial',
+                font: {
+                    size: 16,
+                    weight: 'bold'
+                }
             },
             tooltip: {
                 callbacks: {
                     label: function(context) {
-                        const label = context.dataset.label || '';
-                        const value = context.raw;
+                        const value = context.raw || 0;
                         const metrics = {
-                            'Asistencia de Personal': value.toFixed(1) + '% del personal presente',
-                            'Ocupación de Almacén': value.toFixed(1) + '% de capacidad utilizada',
-                            'Actividad Diaria': value.toFixed(0) + ' movimientos hoy',
-                            'Estado de Inventario': value.toFixed(1) + '% de productos disponibles',
-                            'Nivel de Alertas': value + ' productos en alerta',
-                            'Rendimiento General': value.toFixed(1) + '% de eficiencia'
+                            'Asistencia de Personal': `Personal presente: ${value.toFixed(0)}%`,
+                            'Ocupación de Almacén': `Almacén ocupado: ${value.toFixed(0)}%`,
+                            'Actividad Diaria': `${value} movimientos hoy`,
+                            'Estado de Inventario': `Productos disponibles: ${value.toFixed(0)}%`,
+                            'Nivel de Alertas': `${value} productos requieren atención`,
+                            'Rendimiento General': `Eficiencia: ${value.toFixed(0)}%`
                         };
-                        return `${metrics[context.label] || value}`;
+                        return metrics[context.label] || '0';
                     }
                 }
             }
@@ -62,13 +65,18 @@ const Dashboard = () => {
                 max: 100,
                 ticks: {
                     stepSize: 20,
-                    backdropColor: 'rgba(255, 255, 255, 0.8)',
+                    backdropColor: 'rgba(255, 255, 255, 0.9)',
                     font: {
-                        size: 10
+                        size: 11,
+                        weight: 'bold'
+                    },
+                    callback: function(value) {
+                        return value + '%';
                     }
                 },
                 grid: {
                     color: 'rgba(0, 0, 0, 0.1)',
+                    circular: true
                 },
                 pointLabels: {
                     font: {
@@ -76,12 +84,17 @@ const Dashboard = () => {
                         weight: 'bold'
                     },
                     callback: function(value) {
-                        // Agregar saltos de línea para mejor legibilidad
-                        return value.split(' ').join('\n');
+                        return value.split(' ').map((word, i, arr) => {
+                            if (i === arr.length - 1) {
+                                return word;
+                            }
+                            return word + '\n';
+                        });
                     }
                 },
                 angleLines: {
-                    color: 'rgba(0, 0, 0, 0.1)'
+                    color: 'rgba(0, 0, 0, 0.1)',
+                    lineWidth: 1
                 }
             }
         }
@@ -113,23 +126,23 @@ const Dashboard = () => {
                 // Configurar datos para el gráfico radar con métricas más significativas
                 setChartData({
                     labels: [
-                        'Asistencia de Personal',
-                        'Ocupación de Almacén',
-                        'Actividad Diaria',
-                        'Estado de Inventario',
-                        'Nivel de Alertas',
-                        'Rendimiento General'
+                        'Asistencia\nde Personal',
+                        'Ocupación\nde Almacén',
+                        'Actividad\nDiaria',
+                        'Estado de\nInventario',
+                        'Nivel de\nAlertas',
+                        'Rendimiento\nGeneral'
                     ],
                     datasets: [
                         {
-                            label: 'Estado Actual',
+                            label: 'Métricas Actuales',
                             data: [
-                                (personalActivo / totalPersonal) * 100,           // Asistencia
-                                (statsData.enStock / statsData.capacidadMaxima) * 100, // Ocupación
-                                movimientosHoy,                                   // Actividad
-                                (statsData.enStock / statsData.totalProductos) * 100,  // Estado Inventario
-                                statsData.alertas,                                // Alertas
-                                statsData.eficiencia || 95                        // Rendimiento
+                                Math.round((personalActivo / totalPersonal) * 100) || 0,
+                                Math.round((statsData.enStock / (statsData.capacidadMaxima || 100)) * 100) || 0,
+                                movimientosHoy || 0,
+                                Math.round((statsData.enStock / (statsData.totalProductos || 1)) * 100) || 0,
+                                statsData.alertas || 0,
+                                statsData.eficiencia || 0
                             ],
                             backgroundColor: 'rgba(54, 162, 235, 0.2)',
                             borderColor: 'rgba(54, 162, 235, 0.8)',
@@ -138,7 +151,23 @@ const Dashboard = () => {
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
                             pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
-                            fill: true
+                            fill: true,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            datalabels: {
+                                color: '#333',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value) {
+                                    if (value === 0) return '0';
+                                    return value.toFixed(0) + (value > 1 ? '%' : '');
+                                },
+                                anchor: 'end',
+                                align: 'start',
+                                offset: 5
+                            }
                         }
                     ]
                 });
@@ -224,9 +253,20 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Gráfico principal */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Resumen General</h2>
+                    <h2 className="text-lg font-semibold mb-4">Panel de Control Gerencial</h2>
                     <div className="h-[400px]">
                         <Radar data={chartData} options={chartOptions} />
+                    </div>
+                    <div className="mt-4 text-sm text-gray-600">
+                        <p className="font-semibold mb-2">Guía de lectura:</p>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Asistencia: Porcentaje del personal presente hoy</li>
+                            <li>Ocupación: Porcentaje de capacidad del almacén utilizada</li>
+                            <li>Actividad: Número de movimientos realizados hoy</li>
+                            <li>Estado: Porcentaje de productos con stock disponible</li>
+                            <li>Alertas: Cantidad de productos que requieren atención</li>
+                            <li>Rendimiento: Eficiencia general de operaciones</li>
+                        </ul>
                     </div>
                 </div>
 
