@@ -145,6 +145,20 @@ const Dashboard = () => {
         const totalPersonal = stats.totalPersonalRegistrado || 1;
         const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
 
+        // Definir los datos para el gráfico de productos
+        const productChartData = {
+            labels: ['En Stock', 'Alertas', 'Otros'],
+            datasets: [{
+                data: [
+                    stats.enStock || 0,
+                    stats.alertas || 0,
+                    (stats.totalProductos || 0) - (stats.enStock || 0) - (stats.alertas || 0)
+                ],
+                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
+                borderWidth: 0
+            }]
+        };
+
         // Función para calcular el personal no registrado
         const calcularNoRegistrados = () => {
             const totalTareos = Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0);
@@ -303,16 +317,18 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                // URL para obtener tareos con filtros específicos
                 const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
-                const [personalRes, tareosRes] = await Promise.all([
+                // Añadir la llamada para obtener datos de productos
+                const [personalRes, tareosRes, productosRes] = await Promise.all([
                     axiosInstance.get('/personal/'),
-                    axiosInstance.get(tareoUrl)
+                    axiosInstance.get(tareoUrl),
+                    axiosInstance.get('/dashboard-data/') // Endpoint para datos de productos
                 ]);
 
                 const totalPersonalRegistrado = personalRes.data.length;
                 const tareosDia = tareosRes.data;
+                const productosData = productosRes.data;
 
                 // Contar los diferentes tipos de tareos
                 const conteoTareos = tareosDia.reduce((acc, tareo) => {
@@ -332,7 +348,12 @@ const Dashboard = () => {
                     conteoTareos: {
                         ...conteoTareos,
                         'NR': noRegistrados
-                    }
+                    },
+                    // Añadir datos de productos
+                    enStock: productosData.enStock || 0,
+                    alertas: productosData.alertas || 0,
+                    totalProductos: productosData.totalProductos || 0,
+                    movimientosHoy: productosData.movimientosHoy || 0
                 });
 
                 setLoading(false);
