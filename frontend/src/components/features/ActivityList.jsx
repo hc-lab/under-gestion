@@ -2,144 +2,79 @@ import React, { useEffect, useState } from 'react';
 import axiosInstance from '../../axiosInstance';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { motion } from 'framer-motion';
 import { HiArrowUp, HiArrowDown } from 'react-icons/hi';
 
 const ActivityList = () => {
     const [activities, setActivities] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const formatMessage = (activity) => {
-        const cantidad = activity.cantidad;
-        const producto = activity.producto?.nombre;
-        const unidad = activity.producto?.unidad_medida?.toLowerCase() || 'unidades';
-
-        if (activity.tipo_movimiento === 'Ingreso') {
-            return `Ingreso de ${cantidad} ${unidad} de ${producto}`;
-        } else {
-            return `Salida de ${cantidad} ${unidad} de ${producto}`;
-        }
-    };
-
     useEffect(() => {
-        fetchActivities();
-        // Actualizar cada 5 minutos
-        const interval = setInterval(fetchActivities, 300000);
-        return () => clearInterval(interval);
-    }, []);
-
-    const fetchActivities = async () => {
-        try {
-            setLoading(true);
-            console.log('Intentando obtener actividades...');
-            const response = await axiosInstance.get('historial-producto/');
-            console.log('Respuesta:', response.data);
-
-            if (!Array.isArray(response.data)) {
-                console.error('La respuesta no es un array:', response.data);
-                setActivities([]);
-                return;
+        const fetchActivities = async () => {
+            try {
+                const response = await axiosInstance.get('/historial-producto/');
+                // Tomar solo los últimos 5 movimientos
+                const recentActivities = response.data
+                    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                    .slice(0, 5);
+                setActivities(recentActivities);
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+            } finally {
+                setLoading(false);
             }
+        };
 
-            const allActivities = response.data
-                .filter(activity => activity && activity.fecha) // Asegurarse de que los datos son válidos
-                .map(activity => ({
-                    ...activity,
-                    mensaje: formatMessage(activity),
-                    color: activity.tipo_movimiento === 'Ingreso' ? 'text-emerald-600' : 'text-blue-600',
-                    bgColor: activity.tipo_movimiento === 'Ingreso' ? 'bg-emerald-50' : 'bg-blue-50',
-                    fecha: new Date(activity.fecha)
-                }))
-                .sort((a, b) => b.fecha - a.fecha)
-                .slice(0, 5);
-
-            setActivities(allActivities);
-        } catch (error) {
-            console.error('Error detallado:', error);
-            console.error('Respuesta del servidor:', error.response?.data);
-            setActivities([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+        fetchActivities();
+    }, []);
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-32">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <div className="flex justify-center items-center h-48">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (activities.length === 0) {
+        return (
+            <div className="text-center py-8 text-gray-500">
+                No hay actividades recientes
             </div>
         );
     }
 
     return (
-        <div className="space-y-3">
-            {activities.map((activity, index) => (
-                <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                    className={`flex items-start p-4 rounded-lg ${activity.bgColor} hover:bg-opacity-75 transition-all duration-200 border border-gray-100 shadow-sm`}
+        <div className="space-y-4">
+            {activities.map((activity) => (
+                <div
+                    key={activity.id}
+                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                 >
-                    <div className={`p-2 rounded-full ${activity.tipo_movimiento === 'Ingreso' ? 'bg-emerald-100' : 'bg-blue-100'} mr-3`}>
-                        {activity.tipo_movimiento === 'Ingreso' ? (
-                            <HiArrowUp className="w-5 h-5 text-emerald-600" />
-                        ) : (
-                            <HiArrowDown className="w-5 h-5 text-blue-600" />
-                        )}
+                    <div className={`mt-1 ${
+                        activity.tipo_movimiento === 'Ingreso' 
+                            ? 'text-green-500' 
+                            : 'text-red-500'
+                    }`}>
+                        {activity.tipo_movimiento === 'Ingreso' 
+                            ? <HiArrowUp className="h-5 w-5" />
+                            : <HiArrowDown className="h-5 w-5" />
+                        }
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start">
-                            <p className={`text-base font-semibold truncate ${activity.color}`}>
-                                {activity.mensaje}
-                            </p>
-                            <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
-                                {formatDistanceToNow(activity.fecha, { 
-                                    addSuffix: true,
-                                    locale: es 
-                                })}
-                            </span>
-                        </div>
-                        <div className="mt-1 text-xs text-gray-600 space-y-1">
-                            <p className="truncate">
-                                <span className="font-medium">Registrado por:</span> {activity.usuario_nombre}
-                            </p>
-                            {activity.tipo_movimiento === 'Salida' ? (
-                                <>
-                                    <p className="truncate">
-                                        <span className="font-medium">Entregado a:</span> {activity.entregado_a}
-                                    </p>
-                                    {activity.motivo && (
-                                        <p className="truncate">
-                                            <span className="font-medium">Motivo:</span> {activity.motivo}
-                                        </p>
-                                    )}
-                                </>
-                            ) : (
-                                <p className="truncate">
-                                    <span className="font-medium">Tipo:</span> Ingreso al inventario
-                                </p>
-                            )}
-                            <p className="truncate text-gray-400">
-                                <span className="font-medium">Fecha:</span>{' '}
-                                {activity.fecha.toLocaleString('es-ES', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    hour12: true
-                                })}
-                            </p>
-                        </div>
+                    <div className="flex-1">
+                        <p className="text-sm text-gray-900">
+                            {activity.tipo_movimiento === 'Ingreso' ? 'Ingreso de ' : 'Salida de '}
+                            <span className="font-medium">{activity.cantidad} unidades</span>
+                            {activity.producto && ` de ${activity.producto.nombre}`}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                            {formatDistanceToNow(new Date(activity.fecha), {
+                                addSuffix: true,
+                                locale: es
+                            })}
+                        </p>
                     </div>
-                </motion.div>
-            ))}
-            {activities.length === 0 && (
-                <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
-                    No hay movimientos de productos registrados
                 </div>
-            )}
+            ))}
         </div>
     );
 };
