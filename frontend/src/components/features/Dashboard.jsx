@@ -32,26 +32,46 @@ const Dashboard = () => {
         plugins: {
             legend: {
                 position: 'top',
+                labels: {
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 12
+                    },
+                    color: '#4B5563'
+                }
             },
             title: {
                 display: true,
                 text: 'Panel de Control Gerencial',
                 font: {
+                    family: "'Inter', sans-serif",
                     size: 16,
-                    weight: 'bold'
-                }
+                    weight: '600'
+                },
+                color: '#1F2937',
+                padding: 20
             },
             tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                titleColor: '#1F2937',
+                bodyColor: '#4B5563',
+                borderColor: 'rgba(203, 213, 225, 0.5)',
+                borderWidth: 1,
+                padding: 12,
+                bodyFont: {
+                    family: "'Inter', sans-serif",
+                    size: 12
+                },
                 callbacks: {
                     label: function(context) {
                         const value = context.raw || 0;
                         const metrics = {
-                            'Personal': `${value} personas en unidad (${Math.round((value/stats.totalPersonal)*100)}%)`,
-                            'Stock': `${value} productos en stock`,
-                            'Movimientos': `${value} movimientos hoy`,
-                            'Productos': `${value} productos totales`,
-                            'Alertas': `${value} productos en alerta`,
-                            'Eficiencia': `${value}%`
+                            'Personal\nOperativo': `${value} de ${stats.totalPersonalRegistrado} personas registradas`,
+                            'Nivel de\nStock': `${value} unidades en almacén`,
+                            'Actividad\nDiaria': `${value} operaciones realizadas hoy`,
+                            'Catálogo\nProductos': `${value} productos registrados`,
+                            'Puntos de\nAtención': `${value} productos requieren atención`,
+                            'Índice de\nEficiencia': `${value}% de eficiencia operativa`
                         };
                         return metrics[context.label];
                     }
@@ -62,22 +82,24 @@ const Dashboard = () => {
             r: {
                 angleLines: {
                     display: true,
-                    color: 'rgba(0, 0, 0, 0.1)'
-                },
-                suggestedMin: 0,
-                suggestedMax: 100,
-                ticks: {
-                    stepSize: 20,
-                    font: { size: 10 },
-                    backdropColor: 'rgba(255, 255, 255, 0.8)'
+                    color: 'rgba(203, 213, 225, 0.3)'
                 },
                 grid: {
-                    color: 'rgba(0, 0, 0, 0.1)'
+                    color: 'rgba(203, 213, 225, 0.3)'
                 },
                 pointLabels: {
-                    font: { size: 12, weight: 'bold' },
-                    callback: function(value) {
-                        return value + '\n' + getMetricValue(value);
+                    font: {
+                        family: "'Inter', sans-serif",
+                        size: 12,
+                        weight: '500'
+                    },
+                    color: '#4B5563'
+                },
+                ticks: {
+                    backdropColor: 'rgba(255, 255, 255, 0.9)',
+                    color: '#6B7280',
+                    font: {
+                        size: 10
                     }
                 }
             }
@@ -107,10 +129,10 @@ const Dashboard = () => {
                     axiosInstance.get('/tareos/por_fecha/?fecha=' + new Date().toISOString().split('T')[0])
                 ]);
 
-                // Calcular totales de personal del día actual
+                // Calcular totales de personal
+                const totalPersonalRegistrado = personalRes.data.length;
                 const tareosDia = tareosRes.data;
-                const personalEnUnidad = tareosDia.filter(t => t.tipo === 'T').length; // Personal en unidad
-                const totalTareosDia = tareosDia.length; // Total de registros de tareo del día
+                const personalEnUnidad = tareosDia.filter(t => t.tipo === 'T').length;
 
                 const movimientosHoy = movimientosRes.data.filter(m => 
                     new Date(m.fecha).toDateString() === new Date().toDateString()
@@ -119,39 +141,40 @@ const Dashboard = () => {
                 const statsData = {
                     ...statsRes.data,
                     personalEnUnidad,
-                    totalTareosDia,
+                    totalPersonalRegistrado,
                     movimientosHoy
                 };
                 setStats(statsData);
 
-                // Actualizar datos del gráfico con valores absolutos
+                // Actualizar datos del gráfico con colores profesionales
                 setChartData({
                     labels: [
-                        'Personal',
-                        'Stock',
-                        'Movimientos',
-                        'Productos',
-                        'Alertas',
-                        'Eficiencia'
+                        'Personal\nOperativo',
+                        'Nivel de\nStock',
+                        'Actividad\nDiaria',
+                        'Catálogo\nProductos',
+                        'Puntos de\nAtención',
+                        'Índice de\nEficiencia'
                     ],
                     datasets: [{
-                        label: 'Valores Actuales',
+                        label: 'Métricas Actuales',
                         data: [
-                            personalEnUnidad,           // Personal en unidad hoy
-                            statsData.enStock,          // Cantidad en stock
-                            movimientosHoy,            // Movimientos del día
-                            statsData.totalProductos,   // Total de productos
-                            statsData.alertas,         // Número de alertas
-                            95                         // Eficiencia
+                            personalEnUnidad,
+                            statsData.enStock,
+                            movimientosHoy,
+                            statsData.totalProductos,
+                            statsData.alertas,
+                            95
                         ],
-                        backgroundColor: 'rgba(53, 162, 235, 0.2)',
-                        borderColor: 'rgba(53, 162, 235, 0.7)',
+                        backgroundColor: 'rgba(147, 197, 253, 0.3)',
+                        borderColor: 'rgba(59, 130, 246, 0.8)',
                         borderWidth: 2,
-                        pointBackgroundColor: 'rgba(53, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(53, 162, 235, 1)',
-                        pointRadius: 4
+                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                        pointRadius: 4,
+                        fill: true
                     }]
                 });
 
@@ -182,7 +205,7 @@ const Dashboard = () => {
                                     {stats.personalEnUnidad}
                                 </p>
                                 <p className="ml-2 text-sm text-gray-500">
-                                    / {stats.totalTareosDia} hoy
+                                    / {stats.totalPersonalRegistrado} registrados
                                 </p>
                             </div>
                         </div>
