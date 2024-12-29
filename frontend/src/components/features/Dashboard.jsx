@@ -122,17 +122,29 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                const today = new Date().toISOString().split('T')[0];
                 const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
                     axiosInstance.get('/personal/'),
-                    axiosInstance.get('/tareos/por_fecha/?fecha=' + new Date().toISOString().split('T')[0])
+                    axiosInstance.get(`/tareos/por_fecha/?fecha=${today}`)
                 ]);
 
                 // Calcular totales de personal
                 const totalPersonalRegistrado = personalRes.data.length;
+                
+                // Obtener personal en unidad del día actual
                 const tareosDia = tareosRes.data;
-                const personalEnUnidad = tareosDia.filter(t => t.tipo === 'T').length;
+                console.log('Tareos del día:', tareosDia); // Para debug
+                
+                // Filtrar solo personal con tipo 'T' (En Unidad)
+                const personalEnUnidad = tareosDia.filter(tareo => {
+                    console.log('Tareo:', tareo); // Para debug
+                    return tareo.tipo === 'T';
+                }).length;
+
+                console.log('Personal en unidad:', personalEnUnidad); // Para debug
+                console.log('Total personal registrado:', totalPersonalRegistrado); // Para debug
 
                 const movimientosHoy = movimientosRes.data.filter(m => 
                     new Date(m.fecha).toDateString() === new Date().toDateString()
@@ -146,7 +158,7 @@ const Dashboard = () => {
                 };
                 setStats(statsData);
 
-                // Actualizar datos del gráfico con colores profesionales
+                // Actualizar datos del gráfico
                 setChartData({
                     labels: [
                         'Personal\nOperativo',
@@ -159,7 +171,7 @@ const Dashboard = () => {
                     datasets: [{
                         label: 'Métricas Actuales',
                         data: [
-                            personalEnUnidad,
+                            personalEnUnidad || 0,  // Asegurar que no sea undefined
                             statsData.enStock,
                             movimientosHoy,
                             statsData.totalProductos,
