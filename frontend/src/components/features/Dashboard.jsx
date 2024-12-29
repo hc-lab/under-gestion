@@ -23,6 +23,15 @@ const TIPO_TAREO_LABELS = {
     'NR': 'No Registrado'
 };
 
+const TIPO_TAREO_COLORS = {
+    'T': 'bg-green-50 text-green-700 border-green-200',
+    'P': 'bg-blue-50 text-blue-700 border-blue-200',
+    'V': 'bg-purple-50 text-purple-700 border-purple-200',
+    'D': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'F': 'bg-red-50 text-red-700 border-red-200',
+    'NR': 'bg-gray-50 text-gray-700 border-gray-200'
+};
+
 const Dashboard = () => {
     const [stats, setStats] = useState({
         totalProductos: 0,
@@ -294,87 +303,41 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                // URL específica para obtener los tareos del día
+                // URL para obtener tareos con filtros específicos
                 const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
-                const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
-                    axiosInstance.get('/dashboard-data/'),
-                    axiosInstance.get('/historial-producto/'),
+                const [personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/personal/'),
                     axiosInstance.get(tareoUrl)
                 ]);
 
-                // Obtener y contar los diferentes tipos de tareos
+                const totalPersonalRegistrado = personalRes.data.length;
                 const tareosDia = tareosRes.data;
+
+                // Contar los diferentes tipos de tareos
                 const conteoTareos = tareosDia.reduce((acc, tareo) => {
                     acc[tareo.tipo] = (acc[tareo.tipo] || 0) + 1;
                     return acc;
                 }, {});
 
-                // Personal en unidad (tipo 'T')
-                const personalEnUnidad = conteoTareos['T'] || 0;
-                
-                // Total de personal registrado
-                const totalPersonalRegistrado = personalRes.data.length;
+                // Calcular personal no registrado
+                const totalRegistradosHoy = Object.values(conteoTareos).reduce((a, b) => a + b, 0);
+                const noRegistrados = totalPersonalRegistrado - totalRegistradosHoy;
 
-                console.log('URL de tareos:', tareoUrl);
-                console.log('Conteo por tipo:', conteoTareos);
-                console.log('Personal en unidad (T):', personalEnUnidad);
-                console.log('Total personal registrado:', totalPersonalRegistrado);
-
-                const statsData = {
-                    ...statsRes.data,
-                    personalEnUnidad,
+                // Actualizar el estado con todos los datos
+                setStats({
+                    ...stats,
+                    personalEnUnidad: conteoTareos['T'] || 0,
                     totalPersonalRegistrado,
-                    conteoTareos, // Guardamos también el conteo por tipo
-                    movimientosHoy: movimientosRes.data.filter(m => {
-                        const fechaMov = new Date(m.fecha);
-                        return fechaMov.getDate() === day && 
-                               fechaMov.getMonth() === month - 1 && 
-                               fechaMov.getFullYear() === year;
-                    }).length
-                };
-                setStats(statsData);
-
-                // Actualizar el velocímetro con el porcentaje correcto
-                const percentageActive = Math.round((personalEnUnidad / totalPersonalRegistrado) * 100) || 0;
-
-                // Actualizar datos del gráfico
-                setChartData({
-                    labels: [
-                        'Personal\nOperativo',
-                        'Nivel de\nStock',
-                        'Actividad\nDiaria',
-                        'Catálogo\nProductos',
-                        'Puntos de\nAtención',
-                        'Índice de\nEficiencia'
-                    ],
-                    datasets: [{
-                        label: 'Métricas Actuales',
-                        data: [
-                            personalEnUnidad,  // Ahora debería mostrar el número correcto
-                            statsData.enStock,
-                            statsData.movimientosHoy,
-                            statsData.totalProductos,
-                            statsData.alertas,
-                            95
-                        ],
-                        backgroundColor: 'rgba(147, 197, 253, 0.3)',
-                        borderColor: 'rgba(59, 130, 246, 0.8)',
-                        borderWidth: 2,
-                        pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-                        pointRadius: 4,
-                        fill: true
-                    }]
+                    conteoTareos: {
+                        ...conteoTareos,
+                        'NR': noRegistrados
+                    }
                 });
 
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching dashboard data:', error);
-                console.log('Error detallado:', error.response?.data);
+                console.error('Error:', error);
                 setLoading(false);
             }
         };
@@ -382,102 +345,59 @@ const Dashboard = () => {
         fetchDashboardData();
     }, []);
 
+    const renderPersonalStats = () => {
+        if (loading) {
+            return <div className="text-center py-4">Cargando...</div>;
+        }
+
+        const todosLosTipos = stats.conteoTareos || {};
+
     return (
-        <div className="space-y-6">
-            {/* Cards de estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                {/* Card de Personal */}
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <UsersIcon className="h-6 w-6" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
-                            <div className="flex items-baseline">
-                                <p className="text-2xl font-semibold text-gray-900">
-                                    {stats.personalEnUnidad}
-                                </p>
-                                <p className="ml-2 text-sm text-gray-500">
-                                    / {stats.totalPersonalRegistrado} registrados
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+                {Object.entries(TIPO_TAREO_LABELS).map(([tipo, label]) => (
+                    <div 
+                        key={tipo}
+                        className={`${TIPO_TAREO_COLORS[tipo]} rounded-lg p-4 border shadow-sm`}
+                    >
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <h3 className="text-lg font-semibold">{label}</h3>
+                                <p className="text-sm opacity-75">
+                                    {tipo === 'NR' ? 'Personal sin registro' : 'Personal registrado'}
                                 </p>
                             </div>
+                            <div className="text-2xl font-bold">
+                                {todosLosTipos[tipo] || 0}
+                        </div>
+                    </div>
+                        <div className="mt-2">
+                            <div className="w-full bg-white rounded-full h-2">
+                                <div
+                                    className={`h-2 rounded-full ${TIPO_TAREO_COLORS[tipo].replace('bg-', 'bg-').replace('50', '500')}`}
+                                    style={{
+                                        width: `${((todosLosTipos[tipo] || 0) / stats.totalPersonalRegistrado) * 100}%`
+                                    }}
+                                />
                         </div>
                     </div>
                 </div>
+                ))}
+                        </div>
+        );
+    };
 
-                {/* Resto de cards existentes */}
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
-                            <CubeIcon className="h-6 w-6" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Total Productos</p>
-                            <p className="text-2xl font-semibold text-gray-900">{stats.totalProductos}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-green-100 text-green-600">
-                            <ChartBarIcon className="h-6 w-6" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">En Stock</p>
-                            <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-                            <ExclamationTriangleIcon className="h-6 w-6" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Alertas</p>
-                            <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <div className="flex items-center">
-                        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                            <ClockIcon className="h-6 w-6" />
-                        </div>
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
-                            <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Gráficos y Actividad Reciente */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Panel Principal */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-xl font-bold mb-6 text-gray-800">
-                        Panel de Control
+    return (
+        <div className="space-y-6">
+            <div className="bg-white rounded-xl shadow-sm">
+                <div className="border-b border-gray-200 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-gray-900">
+                        Estado del Personal - {new Date().toLocaleDateString()}
                     </h2>
-                    {renderMetricsOverview()}
                 </div>
-
-                {/* Actividad Reciente */}
-                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
-                    <ActivityList />
-                </div>
+                {renderPersonalStats()}
             </div>
 
-            {/* Alertas y Productos Críticos */}
-            <div className="mt-6 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4">Productos en Alerta</h2>
-                {/* Lista de productos con stock bajo o alertas */}
-            </div>
+            {/* ... resto del componente ... */}
         </div>
     );
 };
