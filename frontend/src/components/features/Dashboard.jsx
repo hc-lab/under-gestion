@@ -3,7 +3,8 @@ import {
     ChartBarIcon, 
     CubeIcon, 
     ExclamationTriangleIcon,
-    ClockIcon
+    ClockIcon,
+    UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
 import { Line } from 'react-chartjs-2';
@@ -15,7 +16,9 @@ const Dashboard = () => {
         totalProductos: 0,
         enStock: 0,
         alertas: 0,
-        movimientosHoy: 0
+        movimientosHoy: 0,
+        totalPersonal: 0,
+        personalActivo: 0
     });
     const [loading, setLoading] = useState(true);
     const [chartData, setChartData] = useState({
@@ -32,7 +35,7 @@ const Dashboard = () => {
             },
             title: {
                 display: true,
-                text: 'Movimientos de Inventario'
+                text: 'Movimientos de Almacén'
             }
         },
         scales: {
@@ -54,66 +57,58 @@ const Dashboard = () => {
         const fetchDashboardData = async () => {
             try {
                 console.log('Fetching dashboard data...');
-                const [statsRes, movimientosRes] = await Promise.all([
+                const [statsRes, movimientosRes, personalRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
-                    axiosInstance.get('/historial-producto/')
+                    axiosInstance.get('/historial-producto/'),
+                    axiosInstance.get('/personal/')
                 ]);
-                console.log('Stats response:', statsRes.data);
-                console.log('Movimientos response:', movimientosRes.data);
 
+                // Actualizar estadísticas incluyendo personal
                 setStats({
-                    totalProductos: statsRes.data.totalProductos,
-                    enStock: statsRes.data.enStock,
-                    alertas: statsRes.data.alertas,
-                    movimientosHoy: movimientosRes.data.length
+                    ...statsRes.data,
+                    totalPersonal: personalRes.data.length,
+                    personalActivo: personalRes.data.filter(p => p.activo).length
                 });
 
                 // Procesar datos para el gráfico
-                const movimientos = movimientosRes.data;
-                const fechas = [...new Set(movimientos.map(m => 
-                    new Date(m.fecha).toLocaleDateString()
-                ))].sort();
+                const movimientosPorFecha = {};
+                movimientosRes.data.forEach(mov => {
+                    const fecha = mov.fecha.split('T')[0];
+                    if (!movimientosPorFecha[fecha]) {
+                        movimientosPorFecha[fecha] = {
+                            ingresos: 0,
+                            salidas: 0
+                        };
+                    }
+                    if (mov.tipo_movimiento === 'Ingreso') {
+                        movimientosPorFecha[fecha].ingresos += mov.cantidad;
+                    } else {
+                        movimientosPorFecha[fecha].salidas += mov.cantidad;
+                    }
+                });
 
-                const ingresos = fechas.map(fecha => 
-                    movimientos.filter(m => 
-                        new Date(m.fecha).toLocaleDateString() === fecha && 
-                        m.tipo_movimiento === 'Ingreso'
-                    ).length
-                );
-
-                const salidas = fechas.map(fecha => 
-                    movimientos.filter(m => 
-                        new Date(m.fecha).toLocaleDateString() === fecha && 
-                        m.tipo_movimiento === 'Salida'
-                    ).length
-                );
-
+                const fechas = Object.keys(movimientosPorFecha).sort();
                 setChartData({
                     labels: fechas,
                     datasets: [
                         {
                             label: 'Ingresos',
-                            data: ingresos,
-                            borderColor: 'rgb(34, 197, 94)',
-                            backgroundColor: 'rgba(34, 197, 94, 0.5)',
-                            tension: 0.4
+                            data: fechas.map(fecha => movimientosPorFecha[fecha].ingresos),
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
                         },
                         {
                             label: 'Salidas',
-                            data: salidas,
-                            borderColor: 'rgb(99, 102, 241)',
-                            backgroundColor: 'rgba(99, 102, 241, 0.5)',
-                            tension: 0.4
+                            data: fechas.map(fecha => movimientosPorFecha[fecha].salidas),
+                            borderColor: 'rgb(255, 99, 132)',
+                            tension: 0.1
                         }
                     ]
                 });
 
+                setLoading(false);
             } catch (error) {
-                console.error('Error detallado:', error);
-                if (error.response) {
-                    console.error('Respuesta del servidor:', error.response.data);
-                }
-            } finally {
+                console.error('Error fetching dashboard data:', error);
                 setLoading(false);
             }
         };
@@ -121,23 +116,24 @@ const Dashboard = () => {
         fetchDashboardData();
     }, []);
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
-            </div>
-        );
-    }
-
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">Panel de Control</h1>
-                <p className="text-gray-500">Resumen general del almacén</p>
-            </div>
+        <div className="space-y-6">
+            {/* Cards de estadísticas */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                {/* Card de Personal */}
+                <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div className="flex items-center">
+                        <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                            <UsersIcon className="h-6 w-6" />
+                        </div>
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Personal Total</p>
+                            <p className="text-2xl font-semibold text-gray-900">{stats.totalPersonal}</p>
+                        </div>
+                    </div>
+                </div>
 
-            {/* Estadísticas principales */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                {/* Resto de cards existentes */}
                 <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                     <div className="flex items-center">
                         <div className="p-3 rounded-full bg-indigo-100 text-indigo-600">
@@ -191,7 +187,7 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Gráfico principal */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                    <h2 className="text-lg font-semibold mb-4">Movimientos del Inventario</h2>
+                    <h2 className="text-lg font-semibold mb-4">Movimientos de Almacén</h2>
                     <div className="h-[400px]">
                         <Line data={chartData} options={chartOptions} />
                     </div>
