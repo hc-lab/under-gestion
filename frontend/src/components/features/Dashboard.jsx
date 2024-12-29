@@ -122,8 +122,8 @@ const Dashboard = () => {
     };
 
     const renderMetricsOverview = () => {
-        const personalEnUnidad = parseInt(stats.personalEnUnidad) || 0;
-        const totalPersonal = parseInt(stats.totalPersonalRegistrado) || 1; // Evitar división por cero
+        const personalEnUnidad = stats.personalEnUnidad || 0;
+        const totalPersonal = stats.totalPersonalRegistrado || 1;
         const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
 
         // Definir los datos para el gráfico de productos
@@ -191,15 +191,13 @@ const Dashboard = () => {
                                     de {totalPersonal}
                                 </span>
                             </div>
-                            <div className="mt-2 flex justify-center items-center space-x-4">
-                                <div className="flex items-center">
-                                    <div className="h-3 w-3 rounded-full bg-green-100 mr-1"></div>
-                                    <span className="text-xs text-gray-600">En Unidad</span>
-                                </div>
-                                <div className="flex items-center">
-                                    <div className="h-3 w-3 rounded-full bg-gray-100 mr-1"></div>
-                                    <span className="text-xs text-gray-600">Otros</span>
-                                </div>
+                            <div className="mt-2 text-sm text-gray-600">
+                                {stats.conteoTareos && Object.entries(stats.conteoTareos).map(([tipo, cantidad]) => (
+                                    <div key={tipo} className="flex justify-between px-4">
+                                        <span>{tipo}:</span>
+                                        <span>{cantidad}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -275,7 +273,7 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                // Usar los filtros específicos de fecha
+                // URL específica para obtener los tareos del día
                 const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
                 const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
@@ -285,34 +283,41 @@ const Dashboard = () => {
                     axiosInstance.get(tareoUrl)
                 ]);
 
-                // Obtener personal en unidad del día actual
+                // Obtener y contar los diferentes tipos de tareos
                 const tareosDia = tareosRes.data;
-                const personalEnUnidad = tareosDia.filter(tareo => tareo.tipo === 'T').length;
+                const conteoTareos = tareosDia.reduce((acc, tareo) => {
+                    acc[tareo.tipo] = (acc[tareo.tipo] || 0) + 1;
+                    return acc;
+                }, {});
+
+                // Personal en unidad (tipo 'T')
+                const personalEnUnidad = conteoTareos['T'] || 0;
+                
+                // Total de personal registrado
                 const totalPersonalRegistrado = personalRes.data.length;
 
                 console.log('URL de tareos:', tareoUrl);
-                console.log('Tareos del día:', tareosDia);
-                console.log('Personal en unidad:', personalEnUnidad);
+                console.log('Conteo por tipo:', conteoTareos);
+                console.log('Personal en unidad (T):', personalEnUnidad);
                 console.log('Total personal registrado:', totalPersonalRegistrado);
-
-                const movimientosHoy = movimientosRes.data.filter(m => {
-                    const fechaMov = new Date(m.fecha);
-                    return fechaMov.getDate() === day && 
-                           fechaMov.getMonth() === month - 1 && 
-                           fechaMov.getFullYear() === year;
-                }).length;
 
                 const statsData = {
                     ...statsRes.data,
                     personalEnUnidad,
                     totalPersonalRegistrado,
-                    movimientosHoy
+                    conteoTareos, // Guardamos también el conteo por tipo
+                    movimientosHoy: movimientosRes.data.filter(m => {
+                        const fechaMov = new Date(m.fecha);
+                        return fechaMov.getDate() === day && 
+                               fechaMov.getMonth() === month - 1 && 
+                               fechaMov.getFullYear() === year;
+                    }).length
                 };
                 setStats(statsData);
 
-                // Actualizar datos del velocímetro con los nuevos valores
+                // Actualizar el velocímetro con el porcentaje correcto
                 const percentageActive = Math.round((personalEnUnidad / totalPersonalRegistrado) * 100) || 0;
-                
+
                 // Actualizar datos del gráfico
                 setChartData({
                     labels: [
@@ -328,7 +333,7 @@ const Dashboard = () => {
                         data: [
                             personalEnUnidad,  // Ahora debería mostrar el número correcto
                             statsData.enStock,
-                            movimientosHoy,
+                            statsData.movimientosHoy,
                             statsData.totalProductos,
                             statsData.alertas,
                             95
@@ -348,6 +353,7 @@ const Dashboard = () => {
                 setLoading(false);
             } catch (error) {
                 console.error('Error fetching dashboard data:', error);
+                console.log('Error detallado:', error.response?.data);
                 setLoading(false);
             }
         };
