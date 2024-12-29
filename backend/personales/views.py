@@ -62,12 +62,19 @@ class TareoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        fecha = self.request.query_params.get('fecha', None)
         
-        if fecha:
-            fecha_obj = datetime.strptime(fecha, '%Y-%m-%d').date()
-            queryset = queryset.filter(fecha=fecha_obj)
-        
+        # Obtener parámetros de fecha
+        year = self.request.query_params.get('fecha__year')
+        month = self.request.query_params.get('fecha__month')
+        day = self.request.query_params.get('fecha__day')
+
+        if all([year, month, day]):
+            queryset = queryset.filter(
+                fecha__year=year,
+                fecha__month=month,
+                fecha__day=day
+            )
+
         return queryset.select_related('personal')
 
     def create(self, request, *args, **kwargs):

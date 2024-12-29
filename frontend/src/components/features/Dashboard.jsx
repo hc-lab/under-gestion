@@ -270,25 +270,36 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
+                const today = new Date();
+                const year = today.getFullYear();
+                const month = today.getMonth() + 1;
+                const day = today.getDate();
+
+                // Usar los filtros específicos de fecha
+                const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                
                 const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
                     axiosInstance.get('/personal/'),
-                    axiosInstance.get('/tareos/resumen_dia/')
+                    axiosInstance.get(tareoUrl)
                 ]);
 
-                // Obtener datos del resumen de tareos
-                const personalEnUnidad = tareosRes.data.personal_en_unidad;
+                // Obtener personal en unidad del día actual
+                const tareosDia = tareosRes.data;
+                const personalEnUnidad = tareosDia.filter(tareo => tareo.tipo === 'T').length;
                 const totalPersonalRegistrado = personalRes.data.length;
 
-                console.log('Datos de tareos:', tareosRes.data); // Para debug
+                console.log('URL de tareos:', tareoUrl);
+                console.log('Tareos del día:', tareosDia);
                 console.log('Personal en unidad:', personalEnUnidad);
-                console.log('Total personal:', totalPersonalRegistrado);
+                console.log('Total personal registrado:', totalPersonalRegistrado);
 
                 const movimientosHoy = movimientosRes.data.filter(m => {
                     const fechaMov = new Date(m.fecha);
-                    const today = new Date();
-                    return fechaMov.toDateString() === today.toDateString();
+                    return fechaMov.getDate() === day && 
+                           fechaMov.getMonth() === month - 1 && 
+                           fechaMov.getFullYear() === year;
                 }).length;
 
                 const statsData = {
@@ -299,7 +310,7 @@ const Dashboard = () => {
                 };
                 setStats(statsData);
 
-                // Actualizar datos del velocímetro
+                // Actualizar datos del velocímetro con los nuevos valores
                 const percentageActive = Math.round((personalEnUnidad / totalPersonalRegistrado) * 100) || 0;
                 
                 // Actualizar datos del gráfico
