@@ -193,8 +193,11 @@ const Dashboard = () => {
                             <UsersIcon className="h-6 w-6" />
                         </div>
                         <div className="ml-4">
-                            <p className="text-sm font-medium text-gray-500">Personal Total</p>
-                            <p className="text-2xl font-semibold text-gray-900">{stats.totalPersonal}</p>
+                            <p className="text-sm font-medium text-gray-500">Personal en Operación</p>
+                            <div className="flex items-baseline">
+                                <p className="text-2xl font-semibold text-gray-900">{stats.personalActivo}</p>
+                                <p className="ml-2 text-sm text-gray-500">/ {stats.totalPersonal} total</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -257,16 +260,81 @@ const Dashboard = () => {
                     <div className="h-[400px]">
                         <Radar data={chartData} options={chartOptions} />
                     </div>
-                    <div className="mt-4 text-sm text-gray-600">
-                        <p className="font-semibold mb-2">Guía de lectura:</p>
-                        <ul className="list-disc pl-5 space-y-1">
-                            <li>Asistencia: Porcentaje del personal presente hoy</li>
-                            <li>Ocupación: Porcentaje de capacidad del almacén utilizada</li>
-                            <li>Actividad: Número de movimientos realizados hoy</li>
-                            <li>Estado: Porcentaje de productos con stock disponible</li>
-                            <li>Alertas: Cantidad de productos que requieren atención</li>
-                            <li>Rendimiento: Eficiencia general de operaciones</li>
-                        </ul>
+                    <div className="mt-4 bg-gray-50 rounded-lg p-4 border border-gray-200">
+                        <div className="flex items-center mb-3">
+                            <div className="flex-shrink-0">
+                                <span className="text-lg font-bold bg-blue-600 text-white px-3 py-1 rounded">
+                                    KPIs
+                                </span>
+                            </div>
+                            <div className="ml-3 flex-grow">
+                                <h3 className="text-sm font-semibold text-gray-900">
+                                    Indicadores Clave de Rendimiento
+                                </h3>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Asistencia</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Personal presente en unidad hoy
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Ocupación</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Uso actual del almacén
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Actividad</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Movimientos registrados hoy
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Inventario</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Disponibilidad de productos
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Alertas</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Productos que requieren atención
+                                </p>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                <div className="flex items-center">
+                                    <div className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
+                                    <span className="font-medium text-sm">Rendimiento</span>
+                                </div>
+                                <p className="mt-1 text-xs text-gray-600 pl-5">
+                                    Eficiencia operativa general
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
