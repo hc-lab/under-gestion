@@ -16,3 +16,12 @@ RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y cron
+
+# Configurar y activar cron
+RUN touch /var/log/cron.log
+RUN service cron start
+
+# Modificar el CMD para incluir cron
+CMD service cron start && python manage.py crontab add && python manage.py runserver 0.0.0.0:8000

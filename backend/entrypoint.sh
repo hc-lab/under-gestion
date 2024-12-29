@@ -48,4 +48,8 @@ for user in User.objects.all():
     )
 END
 
+# Configurar cronjobs
+python manage.py crontab remove  # Remover jobs existentes
+python manage.py crontab add     # Añadir jobs nuevos
+
 exec "$@" 
