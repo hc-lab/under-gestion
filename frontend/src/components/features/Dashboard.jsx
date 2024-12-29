@@ -141,168 +141,110 @@ const Dashboard = () => {
     };
 
     const renderMetricsOverview = () => {
-        const personalEnUnidad = stats.personalEnUnidad || 0;
-        const totalPersonal = stats.totalPersonalRegistrado || 1;
+        const personalEnUnidad = parseInt(stats.personalEnUnidad) || 0;
+        const totalPersonal = parseInt(stats.totalPersonalRegistrado) || 1;
         const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
 
-        // Definir los datos para el gráfico de productos
-        const productChartData = {
-            labels: ['En Stock', 'Alertas', 'Otros'],
+        // Datos para el gráfico principal
+        const mainChartData = {
+            labels: [
+                'Personal\nOperativo',
+                'Nivel de\nStock',
+                'Actividad\nDiaria',
+                'Catálogo\nProductos',
+                'Puntos de\nAtención',
+                'Índice de\nEficiencia'
+            ],
             datasets: [{
+                label: 'Métricas Actuales',
                 data: [
-                    stats.enStock || 0,
-                    stats.alertas || 0,
-                    (stats.totalProductos || 0) - (stats.enStock || 0) - (stats.alertas || 0)
+                    personalEnUnidad,
+                    stats.enStock,
+                    stats.movimientosHoy,
+                    stats.totalProductos,
+                    stats.alertas,
+                    95
                 ],
-                backgroundColor: ['#10B981', '#EF4444', '#E5E7EB'],
-                borderWidth: 0
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: 'rgba(59, 130, 246, 0.7)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                pointRadius: 4
             }]
-        };
-
-        // Función para calcular el personal no registrado
-        const calcularNoRegistrados = () => {
-            const totalTareos = Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0);
-            return stats.totalPersonalRegistrado - totalTareos;
-        };
-
-        // Combinar los conteos con el personal no registrado
-        const todosLosTipos = {
-            ...stats.conteoTareos,
-            'NR': calcularNoRegistrados()
         };
 
         return (
             <div className="space-y-6">
-                <div className="grid grid-cols-3 gap-6">
-                    {/* Velocímetro de Personal */}
-                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm relative">
-                        <div className="relative h-64">
-                            <ReactSpeedometer
-                                maxValue={100}
-                                value={percentageActive}
-                                currentValueText={`${personalEnUnidad} de ${totalPersonal}`}
-                                customSegmentLabels={[
-                                    {
-                                        text: 'Bajo',
-                                        position: 'INSIDE',
-                                        color: '#555',
-                                    },
-                                    {
-                                        text: 'Medio',
-                                        position: 'INSIDE',
-                                        color: '#555',
-                                    },
-                                    {
-                                        text: 'Alto',
-                                        position: 'INSIDE',
-                                        color: '#555',
-                                    }
-                                ]}
-                                segments={3}
-                                ringWidth={25}
-                                needleHeightRatio={0.7}
-                                needleColor="#2563EB"
-                                textColor="#1F2937"
-                                valueTextFontSize="20px"
-                                labelFontSize="14px"
-                                segmentColors={[
-                                    "#FEE2E2",
-                                    "#FEF3C7",
-                                    "#DCFCE7"
-                                ]}
-                                forceRender={true}
-                            />
-                        </div>
-                        <div className="text-center mt-4">
-                            <div className="flex justify-center items-center space-x-2">
-                                <span className="text-3xl font-bold text-blue-600">
-                                    {personalEnUnidad}
-                                </span>
-                                <span className="text-gray-500 text-sm">
-                                    de {totalPersonal}
-                                </span>
+                {/* Cards superiores */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Card de Personal */}
+                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <UsersIcon className="h-6 w-6" />
                             </div>
-                            <div className="mt-4">
-                                <h4 className="font-medium text-gray-700 mb-2">Estado del Personal</h4>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {Object.entries(todosLosTipos).map(([tipo, cantidad]) => (
-                                        <div key={tipo} 
-                                             className={`flex justify-between items-center px-3 py-1 rounded-lg ${
-                                                 tipo === 'T' ? 'bg-blue-50 text-blue-700' :
-                                                 tipo === 'NR' ? 'bg-red-50 text-red-700' :
-                                                 'bg-gray-50 text-gray-700'
-                                             }`}
-                                        >
-                                            <span className="font-medium">
-                                                {TIPO_TAREO_LABELS[tipo] || tipo}:
-                                            </span>
-                                            <span className="font-bold">
-                                                {cantidad}
-                                            </span>
-                                        </div>
-                                    ))}
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
+                                <div className="flex items-baseline">
+                                    <p className="text-2xl font-semibold text-gray-900">
+                                        {personalEnUnidad}
+                                    </p>
+                                    <p className="ml-2 text-sm text-gray-500">
+                                        / {totalPersonal}
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Gráfico de Productos */}
-                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm">
-                        <div className="h-48">
-                            <Pie data={productChartData} />
-                        </div>
-                        <div className="text-center mt-4">
-                            <h3 className="text-lg font-semibold text-gray-800">Estado de Inventario</h3>
-                            <div className="grid grid-cols-3 gap-2 mt-2 text-sm">
-                                <div className="text-emerald-600">
-                                    <div className="font-semibold">{stats.enStock}</div>
-                                    <div className="text-xs">En Stock</div>
-                                </div>
-                                <div className="text-red-600">
-                                    <div className="font-semibold">{stats.alertas}</div>
-                                    <div className="text-xs">Alertas</div>
-                                </div>
-                                <div className="text-gray-600">
-                                    <div className="font-semibold">{stats.totalProductos}</div>
-                                    <div className="text-xs">Total</div>
-                                </div>
+                    {/* Card de Productos */}
+                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                                <CubeIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Productos en Stock</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Métricas de Actividad */}
-                    <div className="col-span-1 bg-white p-6 rounded-xl shadow-sm">
-                        <div className="space-y-4">
-                            <div className="text-center">
-                                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                                    Actividad del Día
-                                </h3>
-                                <div className="text-4xl font-bold text-indigo-600">
-                                    {stats.movimientosHoy}
-                                </div>
-                                <div className="text-sm text-gray-500 mt-1">
-                                    movimientos registrados
-                                </div>
+                    {/* Card de Alertas */}
+                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-red-100 text-red-600">
+                                <ExclamationTriangleIcon className="h-6 w-6" />
                             </div>
-                            <div className="mt-6">
-                                <div className="relative pt-1">
-                                    <div className="flex mb-2 items-center justify-between">
-                                        <div className="text-xs text-gray-600">
-                                            Eficiencia del día
-                                        </div>
-                                        <div className="text-xs font-semibold text-indigo-600">
-                                            95%
-                                        </div>
-                                    </div>
-                                    <div className="overflow-hidden h-2 text-xs flex rounded bg-indigo-100">
-                                        <div 
-                                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500"
-                                            style={{ width: '95%' }}
-                                        />
-                                    </div>
-                                </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Alertas Activas</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Card de Movimientos */}
+                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <ClockIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Gráfico Principal */}
+                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <h2 className="text-lg font-semibold mb-4">Panel de Control</h2>
+                    <div className="h-[400px]">
+                        <Radar data={mainChartData} options={chartOptions} />
                     </div>
                 </div>
             </div>
@@ -409,16 +351,13 @@ const Dashboard = () => {
 
     return (
         <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm">
-                <div className="border-b border-gray-200 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                        Estado del Personal - {new Date().toLocaleDateString()}
-                    </h2>
-                </div>
-                {renderPersonalStats()}
+            {renderMetricsOverview()}
+            
+            {/* Actividad Reciente */}
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
+                <ActivityList />
             </div>
-
-            {/* ... resto del componente ... */}
         </div>
     );
 };
