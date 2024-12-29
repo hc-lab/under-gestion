@@ -23,52 +23,6 @@ const Dashboard = () => {
     });
     const [loading, setLoading] = useState(true);
 
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false
-            },
-            title: {
-                display: true,
-                text: 'Panel de Control Gerencial',
-                font: {
-                    size: 20,
-                    weight: 'bold',
-                    family: "'Inter', sans-serif"
-                },
-                padding: 25,
-                color: '#1e293b'
-            }
-        },
-        scales: {
-            r: {
-                angleLines: {
-                    color: 'rgba(203, 213, 225, 0.3)',
-                    lineWidth: 1
-                },
-                grid: {
-                    color: 'rgba(203, 213, 225, 0.3)',
-                    circular: true
-                },
-                pointLabels: {
-                    font: {
-                        size: 12,
-                        weight: '600',
-                        family: "'Inter', sans-serif"
-                    },
-                    padding: 20,
-                    color: '#475569'
-                },
-                ticks: {
-                    display: false,
-                    beginAtZero: true
-                }
-            }
-        }
-    };
-
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
@@ -89,7 +43,6 @@ const Dashboard = () => {
                 const tareosDia = tareosRes.data;
                 const productosData = productosRes.data;
 
-                // Contar los diferentes tipos de tareos
                 const conteoTareos = tareosDia.reduce((acc, tareo) => {
                     acc[tareo.tipo] = (acc[tareo.tipo] || 0) + 1;
                     return acc;
@@ -118,56 +71,151 @@ const Dashboard = () => {
     }, []);
 
     const renderDashboard = () => {
-        if (loading) return <div>Cargando...</div>;
+        if (loading) return <div className="text-center py-10">Cargando...</div>;
 
-        const mainChartData = {
-            labels: ['Personal', 'Stock', 'Actividad', 'Productos', 'Alertas', 'Eficiencia'],
+        // Datos para el gráfico de personal
+        const personalData = {
+            labels: ['En Unidad', 'Otros'],
             datasets: [{
-                data: [
-                    stats.personalEnUnidad,
-                    stats.enStock,
-                    stats.movimientosHoy,
-                    stats.totalProductos,
-                    stats.alertas,
-                    95
-                ],
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderColor: 'rgba(37, 99, 235, 0.8)',
-                borderWidth: 2,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: 'rgba(37, 99, 235, 0.8)',
-                fill: true
+                data: [stats.personalEnUnidad, stats.totalPersonalRegistrado - stats.personalEnUnidad],
+                backgroundColor: ['#3B82F6', '#E5E7EB'],
+                borderWidth: 0
+            }]
+        };
+
+        // Datos para el gráfico de productos
+        const productData = {
+            labels: ['En Stock', 'Alertas', 'Total'],
+            datasets: [{
+                data: [stats.enStock, stats.alertas, stats.totalProductos],
+                backgroundColor: ['#10B981', '#EF4444', '#6366F1'],
+                borderWidth: 0
             }]
         };
 
         return (
-            <div className="grid grid-cols-12 gap-6">
-                {/* Panel Principal - 9 columnas */}
-                <div className="col-span-9 space-y-6">
-                    {/* Cards superiores */}
-                    <div className="grid grid-cols-4 gap-6">
-                        {/* ... tus cards actuales ... */}
-                    </div>
-
-                    {/* Grid de Gráficos */}
-                    <div className="grid grid-cols-2 gap-6">
-                        {/* Gráfico Radar */}
-                        <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h3 className="text-lg font-semibold mb-4">Panel de Control</h3>
-                            <div className="h-[300px]">
-                                <Radar data={mainChartData} options={chartOptions} />
+            <div className="space-y-6">
+                {/* Cards Superiores */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Card Personal */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <UsersIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
+                                <div className="flex items-baseline">
+                                    <p className="text-2xl font-semibold text-gray-900">
+                                        {stats.personalEnUnidad}
+                                    </p>
+                                    <p className="ml-2 text-sm text-gray-500">
+                                        / {stats.totalPersonalRegistrado}
+                                    </p>
+                                </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Otros gráficos... */}
+                    {/* Card Stock */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
+                                <CubeIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Productos en Stock</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card Alertas */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-red-100 text-red-600">
+                                <ExclamationTriangleIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Alertas</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Card Movimientos */}
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <div className="flex items-center">
+                            <div className="p-3 rounded-full bg-purple-100 text-purple-600">
+                                <ClockIcon className="h-6 w-6" />
+                            </div>
+                            <div className="ml-4">
+                                <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
+                                <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Panel Lateral - 3 columnas */}
-                <div className="col-span-3">
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                        <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
-                        <ActivityList />
+                {/* Panel Principal y Actividad Reciente */}
+                <div className="grid grid-cols-12 gap-6">
+                    {/* Panel Principal */}
+                    <div className="col-span-8 grid grid-cols-2 gap-6">
+                        {/* Gráfico de Personal */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold mb-4">Personal</h3>
+                            <div className="h-[300px]">
+                                <Doughnut 
+                                    data={personalData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        cutout: '70%',
+                                        plugins: {
+                                            legend: {
+                                                position: 'bottom'
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Gráfico de Productos */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold mb-4">Productos</h3>
+                            <div className="h-[300px]">
+                                <Bar 
+                                    data={productData}
+                                    options={{
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true
+                                            }
+                                        }
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actividad Reciente */}
+                    <div className="col-span-4">
+                        <div className="bg-white rounded-xl shadow-sm">
+                            <div className="p-4 border-b border-gray-100">
+                                <h2 className="text-lg font-semibold text-gray-900">
+                                    Actividad Reciente
+                                </h2>
+                            </div>
+                            <div className="p-4">
+                                <ActivityList />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
