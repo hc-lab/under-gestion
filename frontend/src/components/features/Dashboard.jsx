@@ -45,32 +45,56 @@ const Dashboard = () => {
                 callbacks: {
                     label: function(context) {
                         const value = context.raw || 0;
-                        const labels = {
-                            'Personal': `${value}% del personal en unidad`,
-                            'Stock': `${value}% de productos con stock`,
+                        const metrics = {
+                            'Personal': `${value} personas en unidad (${Math.round((value/stats.totalPersonal)*100)}%)`,
+                            'Stock': `${value} productos en stock`,
                             'Movimientos': `${value} movimientos hoy`,
-                            'Productos': `${value} productos registrados`,
+                            'Productos': `${value} productos totales`,
                             'Alertas': `${value} productos en alerta`,
-                            'Eficiencia': `${value}% de eficiencia`
+                            'Eficiencia': `${value}%`
                         };
-                        return labels[context.label] || value;
+                        return metrics[context.label];
                     }
                 }
             }
         },
         scales: {
             r: {
-                min: 0,
-                max: 100,
+                angleLines: {
+                    display: true,
+                    color: 'rgba(0, 0, 0, 0.1)'
+                },
+                suggestedMin: 0,
+                suggestedMax: 100,
                 ticks: {
                     stepSize: 20,
-                    font: { size: 10 }
+                    font: { size: 10 },
+                    backdropColor: 'rgba(255, 255, 255, 0.8)'
+                },
+                grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
                 },
                 pointLabels: {
-                    font: { size: 12, weight: 'bold' }
+                    font: { size: 12, weight: 'bold' },
+                    callback: function(value) {
+                        return value + '\n' + getMetricValue(value);
+                    }
                 }
             }
         }
+    };
+
+    // Función para obtener el valor actual de cada métrica
+    const getMetricValue = (label) => {
+        const values = {
+            'Personal': `${stats.personalEnUnidad}/${stats.totalPersonal}`,
+            'Stock': `${stats.enStock}`,
+            'Movimientos': `${stats.movimientosHoy}`,
+            'Productos': `${stats.totalProductos}`,
+            'Alertas': `${stats.alertas}`,
+            'Eficiencia': '95%'
+        };
+        return values[label] || '';
     };
 
     useEffect(() => {
@@ -86,8 +110,6 @@ const Dashboard = () => {
                 // Calcular personal en unidad (con estado 'T')
                 const personalEnUnidad = tareosRes.data.filter(t => t.tipo === 'T').length;
                 const totalPersonal = personalRes.data.length;
-
-                // Calcular métricas
                 const movimientosHoy = movimientosRes.data.filter(m => 
                     new Date(m.fecha).toDateString() === new Date().toDateString()
                 ).length;
@@ -95,11 +117,12 @@ const Dashboard = () => {
                 const statsData = {
                     ...statsRes.data,
                     totalPersonal,
-                    personalEnUnidad
+                    personalEnUnidad,
+                    movimientosHoy
                 };
                 setStats(statsData);
 
-                // Actualizar datos del gráfico
+                // Actualizar datos del gráfico con valores absolutos
                 setChartData({
                     labels: [
                         'Personal',
@@ -110,18 +133,23 @@ const Dashboard = () => {
                         'Eficiencia'
                     ],
                     datasets: [{
-                        label: 'Métricas',
+                        label: 'Valores Actuales',
                         data: [
-                            Math.round((personalEnUnidad / totalPersonal) * 100),
-                            Math.round((statsData.enStock / statsData.totalProductos) * 100),
-                            movimientosHoy,
-                            statsData.totalProductos,
-                            statsData.alertas,
-                            95 // Valor por defecto de eficiencia
+                            personalEnUnidad,           // Valor absoluto de personal
+                            statsData.enStock,          // Cantidad en stock
+                            movimientosHoy,            // Movimientos del día
+                            statsData.totalProductos,   // Total de productos
+                            statsData.alertas,         // Número de alertas
+                            95                         // Eficiencia
                         ],
                         backgroundColor: 'rgba(53, 162, 235, 0.2)',
                         borderColor: 'rgba(53, 162, 235, 0.7)',
-                        borderWidth: 2
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(53, 162, 235, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(53, 162, 235, 1)',
+                        pointRadius: 4
                     }]
                 });
 
