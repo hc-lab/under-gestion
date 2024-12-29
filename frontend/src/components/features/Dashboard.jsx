@@ -7,31 +7,9 @@ import {
     UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
-import { Radar } from 'react-chartjs-2';
+import { Radar, Doughnut, Bar } from 'react-chartjs-2';
 import { Chart as ChartJS } from 'chart.js/auto';
 import ActivityList from './ActivityList';
-import { Doughnut, Pie } from 'react-chartjs-2';
-import ReactSpeedometer from 'react-d3-speedometer';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
-
-// Añadir un objeto para mapear los tipos a descripciones más claras
-const TIPO_TAREO_LABELS = {
-    'T': 'En Unidad',
-    'P': 'Permiso',
-    'V': 'Vacaciones',
-    'D': 'Descanso',
-    'F': 'Falta',
-    'NR': 'No Registrado'
-};
-
-const TIPO_TAREO_COLORS = {
-    'T': 'bg-green-50 text-green-700 border-green-200',
-    'P': 'bg-blue-50 text-blue-700 border-blue-200',
-    'V': 'bg-purple-50 text-purple-700 border-purple-200',
-    'D': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'F': 'bg-red-50 text-red-700 border-red-200',
-    'NR': 'bg-gray-50 text-gray-700 border-gray-200'
-};
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -39,390 +17,56 @@ const Dashboard = () => {
         enStock: 0,
         alertas: 0,
         movimientosHoy: 0,
-        totalPersonal: 0,
-        personalActivo: 0
+        personalEnUnidad: 0,
+        totalPersonalRegistrado: 0,
+        conteoTareos: {}
     });
     const [loading, setLoading] = useState(true);
-    const [chartData, setChartData] = useState({
-        labels: [],
-        datasets: []
-    });
 
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
             legend: {
-                position: 'top',
-                labels: {
-                    font: {
-                        family: "'Inter', sans-serif",
-                        size: 12
-                    },
-                    color: '#4B5563'
-                }
+                display: false
             },
             title: {
                 display: true,
                 text: 'Panel de Control Gerencial',
                 font: {
-                    family: "'Inter', sans-serif",
-                    size: 16,
-                    weight: '600'
+                    size: 20,
+                    weight: 'bold',
+                    family: "'Inter', sans-serif"
                 },
-                color: '#1F2937',
-                padding: 20
-            },
-            tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                titleColor: '#1F2937',
-                bodyColor: '#4B5563',
-                borderColor: 'rgba(203, 213, 225, 0.5)',
-                borderWidth: 1,
-                padding: 12,
-                bodyFont: {
-                    family: "'Inter', sans-serif",
-                    size: 12
-                },
-                callbacks: {
-                    label: function(context) {
-                        const value = context.raw || 0;
-                        const metrics = {
-                            'Personal\nOperativo': `${value} de ${stats.totalPersonalRegistrado} personas registradas`,
-                            'Nivel de\nStock': `${value} unidades en almacén`,
-                            'Actividad\nDiaria': `${value} operaciones realizadas hoy`,
-                            'Catálogo\nProductos': `${value} productos registrados`,
-                            'Puntos de\nAtención': `${value} productos requieren atención`,
-                            'Índice de\nEficiencia': `${value}% de eficiencia operativa`
-                        };
-                        return metrics[context.label];
-                    }
-                }
+                padding: 25,
+                color: '#1e293b'
             }
         },
         scales: {
             r: {
                 angleLines: {
-                    display: true,
-                    color: 'rgba(203, 213, 225, 0.3)'
+                    color: 'rgba(203, 213, 225, 0.3)',
+                    lineWidth: 1
                 },
                 grid: {
-                    color: 'rgba(203, 213, 225, 0.3)'
+                    color: 'rgba(203, 213, 225, 0.3)',
+                    circular: true
                 },
                 pointLabels: {
                     font: {
-                        family: "'Inter', sans-serif",
                         size: 12,
-                        weight: '500'
+                        weight: '600',
+                        family: "'Inter', sans-serif"
                     },
-                    color: '#4B5563'
+                    padding: 20,
+                    color: '#475569'
                 },
                 ticks: {
-                    backdropColor: 'rgba(255, 255, 255, 0.9)',
-                    color: '#6B7280',
-                    font: {
-                        size: 10
-                    }
+                    display: false,
+                    beginAtZero: true
                 }
             }
         }
-    };
-
-    // Función para obtener el valor actual de cada métrica
-    const getMetricValue = (label) => {
-        const values = {
-            'Personal': `${stats.personalEnUnidad}/${stats.totalPersonal}`,
-            'Stock': `${stats.enStock}`,
-            'Movimientos': `${stats.movimientosHoy}`,
-            'Productos': `${stats.totalProductos}`,
-            'Alertas': `${stats.alertas}`,
-            'Eficiencia': '95%'
-        };
-        return values[label] || '';
-    };
-
-    const renderMetricsOverview = () => {
-        const personalEnUnidad = parseInt(stats.personalEnUnidad) || 0;
-        const totalPersonal = parseInt(stats.totalPersonalRegistrado) || 1;
-        const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
-
-        // Datos para el gráfico principal con diseño más elegante
-        const mainChartData = {
-            labels: [
-                'Personal\nOperativo',
-                'Nivel de\nStock',
-                'Actividad\nDiaria',
-                'Catálogo\nProductos',
-                'Puntos de\nAtención',
-                'Eficiencia\nOperativa'
-            ],
-            datasets: [{
-                label: 'Métricas Actuales',
-                data: [
-                    personalEnUnidad,
-                    stats.enStock,
-                    stats.movimientosHoy,
-                    stats.totalProductos,
-                    stats.alertas,
-                    95
-                ],
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderColor: 'rgba(37, 99, 235, 0.8)',
-                borderWidth: 2,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: 'rgba(37, 99, 235, 0.8)',
-                pointHoverBackgroundColor: 'rgba(37, 99, 235, 1)',
-                pointBorderWidth: 2,
-                pointHoverBorderWidth: 3,
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                fill: true
-            }]
-        };
-
-        // Opciones mejoradas para el gráfico
-        const enhancedChartOptions = {
-            ...chartOptions,
-            plugins: {
-                ...chartOptions.plugins,
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Panel de Control Gerencial',
-                    font: {
-                        size: 20,
-                        weight: 'bold',
-                        family: "'Inter', sans-serif"
-                    },
-                    padding: 25,
-                    color: '#1e293b'
-                }
-            },
-            scales: {
-                r: {
-                    angleLines: {
-                        color: 'rgba(203, 213, 225, 0.3)',
-                        lineWidth: 1
-                    },
-                    grid: {
-                        color: 'rgba(203, 213, 225, 0.3)',
-                        circular: true
-                    },
-                    pointLabels: {
-                        font: {
-                            size: 12,
-                            weight: '600',
-                            family: "'Inter', sans-serif"
-                        },
-                        padding: 20,
-                        color: '#475569'
-                    },
-                    ticks: {
-                        display: false
-                    },
-                    min: 0,
-                    max: Math.max(...mainChartData.datasets[0].data) * 1.2
-                }
-            }
-        };
-
-        // Datos para el gráfico de dona de Personal
-        const personalDonutData = {
-            labels: ['En Unidad', 'Otros Estados', 'No Registrados'],
-            datasets: [{
-                data: [
-                    stats.personalEnUnidad || 0,
-                    Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0) - (stats.personalEnUnidad || 0),
-                    stats.totalPersonalRegistrado - Object.values(stats.conteoTareos || {}).reduce((a, b) => a + b, 0)
-                ],
-                backgroundColor: ['#3B82F6', '#10B981', '#6B7280'],
-                borderWidth: 0
-            }]
-        };
-
-        // Datos para el gráfico de barras de Productos
-        const productBarData = {
-            labels: ['En Stock', 'Alertas', 'Total Productos'],
-            datasets: [{
-                label: 'Estado de Productos',
-                data: [stats.enStock, stats.alertas, stats.totalProductos],
-                backgroundColor: ['#10B981', '#EF4444', '#6366F1'],
-                borderRadius: 8
-            }]
-        };
-
-        return (
-            <div className="grid grid-cols-12 gap-6">
-                {/* Panel Principal - 9 columnas */}
-                <div className="col-span-9 space-y-6">
-                    {/* Cards superiores - mantener el diseño anterior */}
-                    <div className="grid grid-cols-4 gap-6">
-                        {/* Card de Personal */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                                    <UsersIcon className="h-6 w-6" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500">Personal en Unidad</p>
-                                    <div className="flex items-baseline">
-                                        <p className="text-2xl font-semibold text-gray-900">
-                                            {personalEnUnidad}
-                                        </p>
-                                        <p className="ml-2 text-sm text-gray-500">
-                                            / {totalPersonal}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card de Productos */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-full bg-emerald-100 text-emerald-600">
-                                    <CubeIcon className="h-6 w-6" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500">Productos en Stock</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{stats.enStock}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card de Alertas */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-full bg-red-100 text-red-600">
-                                    <ExclamationTriangleIcon className="h-6 w-6" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500">Alertas Activas</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Card de Movimientos */}
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                            <div className="flex items-center">
-                                <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                                    <ClockIcon className="h-6 w-6" />
-                                </div>
-                                <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500">Movimientos Hoy</p>
-                                    <p className="text-2xl font-semibold text-gray-900">{stats.movimientosHoy}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Grid de Gráficos */}
-                    <div className="grid grid-cols-2 gap-6">
-                        {/* Gráfico Radar Principal */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Panel de Control General
-                            </h3>
-                            <div className="h-[300px]">
-                                <Radar data={mainChartData} options={enhancedChartOptions} />
-                            </div>
-                        </div>
-
-                        {/* Gráfico de Dona - Personal */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Distribución de Personal
-                            </h3>
-                            <div className="h-[300px]">
-                                <Doughnut 
-                                    data={personalDonutData}
-                                    options={{
-                                        maintainAspectRatio: false,
-                                        cutout: '70%',
-                                        plugins: {
-                                            legend: {
-                                                position: 'bottom'
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Gráfico de Barras - Productos */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Estado de Inventario
-                            </h3>
-                            <div className="h-[300px]">
-                                <Bar 
-                                    data={productBarData}
-                                    options={{
-                                        maintainAspectRatio: false,
-                                        plugins: {
-                                            legend: {
-                                                display: false
-                                            }
-                                        },
-                                        scales: {
-                                            y: {
-                                                beginAtZero: true
-                                            }
-                                        }
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Panel de Resumen */}
-                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                Resumen Ejecutivo
-                            </h3>
-                            <div className="space-y-4">
-                                {mainChartData.labels.map((label, index) => (
-                                    <div key={label} className="flex flex-col">
-                                        <div className="flex justify-between items-center mb-1">
-                                            <span className="text-sm font-medium text-gray-600">
-                                                {label.replace('\n', ' ')}
-                                            </span>
-                                            <span className="text-sm font-semibold text-gray-900">
-                                                {mainChartData.datasets[0].data[index]}
-                                            </span>
-                                        </div>
-                                        <div className="w-full bg-gray-100 rounded-full h-1.5">
-                                            <div
-                                                className="bg-blue-600 h-1.5 rounded-full"
-                                                style={{
-                                                    width: `${(mainChartData.datasets[0].data[index] / enhancedChartOptions.scales.r.max) * 100}%`
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Panel Lateral - 3 columnas */}
-                <div className="col-span-3">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-                        <div className="p-4 border-b border-gray-100">
-                            <h2 className="text-lg font-semibold text-gray-900">
-                                Actividad Reciente
-                            </h2>
-                        </div>
-                        <div className="p-4">
-                            <ActivityList />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
     };
 
     useEffect(() => {
@@ -435,11 +79,10 @@ const Dashboard = () => {
 
                 const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
-                // Añadir la llamada para obtener datos de productos
                 const [personalRes, tareosRes, productosRes] = await Promise.all([
                     axiosInstance.get('/personal/'),
                     axiosInstance.get(tareoUrl),
-                    axiosInstance.get('/dashboard-data/') // Endpoint para datos de productos
+                    axiosInstance.get('/dashboard-data/')
                 ]);
 
                 const totalPersonalRegistrado = personalRes.data.length;
@@ -452,20 +95,12 @@ const Dashboard = () => {
                     return acc;
                 }, {});
 
-                // Calcular personal no registrado
-                const totalRegistradosHoy = Object.values(conteoTareos).reduce((a, b) => a + b, 0);
-                const noRegistrados = totalPersonalRegistrado - totalRegistradosHoy;
+                const personalEnUnidad = conteoTareos['T'] || 0;
 
-                // Actualizar el estado con todos los datos
                 setStats({
-                    ...stats,
-                    personalEnUnidad: conteoTareos['T'] || 0,
+                    personalEnUnidad,
                     totalPersonalRegistrado,
-                    conteoTareos: {
-                        ...conteoTareos,
-                        'NR': noRegistrados
-                    },
-                    // Añadir datos de productos
+                    conteoTareos,
                     enStock: productosData.enStock || 0,
                     alertas: productosData.alertas || 0,
                     totalProductos: productosData.totalProductos || 0,
@@ -482,56 +117,66 @@ const Dashboard = () => {
         fetchDashboardData();
     }, []);
 
-    const renderPersonalStats = () => {
-        if (loading) {
-            return <div className="text-center py-4">Cargando...</div>;
-        }
+    const renderDashboard = () => {
+        if (loading) return <div>Cargando...</div>;
 
-        const todosLosTipos = stats.conteoTareos || {};
+        const mainChartData = {
+            labels: ['Personal', 'Stock', 'Actividad', 'Productos', 'Alertas', 'Eficiencia'],
+            datasets: [{
+                data: [
+                    stats.personalEnUnidad,
+                    stats.enStock,
+                    stats.movimientosHoy,
+                    stats.totalProductos,
+                    stats.alertas,
+                    95
+                ],
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderColor: 'rgba(37, 99, 235, 0.8)',
+                borderWidth: 2,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: 'rgba(37, 99, 235, 0.8)',
+                fill: true
+            }]
+        };
 
-    return (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-                {Object.entries(TIPO_TAREO_LABELS).map(([tipo, label]) => (
-                    <div 
-                        key={tipo}
-                        className={`${TIPO_TAREO_COLORS[tipo]} rounded-lg p-4 border shadow-sm`}
-                    >
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h3 className="text-lg font-semibold">{label}</h3>
-                                <p className="text-sm opacity-75">
-                                    {tipo === 'NR' ? 'Personal sin registro' : 'Personal registrado'}
-                                </p>
-                            </div>
-                            <div className="text-2xl font-bold">
-                                {todosLosTipos[tipo] || 0}
-                        </div>
+        return (
+            <div className="grid grid-cols-12 gap-6">
+                {/* Panel Principal - 9 columnas */}
+                <div className="col-span-9 space-y-6">
+                    {/* Cards superiores */}
+                    <div className="grid grid-cols-4 gap-6">
+                        {/* ... tus cards actuales ... */}
                     </div>
-                        <div className="mt-2">
-                            <div className="w-full bg-white rounded-full h-2">
-                                <div
-                                    className={`h-2 rounded-full ${TIPO_TAREO_COLORS[tipo].replace('bg-', 'bg-').replace('50', '500')}`}
-                                    style={{
-                                        width: `${((todosLosTipos[tipo] || 0) / stats.totalPersonalRegistrado) * 100}%`
-                                    }}
-                                />
+
+                    {/* Grid de Gráficos */}
+                    <div className="grid grid-cols-2 gap-6">
+                        {/* Gráfico Radar */}
+                        <div className="bg-white rounded-xl shadow-sm p-6">
+                            <h3 className="text-lg font-semibold mb-4">Panel de Control</h3>
+                            <div className="h-[300px]">
+                                <Radar data={mainChartData} options={chartOptions} />
+                            </div>
                         </div>
+
+                        {/* Otros gráficos... */}
                     </div>
                 </div>
-                ))}
-                        </div>
+
+                {/* Panel Lateral - 3 columnas */}
+                <div className="col-span-3">
+                    <div className="bg-white rounded-xl shadow-sm p-6">
+                        <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
+                        <ActivityList />
+                    </div>
+                </div>
+            </div>
         );
     };
 
     return (
         <div className="space-y-6">
-            {renderMetricsOverview()}
-            
-            {/* Actividad Reciente */}
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-                <h2 className="text-lg font-semibold mb-4">Actividad Reciente</h2>
-                <ActivityList />
-            </div>
+            {renderDashboard()}
         </div>
     );
 };
