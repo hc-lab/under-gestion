@@ -122,8 +122,10 @@ const Dashboard = () => {
     };
 
     const renderMetricsOverview = () => {
-        const percentageActive = Math.round((stats.personalEnUnidad / stats.totalPersonalRegistrado) * 100) || 0;
-        
+        const personalEnUnidad = parseInt(stats.personalEnUnidad) || 0;
+        const totalPersonal = parseInt(stats.totalPersonalRegistrado) || 1; // Evitar división por cero
+        const percentageActive = Math.round((personalEnUnidad / totalPersonal) * 100);
+
         // Definir los datos para el gráfico de productos
         const productChartData = {
             labels: ['En Stock', 'Alertas', 'Otros'],
@@ -147,7 +149,7 @@ const Dashboard = () => {
                             <ReactSpeedometer
                                 maxValue={100}
                                 value={percentageActive}
-                                currentValueText={`${percentageActive}%`}
+                                currentValueText={`${personalEnUnidad} de ${totalPersonal}`}
                                 customSegmentLabels={[
                                     {
                                         text: 'Bajo',
@@ -183,10 +185,10 @@ const Dashboard = () => {
                         <div className="text-center mt-4">
                             <div className="flex justify-center items-center space-x-2">
                                 <span className="text-3xl font-bold text-blue-600">
-                                    {stats.personalEnUnidad}
+                                    {personalEnUnidad}
                                 </span>
                                 <span className="text-gray-500 text-sm">
-                                    de {stats.totalPersonalRegistrado}
+                                    de {totalPersonal}
                                 </span>
                             </div>
                             <div className="mt-2 flex justify-center items-center space-x-4">
@@ -268,42 +270,25 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = today.getMonth() + 1; // getMonth() devuelve 0-11
-                const day = today.getDate();
-
-                // Usar los parámetros de filtro en la URL
-                const tareoUrl = `/tareos/por_fecha/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
-                
                 const [statsRes, movimientosRes, personalRes, tareosRes] = await Promise.all([
                     axiosInstance.get('/dashboard-data/'),
                     axiosInstance.get('/historial-producto/'),
                     axiosInstance.get('/personal/'),
-                    axiosInstance.get(tareoUrl)
+                    axiosInstance.get('/tareos/resumen_dia/')
                 ]);
 
-                // Obtener personal en unidad del día actual
-                const tareosDia = tareosRes.data;
-                console.log('URL de tareos:', tareoUrl);
-                console.log('Tareos del día:', tareosDia);
-
-                // Contar personal en unidad (tipo 'T')
-                const personalEnUnidad = tareosDia.reduce((count, tareo) => {
-                    return tareo.tipo === 'T' ? count + 1 : count;
-                }, 0);
-
-                // Total de personal registrado
+                // Obtener datos del resumen de tareos
+                const personalEnUnidad = tareosRes.data.personal_en_unidad;
                 const totalPersonalRegistrado = personalRes.data.length;
 
+                console.log('Datos de tareos:', tareosRes.data); // Para debug
                 console.log('Personal en unidad:', personalEnUnidad);
-                console.log('Total personal registrado:', totalPersonalRegistrado);
+                console.log('Total personal:', totalPersonalRegistrado);
 
                 const movimientosHoy = movimientosRes.data.filter(m => {
                     const fechaMov = new Date(m.fecha);
-                    return fechaMov.getDate() === day && 
-                           fechaMov.getMonth() === month - 1 && 
-                           fechaMov.getFullYear() === year;
+                    const today = new Date();
+                    return fechaMov.toDateString() === today.toDateString();
                 }).length;
 
                 const statsData = {
@@ -314,6 +299,9 @@ const Dashboard = () => {
                 };
                 setStats(statsData);
 
+                // Actualizar datos del velocímetro
+                const percentageActive = Math.round((personalEnUnidad / totalPersonalRegistrado) * 100) || 0;
+                
                 // Actualizar datos del gráfico
                 setChartData({
                     labels: [

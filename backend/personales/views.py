@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from datetime import datetime
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework import generics
 from rest_framework.views import APIView
 from .models import Personal, Tareo, Perfil
@@ -198,6 +198,27 @@ class TareoViewSet(viewsets.ModelViewSet):
                 {'error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @action(detail=False, methods=['get'])
+    def resumen_dia(self, request):
+        today = timezone.now().date()
+        
+        # Obtener todos los tareos del día
+        tareos_hoy = Tareo.objects.filter(
+            fecha=today
+        )
+        
+        # Contar personal en unidad (tipo 'T')
+        personal_en_unidad = tareos_hoy.filter(tipo='T').count()
+        
+        # Contar total de tareos del día
+        total_tareos = tareos_hoy.count()
+        
+        return Response({
+            'fecha': today,
+            'personal_en_unidad': personal_en_unidad,
+            'total_tareos': total_tareos
+        })
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
