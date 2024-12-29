@@ -107,17 +107,19 @@ const Dashboard = () => {
                     axiosInstance.get('/tareos/por_fecha/?fecha=' + new Date().toISOString().split('T')[0])
                 ]);
 
-                // Calcular personal en unidad (con estado 'T')
-                const personalEnUnidad = tareosRes.data.filter(t => t.tipo === 'T').length;
-                const totalPersonal = personalRes.data.length;
+                // Calcular totales de personal del día actual
+                const tareosDia = tareosRes.data;
+                const personalEnUnidad = tareosDia.filter(t => t.tipo === 'T').length; // Personal en unidad
+                const totalTareosDia = tareosDia.length; // Total de registros de tareo del día
+
                 const movimientosHoy = movimientosRes.data.filter(m => 
                     new Date(m.fecha).toDateString() === new Date().toDateString()
                 ).length;
 
                 const statsData = {
                     ...statsRes.data,
-                    totalPersonal,
                     personalEnUnidad,
+                    totalTareosDia,
                     movimientosHoy
                 };
                 setStats(statsData);
@@ -135,7 +137,7 @@ const Dashboard = () => {
                     datasets: [{
                         label: 'Valores Actuales',
                         data: [
-                            personalEnUnidad,           // Valor absoluto de personal
+                            personalEnUnidad,           // Personal en unidad hoy
                             statsData.enStock,          // Cantidad en stock
                             movimientosHoy,            // Movimientos del día
                             statsData.totalProductos,   // Total de productos
@@ -180,7 +182,7 @@ const Dashboard = () => {
                                     {stats.personalEnUnidad}
                                 </p>
                                 <p className="ml-2 text-sm text-gray-500">
-                                    / {stats.totalPersonal} total
+                                    / {stats.totalTareosDia} hoy
                                 </p>
                             </div>
                         </div>
