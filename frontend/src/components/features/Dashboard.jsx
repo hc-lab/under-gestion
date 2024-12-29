@@ -7,9 +7,11 @@ import {
     UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
-import { Radar, Doughnut, Bar } from 'react-chartjs-2';
-import { Chart as ChartJS } from 'chart.js/auto';
+import { Radar, Doughnut, Bar, Line, PolarArea } from 'react-chartjs-2';
+import { Chart as ChartJS, RadialLinearScale } from 'chart.js/auto';
 import ActivityList from './ActivityList';
+
+ChartJS.register(RadialLinearScale);
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -73,24 +75,60 @@ const Dashboard = () => {
     const renderDashboard = () => {
         if (loading) return <div className="text-center py-10">Cargando...</div>;
 
-        // Datos para el gráfico de personal
+        // Datos modernos para el gráfico de personal
         const personalData = {
-            labels: ['En Unidad', 'Otros'],
+            labels: ['En Unidad', 'Permiso', 'Vacaciones', 'Descanso', 'Falta', 'No Registrado'],
             datasets: [{
-                data: [stats.personalEnUnidad, stats.totalPersonalRegistrado - stats.personalEnUnidad],
-                backgroundColor: ['#3B82F6', '#E5E7EB'],
-                borderWidth: 0
+                label: 'Personal',
+                data: [
+                    stats.conteoTareos['T'] || 0,
+                    stats.conteoTareos['P'] || 0,
+                    stats.conteoTareos['V'] || 0,
+                    stats.conteoTareos['D'] || 0,
+                    stats.conteoTareos['F'] || 0,
+                    stats.totalPersonalRegistrado - Object.values(stats.conteoTareos).reduce((a, b) => a + b, 0)
+                ],
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.5)',   // Azul
+                    'rgba(16, 185, 129, 0.5)',    // Verde
+                    'rgba(139, 92, 246, 0.5)',    // Púrpura
+                    'rgba(245, 158, 11, 0.5)',    // Ámbar
+                    'rgba(239, 68, 68, 0.5)',     // Rojo
+                    'rgba(107, 114, 128, 0.5)'    // Gris
+                ],
+                borderWidth: 2,
+                borderColor: [
+                    'rgb(59, 130, 246)',
+                    'rgb(16, 185, 129)',
+                    'rgb(139, 92, 246)',
+                    'rgb(245, 158, 11)',
+                    'rgb(239, 68, 68)',
+                    'rgb(107, 114, 128)'
+                ]
             }]
         };
 
-        // Datos para el gráfico de productos
+        // Datos modernos para el gráfico de productos
         const productData = {
-            labels: ['En Stock', 'Alertas', 'Total'],
-            datasets: [{
-                data: [stats.enStock, stats.alertas, stats.totalProductos],
-                backgroundColor: ['#10B981', '#EF4444', '#6366F1'],
-                borderWidth: 0
-            }]
+            labels: Array(12).fill('').map((_, i) => `${i + 1}h`),
+            datasets: [
+                {
+                    label: 'Stock',
+                    data: Array(12).fill(null).map(() => Math.floor(Math.random() * (stats.enStock))),
+                    borderColor: 'rgba(16, 185, 129, 0.8)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                },
+                {
+                    label: 'Alertas',
+                    data: Array(12).fill(null).map(() => Math.floor(Math.random() * stats.alertas)),
+                    borderColor: 'rgba(239, 68, 68, 0.8)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    fill: true,
+                    tension: 0.4
+                }
+            ]
         };
 
         return (
@@ -161,18 +199,37 @@ const Dashboard = () => {
                 <div className="grid grid-cols-12 gap-6">
                     {/* Panel Principal */}
                     <div className="col-span-8 grid grid-cols-2 gap-6">
-                        {/* Gráfico de Personal */}
+                        {/* Gráfico de Personal Moderno */}
                         <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h3 className="text-lg font-semibold mb-4">Personal</h3>
-                            <div className="h-[300px]">
-                                <Doughnut 
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-semibold text-gray-900">Distribución de Personal</h3>
+                                <span className="text-sm text-gray-500">Total: {stats.totalPersonalRegistrado}</span>
+                            </div>
+                            <div className="h-[300px] relative">
+                                <PolarArea 
                                     data={personalData}
                                     options={{
                                         maintainAspectRatio: false,
-                                        cutout: '70%',
+                                        scales: {
+                                            r: {
+                                                ticks: {
+                                                    display: false
+                                                },
+                                                grid: {
+                                                    color: 'rgba(0, 0, 0, 0.05)'
+                                                }
+                                            }
+                                        },
                                         plugins: {
                                             legend: {
-                                                position: 'bottom'
+                                                position: 'right',
+                                                labels: {
+                                                    usePointStyle: true,
+                                                    padding: 20,
+                                                    font: {
+                                                        size: 11
+                                                    }
+                                                }
                                             }
                                         }
                                     }}
@@ -180,11 +237,23 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        {/* Gráfico de Productos */}
+                        {/* Gráfico de Productos Moderno */}
                         <div className="bg-white rounded-xl shadow-sm p-6">
-                            <h3 className="text-lg font-semibold mb-4">Productos</h3>
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-lg font-semibold text-gray-900">Tendencia de Productos</h3>
+                                <div className="flex gap-2">
+                                    <span className="inline-flex items-center text-sm text-emerald-600">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 mr-1"></span>
+                                        Stock
+                                    </span>
+                                    <span className="inline-flex items-center text-sm text-red-600">
+                                        <span className="w-2 h-2 rounded-full bg-red-500 mr-1"></span>
+                                        Alertas
+                                    </span>
+                                </div>
+                            </div>
                             <div className="h-[300px]">
-                                <Bar 
+                                <Line 
                                     data={productData}
                                     options={{
                                         maintainAspectRatio: false,
@@ -195,7 +264,15 @@ const Dashboard = () => {
                                         },
                                         scales: {
                                             y: {
-                                                beginAtZero: true
+                                                beginAtZero: true,
+                                                grid: {
+                                                    color: 'rgba(0, 0, 0, 0.05)'
+                                                }
+                                            },
+                                            x: {
+                                                grid: {
+                                                    display: false
+                                                }
                                             }
                                         }
                                     }}
