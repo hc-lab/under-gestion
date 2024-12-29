@@ -219,6 +219,9 @@ const Tareo = () => {
                                 <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
                                     Apellidos y Nombres
                                 </th>
+                                <th className="px-2 py-1 text-left text-xs font-medium text-gray-500 border-r">
+                                    Cargo
+                                </th>
                                 {days.map(day => (
                                     <th key={day} className="px-1 py-1 text-center text-xs font-medium text-gray-500 w-7 border-r last:border-r-0">
                                         {day}
@@ -235,6 +238,11 @@ const Tareo = () => {
                                     <td className="px-2 py-1 border-r">
                                         <div className="truncate max-w-[200px]" title={`${persona.apellidos} ${persona.nombres}`}>
                                             {persona.apellidos} {persona.nombres}
+                                        </div>
+                                    </td>
+                                    <td className="px-2 py-1 border-r">
+                                        <div className="truncate max-w-[150px]" title={persona.cargo}>
+                                            {persona.cargo}
                                         </div>
                                     </td>
                                     {days.map(day => {

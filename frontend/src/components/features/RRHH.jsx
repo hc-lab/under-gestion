@@ -468,9 +468,6 @@ const RRHH = () => {
 
             <div className="border-t border-gray-200 my-8"></div>
 
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">TAREO</h2>
-            </div>
             <Tareo />
 
             {/* Modal para editar estado */}
