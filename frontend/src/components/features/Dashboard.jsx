@@ -35,13 +35,33 @@ const Dashboard = () => {
             },
             title: {
                 display: true,
-                text: 'Resumen General'
+                text: 'Panel de Control Gerencial'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.dataset.label || '';
+                        const value = context.raw;
+                        const metrics = {
+                            'Asistencia de Personal': value.toFixed(1) + '% del personal presente',
+                            'Ocupación de Almacén': value.toFixed(1) + '% de capacidad utilizada',
+                            'Actividad Diaria': value.toFixed(0) + ' movimientos hoy',
+                            'Estado de Inventario': value.toFixed(1) + '% de productos disponibles',
+                            'Nivel de Alertas': value + ' productos en alerta',
+                            'Rendimiento General': value.toFixed(1) + '% de eficiencia'
+                        };
+                        return `${metrics[context.label] || value}`;
+                    }
+                }
             }
         },
         scales: {
             r: {
                 beginAtZero: true,
+                min: 0,
+                max: 100,
                 ticks: {
+                    stepSize: 20,
                     backdropColor: 'rgba(255, 255, 255, 0.8)',
                     font: {
                         size: 10
@@ -52,8 +72,12 @@ const Dashboard = () => {
                 },
                 pointLabels: {
                     font: {
-                        size: 12,
+                        size: 13,
                         weight: 'bold'
+                    },
+                    callback: function(value) {
+                        // Agregar saltos de línea para mejor legibilidad
+                        return value.split(' ').join('\n');
                     }
                 },
                 angleLines: {
@@ -72,16 +96,13 @@ const Dashboard = () => {
                     axiosInstance.get('/personal/')
                 ]);
 
-                // Calcular métricas adicionales
-                const totalMovimientos = movimientosRes.data.length;
+                // Calcular métricas
+                const personalActivo = personalRes.data.filter(p => p.activo).length;
+                const totalPersonal = personalRes.data.length;
                 const movimientosHoy = movimientosRes.data.filter(mov => 
                     new Date(mov.fecha).toDateString() === new Date().toDateString()
                 ).length;
 
-                const personalActivo = personalRes.data.filter(p => p.activo).length;
-                const totalPersonal = personalRes.data.length;
-
-                // Actualizar estadísticas
                 const statsData = {
                     ...statsRes.data,
                     totalPersonal,
@@ -89,34 +110,35 @@ const Dashboard = () => {
                 };
                 setStats(statsData);
 
-                // Configurar datos para el gráfico radar
+                // Configurar datos para el gráfico radar con métricas más significativas
                 setChartData({
                     labels: [
-                        'Personal Activo',
-                        'Productos en Stock',
-                        'Movimientos del Día',
-                        'Productos Totales',
-                        'Alertas de Stock',
-                        'Eficiencia de Inventario'
+                        'Asistencia de Personal',
+                        'Ocupación de Almacén',
+                        'Actividad Diaria',
+                        'Estado de Inventario',
+                        'Nivel de Alertas',
+                        'Rendimiento General'
                     ],
                     datasets: [
                         {
-                            label: 'Métricas Actuales',
+                            label: 'Estado Actual',
                             data: [
-                                (personalActivo / totalPersonal) * 100,
-                                (statsData.enStock / statsData.totalProductos) * 100,
-                                (movimientosHoy / totalMovimientos) * 100,
-                                statsData.totalProductos,
-                                statsData.alertas,
-                                95 // Ejemplo de eficiencia
+                                (personalActivo / totalPersonal) * 100,           // Asistencia
+                                (statsData.enStock / statsData.capacidadMaxima) * 100, // Ocupación
+                                movimientosHoy,                                   // Actividad
+                                (statsData.enStock / statsData.totalProductos) * 100,  // Estado Inventario
+                                statsData.alertas,                                // Alertas
+                                statsData.eficiencia || 95                        // Rendimiento
                             ],
-                            backgroundColor: 'rgba(99, 102, 241, 0.2)',
-                            borderColor: 'rgba(99, 102, 241, 0.8)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 0.8)',
                             borderWidth: 2,
-                            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+                            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
                             pointBorderColor: '#fff',
                             pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(99, 102, 241, 1)'
+                            pointHoverBorderColor: 'rgba(54, 162, 235, 1)',
+                            fill: true
                         }
                     ]
                 });
