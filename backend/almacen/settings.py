@@ -1,5 +1,7 @@
+from datetime import timedelta
+import os
 from pathlib import Path
-
+import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -105,7 +107,7 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 ROOT_URLCONF = 'almacen.urls'
 
 MEDIA_URL = '/media/'
-#MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 TEMPLATES = [
     {
@@ -128,27 +130,21 @@ WSGI_APPLICATION = 'almacen.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# Configuración de la base de datos
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'almacen',
-        'USER': 'hitt',
-        'PASSWORD': '1234',
-        'HOST': 'db',  # Nombre del servicio de la base de datos en docker-compose
-        'PORT': '5432',
-        'OPTIONS': {
-            'client_encoding': 'UTF8'
-        }
-    }
+    'default': dj_database_url.config(
+        default=os.getenv(
+            'DATABASE_URL', 'postgres://hitt:1234@db:5432/almacen')
+    )
 }
-
 
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
-            'level': 'DEBUG',  # Puedes usar DEBUG para capturar todos los logs, incluyendo info detallada
+            # Puedes usar DEBUG para capturar todos los logs, incluyendo info detallada
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
         },
     },
@@ -225,7 +221,6 @@ LOGGING = {
 """
 
 # Añade la configuración de JWT
-from datetime import timedelta
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -247,5 +242,6 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 # Agregar la configuración de CRONJOBS
 CRONJOBS = [
-    ('0 8 * * *', 'personales.tasks.crear_tareos_diarios')  # Ejecutar todos los días a las 8:00 AM
+    # Ejecutar todos los días a las 8:00 AM
+    ('0 8 * * *', 'personales.tasks.crear_tareos_diarios')
 ]

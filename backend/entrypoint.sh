@@ -1,9 +1,19 @@
 #!/bin/sh
 
-echo "Waiting for postgres..."
-while ! nc -z db 5432; do
-    sleep 0.1
+# Esperar por PostgreSQL
+ATTEMPTS=0
+MAX_ATTEMPTS=60
+echo "Waiting for PostgreSQL..."
+until nc -z -v -w30 $POSTGRES_HOST $POSTGRES_PORT || [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; do
+    sleep 1
+    ATTEMPTS=$((ATTEMPTS + 1))
 done
+
+if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
+    echo "PostgreSQL not started within the expected time"
+    exit 1
+fi
+
 echo "PostgreSQL started"
 
 # Crear directorios de migraciones si no existen
@@ -13,22 +23,27 @@ touch /app/backend/personales/migrations/__init__.py
 touch /app/backend/productos/migrations/__init__.py
 
 # Generar y aplicar migraciones
-python manage.py makemigrations personales
-python manage.py makemigrations productos
-python manage.py migrate
+echo "Generando migraciones..."
+python manage.py makemigrations personales productos
+
+echo "Aplicando migraciones..."
+python manage.py migrate --noinput
 
 # Crear superusuario y su perfil
+USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin123}
+
+echo "Creando superusuario y perfil..."
 python manage.py shell << END
 from django.contrib.auth.models import User
 from personales.models import Perfil
 
-# Crear o actualizar superusuario
 try:
-    user = User.objects.get(username='admin')
+    user = User.objects.get(username='$USERNAME')
 except User.DoesNotExist:
-    user = User.objects.create_superuser('admin', 'admin@example.com', 'admin123')
+    user = User.objects.create_superuser('$USERNAME', '$EMAIL', '$PASSWORD')
 
-# Asegurar que el perfil existe
 Perfil.objects.get_or_create(
     user=user,
     defaults={
@@ -37,7 +52,7 @@ Perfil.objects.get_or_create(
     }
 )
 
-# Crear perfil para usuario existente si es necesario
+# Crear perfil para usuarios existentes
 for user in User.objects.all():
     Perfil.objects.get_or_create(
         user=user,
@@ -49,7 +64,9 @@ for user in User.objects.all():
 END
 
 # Configurar cronjobs
-python manage.py crontab remove  # Remover jobs existentes
-python manage.py crontab add     # Añadir jobs nuevos
+echo "Configurando cronjobs..."
+python manage.py crontab remove  # Eliminar cron jobs existentes
+python manage.py crontab add     # Añadir cron jobs nuevos
 
-exec "$@" 
+# Ejecutar el comando principal del contenedor
+exec "$@"

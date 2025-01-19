@@ -1,14 +1,31 @@
+# Core Django
 asgiref==3.8.1
 Django==5.1.4
-django-filter==24.3
+sqlparse==0.5.3
+
+# Django REST Framework
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
-pillow==11.0.0
+PyJWT==2.10.1
+
+# Database
 psycopg==3.2.3
 psycopg2-binary==2.9.10
-PyJWT==2.10.1
-sqlparse==0.5.3
+
+# Image processing
+pillow==11.0.0
+
+# Utilities
 typing_extensions==4.12.2
+
+# Django Extensions
 django-filter==24.3
 django-cors-headers==4.6.0
 django-crontab==0.7.1
+
+# Production server
+gunicorn==21.2.0
+
+
+django-environ==0.11.2
+dj-database-url

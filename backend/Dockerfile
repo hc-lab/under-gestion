@@ -1,27 +1,37 @@
-# proyecto_root/backend/Dockerfile
+# Usar una imagen base de Python 3.12
 FROM python:3.12
 
+# Establecer el directorio de trabajo
 WORKDIR /app/backend
 
+# Copiar el archivo de requisitos e instalar las dependencias
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copiar el resto del código
 COPY . .
 
+# Exponer el puerto 8000
 EXPOSE 8000
 
-# Script de inicio para ejecutar migraciones y luego el servidor
-COPY ./entrypoint.sh /
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+# Configurar el PYTHONPATH para que Django encuentre los módulos
+ENV PYTHONPATH=/app/backend
 
-RUN apt-get update && apt-get install -y netcat-traditional && rm -rf /var/lib/apt/lists/*
+# Instalar herramientas adicionales (netcat y cron)
+RUN apt-get update && apt-get install -y \
+    netcat-traditional \
+    cron \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y cron
-
-# Configurar y activar cron
+# Crear el archivo de log para cron
 RUN touch /var/log/cron.log
+
+# Copiar el script de entrypoint y dar permisos de ejecución
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Configurar cron
 RUN service cron start
 
-# Modificar el CMD para incluir cron
-CMD service cron start && python manage.py crontab add && python manage.py runserver 0.0.0.0:8000
+# Comando de inicio
+CMD ["/entrypoint.sh"]
