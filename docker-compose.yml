@@ -3,7 +3,6 @@ version: "3.8"
 services:
   backend:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./backend:/app/backend
     ports:
@@ -19,6 +18,9 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST:-db} # Valor por defecto: 'db'
       - POSTGRES_PORT=${POSTGRES_PORT:-5432} # Valor por defecto: '5432'
       - DATABASE_URL=${DATABASE_URL:-postgres://hitt:1234@db:5432/almacen} # URL de conexión a la base de datos
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-hitt} # Superusuario
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com} # Email del superusuario
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-1234} # Contraseña del superusuario
     depends_on:
       db:
         condition: service_healthy
