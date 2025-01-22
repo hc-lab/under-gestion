@@ -1,17 +1,21 @@
 # proyecto_root/frontend/Dockerfile
 # Build stage
-FROM node:20-alpine as build
+FROM node:18 as build
 
 WORKDIR /app
 
 # Copiar package.json y package-lock.json
-COPY package*.json ./
+COPY frontend/package*.json ./
 
 # Instalar dependencias
-RUN npm install --legacy-peer-deps --force
+RUN npm install
 
 # Copiar el resto de los archivos
-COPY . .
+COPY frontend/ .
+
+# Set environment variable for production build
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
 
 # Construir la aplicación
 RUN npm run build
@@ -19,11 +23,11 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Copiar la configuración de nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
 # Copiar los archivos construidos
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copiar la configuración de nginx
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponer el puerto
 EXPOSE 80
