@@ -25,8 +25,12 @@ from rest_framework_simplejwt.views import (
 from django.views.generic import RedirectView
 from django.http import HttpResponse
 
+
 def healthcheck(request):
-    return HttpResponse("OK")
+    if request.headers.get('Host') == 'healthcheck.railway.app':
+        return HttpResponse("OK")
+    return RedirectView.as_view(url='/admin/')(request)
+
 
 urlpatterns = [
     path('', healthcheck, name='healthcheck'),
@@ -38,5 +42,6 @@ urlpatterns = [
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [
-    path('', RedirectView.as_view(url='/api/', permanent=True)),
+    path('favicon.ico', RedirectView.as_view(
+        url=settings.STATIC_URL + 'favicon.ico'))
 ]
