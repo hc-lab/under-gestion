@@ -19,8 +19,8 @@ COPY frontend/ .
 # Construir el frontend
 RUN npm run build
 
-# Stage final con Python Alpine y psycopg2 precompilado
-FROM jfloff/alpine-python:3.9-slim
+# Stage final con Python y psycopg2 precompilado
+FROM ghcr.io/circuitpython/docker-builds/cpython-3.12-jammy-slim-arm64:latest
 
 # Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -35,8 +35,13 @@ WORKDIR /app/backend
 COPY backend/requirements.txt .
 RUN mkdir -p static staticfiles /run/nginx
 
-# Instalar nginx y dependencias mínimas
-RUN apk add --no-cache nginx postgresql-libs
+# Instalar dependencias mínimas
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    nginx \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise psycopg2-binary
@@ -48,7 +53,7 @@ COPY backend/ .
 COPY --from=frontend-build /frontend/dist /var/www/html
 
 # Copiar la configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/http.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py
@@ -59,7 +64,7 @@ RUN echo '#!/bin/sh\n\
     python manage.py collectstatic --noinput --clear\n\
     python manage.py migrate\n\
     python manage.py createsuperuser --noinput || echo "Superuser already exists"\n\
-    nginx\n\
+    service nginx start\n\
     exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
     chmod +x /start.sh
 
