@@ -5,8 +5,7 @@ WORKDIR /frontend
 
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=1024" \
-    REACT_APP_API_URL=under-gestion-production.up.railway.app
+    NODE_OPTIONS="--max-old-space-size=512"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
@@ -15,18 +14,8 @@ RUN apk add --no-cache python3 make g++
 COPY frontend/package*.json ./
 COPY frontend/.babelrc ./
 
-# Instalar primero las dependencias principales
-RUN npm install --no-package-lock --no-audit --no-fund \
-    react \
-    react-dom \
-    react-router-dom \
-    @mui/material \
-    @emotion/react \
-    @emotion/styled \
-    axios
-
-# Instalar el resto de las dependencias
-RUN npm install --no-package-lock --no-audit --no-fund --production
+# Instalar dependencias de producción
+RUN npm install --production --no-package-lock --no-audit --no-fund
 
 # Etapa de construcción del frontend
 FROM node:18-alpine as frontend-build
@@ -53,10 +42,8 @@ RUN apt-get update \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copiar requirements.txt
+# Copiar requirements.txt y construir wheels
 COPY backend/requirements.txt .
-
-# Construir wheels para todas las dependencias
 RUN pip install --no-cache-dir wheel && \
     pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt && \
     pip wheel --no-cache-dir --no-deps --wheel-dir /wheels gunicorn whitenoise
@@ -95,9 +82,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copiar wheels precompilados e instalar
+# Copiar requirements.txt y wheels
+COPY backend/requirements.txt .
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir --no-index --find-links=/wheels /* && \
+
+# Instalar dependencias
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
+    pip install --no-cache-dir --no-index --find-links=/wheels gunicorn whitenoise && \
     rm -rf /wheels /root/.cache/pip/*
 
 # Copiar el resto del backend
