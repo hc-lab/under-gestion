@@ -29,7 +29,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app/backend \
     PORT=8000
 
-# Instalar dependencias del sistema
+WORKDIR /app/backend
+
+# Copiar requirements.txt y crear directorios necesarios
+COPY backend/requirements.txt .
+RUN mkdir -p static staticfiles /run/nginx
+
+# Instalar todas las dependencias en un solo paso
 RUN apk add --no-cache \
     nginx \
     postgresql-libs \
@@ -37,28 +43,9 @@ RUN apk add --no-cache \
     gcc \
     musl-dev \
     python3-dev \
-    && mkdir -p /run/nginx
-
-# Establecer el directorio de trabajo y crear directorios necesarios
-WORKDIR /app/backend
-RUN mkdir -p static staticfiles
-
-# Instalar dependencias base de Python
-RUN pip install --no-cache-dir \
-    gunicorn \
-    whitenoise \
-    psycopg2-binary \
-    && rm -rf ~/.cache/pip/*
-
-# Copiar solo requirements.txt primero
-COPY backend/requirements.txt .
-
-# Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt && \
-    rm -rf ~/.cache/pip/*
-
-# Limpiar dependencias de compilación
-RUN apk del gcc musl-dev python3-dev postgresql-dev
+    && pip install --no-cache-dir -r requirements.txt gunicorn whitenoise psycopg2-binary \
+    && rm -rf ~/.cache/pip/* \
+    && apk del gcc musl-dev python3-dev postgresql-dev
 
 # Copiar el resto del backend
 COPY backend/ .
