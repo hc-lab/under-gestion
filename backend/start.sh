@@ -5,6 +5,7 @@ echo "Iniciando servicios..."
 
 # Cambiar al directorio del backend
 cd /app/backend
+#cd
 
 # Ejecutar migraciones
 echo "Aplicando migraciones..."
