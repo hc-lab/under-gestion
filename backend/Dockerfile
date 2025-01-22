@@ -13,19 +13,19 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copiar solo los archivos necesarios
-COPY ./requirements.txt .
+# Copiar solo los archivos necesarios primero
+COPY requirements.txt .
 
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf ~/.cache/pip/*
 
 # Copiar el código del backend
-COPY ./almacen ./almacen
-COPY ./manage.py .
-COPY ./noticias ./noticias
-COPY ./personales ./personales
-COPY ./productos ./productos
+COPY almacen/ ./almacen/
+COPY manage.py .
+COPY noticias/ ./noticias/
+COPY personales/ ./personales/
+COPY productos/ ./productos/
 
 # Configurar variables de entorno
 ENV PYTHONUNBUFFERED=1 \
