@@ -43,41 +43,23 @@ COPY frontend/package*.json ./
 # Limpiar node_modules existentes si existen
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
-# Instalar react-scripts primero para evitar conflictos
-RUN npm install react-scripts@5.0.1 --save --legacy-peer-deps
-
-# Instalar Babel y sus plugins
-RUN npm install --save-dev \
-    @babel/core@7.22.5 \
-    @babel/preset-env@7.22.5 \
-    @babel/preset-react@7.22.5 \
-    @babel/plugin-proposal-private-property-in-object@7.21.11 \
-    @babel/plugin-proposal-class-properties@7.18.6 \
-    babel-preset-react-app@10.0.1 \
-    babel-loader@9.1.2
-
-# Instalar dependencias de producción
+# Instalar todas las dependencias necesarias de una vez
 RUN npm install --save \
     react@18.2.0 \
     react-dom@18.2.0 \
     react-router-dom@6.14.0 \
+    react-scripts@5.0.1 \
     styled-components@6.0.0-rc.3 \
     @mui/material@5.13.5 \
     @mui/icons-material@5.11.16 \
     @emotion/react@11.11.1 \
     @emotion/styled@11.11.0 \
     axios@1.4.0 \
+    @babel/plugin-proposal-private-property-in-object@7.21.11 \
     --legacy-peer-deps
 
 # Copiar el resto de los archivos
 COPY frontend/ .
-
-# Crear configuración de Babel compatible
-RUN echo '{\
-    "presets": [\
-        "react-app"\
-    ]\
-}' > .babelrc
 
 # Construir el frontend
 RUN SKIP_PREFLIGHT_CHECK=true npm run build
