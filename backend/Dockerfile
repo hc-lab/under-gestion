@@ -2,7 +2,7 @@
 FROM python:3.12-slim
 
 # Establecer el directorio de trabajo
-WORKDIR /app
+WORKDIR /app/backend
 
 # Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
@@ -24,6 +24,7 @@ EXPOSE 8000
 # Configurar variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=almacen.settings
+ENV PYTHONPATH=/app/backend
 
 # Comando para iniciar la aplicación
-CMD ["gunicorn", "almacen.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+CMD ["gunicorn", "--chdir", "/app/backend", "almacen.wsgi:application", "--bind", "0.0.0.0:$PORT"]
