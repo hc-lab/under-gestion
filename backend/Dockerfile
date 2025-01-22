@@ -1,34 +1,25 @@
-# Usa Node.js 20 como imagen base
-FROM node:20-alpine as build
+# Usa Node.js 20 como imagen base para construir el frontend
+FROM node:20-alpine as frontend-build
 
 WORKDIR /frontend
 
-# Aumentar memoria disponible para Node
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-
-# Aumentar memoria disponible para Node
-ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REACT_APP_API_URL=under-gestion-production.up.railway.app
+
+# Copia package.json y package-lock.json
+COPY frontend/package*.json ./
 
 # Instalar dependencias
 RUN apk add --no-cache python3 make g++ \
     && npm install --legacy-peer-deps \
     && npm install --save-dev @babel/plugin-proposal-private-property-in-object
 
-
-# Copia package.json y package-lock.json
-COPY frontend/package*.json ./
-
-#Instala las dependencias
-RUN npm install --legacy-peer-deps \
-    && npm install --save-dev @babel/plugin-proposal-private-property-in-object
-
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
-# Construir el frontend con variables de entorno explícitas
+# Construir el frontend
 RUN DISABLE_ESLINT_PLUGIN=true CI=false npm run build
 
 # Stage para compilar psycopg2
@@ -78,7 +69,7 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY backend/ .
 
 # Copiar los archivos del frontend construido
-COPY --from=frontend-build /frontend/dist /var/www/html
+COPY --from=frontend-build /frontend/build /var/www/html
 
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
@@ -87,9 +78,6 @@ COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 # Establece la variable de entorno para la construcción en producción
 ARG VITE_API_URL
 ENV VITE_API_URL=${VITE_API_URL}
-
-# Construye la aplicación
-RUN DISABLE_ESLINT_PLUGIN=true CI=false npm run build
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py
