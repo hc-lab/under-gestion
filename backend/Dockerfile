@@ -1,7 +1,7 @@
 # Usa Node.js 20 como imagen base
 FROM node:20-alpine as build
 
-WORKDIR /app
+WORKDIR /frontend
 
 
 # Aumentar memoria disponible para Node
@@ -9,9 +9,6 @@ ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production
 ENV REACT_APP_API_URL=under-gestion-production.up.railway.app
-
-# Copiar solo los archivos de package primero
-COPY frontend/package*.json ./
 
 # Instalar dependencias
 RUN apk add --no-cache python3 make g++ \
@@ -21,6 +18,10 @@ RUN apk add --no-cache python3 make g++ \
 
 # Copia package.json y package-lock.json
 COPY frontend/package*.json ./
+
+#Instala las dependencias
+RUN npm install --legacy-peer-deps \
+    && npm install --save-dev @babel/plugin-proposal-private-property-in-object
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
