@@ -3,7 +3,15 @@ builder = "DOCKERFILE"
 dockerfilePath = "backend/Dockerfile"
 
 [deploy]
-healthcheckPath = "/"
+healthcheckPath = "/admin/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
+
+[[deploy.variables]]
+key = "PYTHONPATH"
+value = "/app"
+
+[[deploy.variables]]
+key = "DJANGO_SETTINGS_MODULE"
+value = "almacen.settings"
