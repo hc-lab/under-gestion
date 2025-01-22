@@ -1,9 +1,19 @@
 # Build stage para el frontend
-FROM node:18 as frontend-build
+FROM node:18-alpine as frontend-build
 
 WORKDIR /frontend
+
+# Copiar solo los archivos de package primero
+COPY frontend/package*.json ./
+
+# Limpiar cache de npm y reinstalar
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps
+
+# Copiar el resto de los archivos del frontend
 COPY frontend/ .
-RUN npm install
+
+# Construir el frontend
 RUN npm run build
 
 # Stage final con Python y Nginx
