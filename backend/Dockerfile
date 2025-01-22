@@ -19,8 +19,20 @@ COPY frontend/ .
 # Construir el frontend
 RUN npm run build
 
-# Stage final con Python y psycopg2 precompilado
-FROM ghcr.io/circuitpython/docker-builds/cpython-3.12-jammy-slim-arm64:latest
+# Stage para compilar psycopg2
+FROM python:3.12-slim as builder
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    && pip install --no-cache-dir psycopg2-binary \
+    && mkdir -p /wheels \
+    && pip wheel --no-cache-dir --no-deps --wheel-dir /wheels psycopg2-binary
+
+# Stage final
+FROM python:3.12-slim
 
 # Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -35,16 +47,19 @@ WORKDIR /app/backend
 COPY backend/requirements.txt .
 RUN mkdir -p static staticfiles /run/nginx
 
-# Instalar dependencias mínimas
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Instalar nginx y dependencias mínimas
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
     nginx \
     libpq5 \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise psycopg2-binary
+# Copiar psycopg2 precompilado e instalar dependencias
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir /wheels/* \
+    && rm -rf /wheels \
+    && pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
 
 # Copiar el resto del backend
 COPY backend/ .
