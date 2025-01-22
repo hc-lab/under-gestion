@@ -31,4 +31,4 @@ value = "admin@example.com"
 
 [[deploy.variables]]
 key = "DJANGO_SUPERUSER_PASSWORD"
-value = "admin12345"
+value = "admin123"
