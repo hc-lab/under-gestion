@@ -14,8 +14,13 @@ RUN apk add --no-cache python3 make g++
 COPY frontend/package*.json ./
 COPY frontend/.babelrc ./
 
-# Instalar dependencias de producción
-RUN npm install --production --no-package-lock --no-audit --no-fund
+# Instalar dependencias de producción y desarrollo necesarias
+RUN npm install --no-package-lock --no-audit --no-fund && \
+    npm install --no-package-lock --no-audit --no-fund \
+    @babel/plugin-proposal-private-property-in-object \
+    @babel/plugin-transform-private-property-in-object \
+    @babel/plugin-proposal-class-properties \
+    @babel/plugin-transform-class-properties
 
 # Etapa de construcción del frontend
 FROM node:18-alpine as frontend-build
@@ -27,7 +32,11 @@ COPY --from=frontend-deps /frontend/node_modules ./node_modules
 COPY frontend/ .
 
 # Construir el frontend
-RUN GENERATE_SOURCEMAP=false npm run build
+ENV DISABLE_ESLINT_PLUGIN=true \
+    CI=false \
+    BABEL_ENV=production
+
+RUN npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
