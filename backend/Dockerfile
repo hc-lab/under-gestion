@@ -45,25 +45,25 @@ RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
 # Instalar dependencias de desarrollo primero
 RUN npm install --save-dev \
-    @babel/core@7.12.3 \
-    @babel/preset-env@7.12.1 \
-    @babel/preset-react@7.12.1 \
-    @babel/plugin-proposal-private-property-in-object@7.12.1 \
-    @babel/plugin-proposal-class-properties@7.12.1 \
-    babel-loader@8.1.0
+    @babel/core@7.22.5 \
+    @babel/preset-env@7.22.5 \
+    @babel/preset-react@7.22.5 \
+    @babel/plugin-proposal-private-property-in-object@7.21.11 \
+    @babel/plugin-proposal-class-properties@7.18.6 \
+    babel-loader@9.1.2
 
 # Instalar dependencias de producción
 RUN npm install --save \
-    react@17.0.2 \
-    react-dom@17.0.2 \
-    react-router-dom@5.3.0 \
-    react-scripts@4.0.3 \
-    styled-components@5.3.0 \
-    @mui/material@5.0.0 \
-    @mui/icons-material@5.0.0 \
-    @emotion/react@11.4.1 \
-    @emotion/styled@11.3.0 \
-    axios@0.21.1 \
+    react@18.2.0 \
+    react-dom@18.2.0 \
+    react-router-dom@6.14.0 \
+    react-scripts@5.0.1 \
+    styled-components@6.0.0-rc.3 \
+    @mui/material@5.13.5 \
+    @mui/icons-material@5.11.16 \
+    @emotion/react@11.11.1 \
+    @emotion/styled@11.11.0 \
+    axios@1.4.0 \
     --legacy-peer-deps
 
 # Copiar el resto de los archivos
