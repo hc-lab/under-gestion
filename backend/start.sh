@@ -18,17 +18,20 @@ python manage.py collectstatic --noinput
 echo "Verificando superusuario..."
 python manage.py createsuperuser --noinput || true
 
-# Asegurarse de que los directorios necesarios existan
+# Asegurarse de que los directorios necesarios existan y tengan los permisos correctos
+echo "Configurando permisos..."
 mkdir -p /run/nginx
-chown -R www-data:www-data /var/www/html /run/nginx
+mkdir -p /var/log/nginx
+chown -R www-data:www-data /var/www/html /run/nginx /var/log/nginx
+chmod -R 755 /var/www/html
 
-# Asegurarse de que nginx.conf sea válido
+# Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."
-nginx -t
+nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
 
-# Iniciar nginx en segundo plano
+# Iniciar nginx
 echo "Iniciando nginx..."
-service nginx start || (echo "Error al iniciar nginx" && exit 1)
+nginx || (echo "Error al iniciar nginx" && cat /var/log/nginx/error.log && exit 1)
 
 echo "Iniciando Gunicorn..."
 # Iniciar Gunicorn
