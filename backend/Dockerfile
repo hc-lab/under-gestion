@@ -44,9 +44,13 @@ RUN apt-get update \
 
 # Copiar requirements.txt y construir wheels
 COPY backend/requirements.txt .
-RUN pip install --no-cache-dir wheel && \
-    pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt && \
-    pip wheel --no-cache-dir --no-deps --wheel-dir /wheels gunicorn whitenoise
+
+# Instalar wheel y packaging primero
+RUN pip install --no-cache-dir wheel packaging
+
+# Construir wheels para todas las dependencias
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt && \
+    pip wheel --no-cache-dir --wheel-dir /wheels gunicorn whitenoise packaging
 
 # Stage final
 FROM python:3.12-slim
@@ -87,7 +91,8 @@ COPY backend/requirements.txt .
 COPY --from=builder /wheels /wheels
 
 # Instalar dependencias
-RUN pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
+RUN pip install --no-cache-dir packaging && \
+    pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
     pip install --no-cache-dir --no-index --find-links=/wheels gunicorn whitenoise && \
     rm -rf /wheels /root/.cache/pip/*
 
