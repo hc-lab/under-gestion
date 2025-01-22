@@ -40,8 +40,8 @@ RUN apk add --no-cache python3 make g++
 # Copiar package.json y package-lock.json
 COPY frontend/package*.json ./
 
-# Limpiar cache y node_modules existentes
-RUN rm -rf node_modules
+# Limpiar node_modules existentes si existen
+RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
 # Instalar todas las dependencias necesarias de una vez
 RUN npm install --save \
