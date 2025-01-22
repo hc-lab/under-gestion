@@ -1,11 +1,11 @@
-# Usa Node.js 18 como imagen base para construir el frontend
-FROM node:18-alpine as frontend-build
+# Etapa de instalación de dependencias del frontend
+FROM node:18-alpine as frontend-deps
 
 WORKDIR /frontend
 
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=2048" \
+    NODE_OPTIONS="--max-old-space-size=1024" \
     REACT_APP_API_URL=under-gestion-production.up.railway.app
 
 # Instalar dependencias del sistema
@@ -15,16 +15,30 @@ RUN apk add --no-cache python3 make g++
 COPY frontend/package*.json ./
 COPY frontend/.babelrc ./
 
-# Limpiar caché de npm e instalar dependencias con opciones de memoria optimizadas
-RUN npm cache clean --force && \
-    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
-    npm cache clean --force
+# Instalar primero las dependencias principales
+RUN npm install --no-package-lock --no-audit --no-fund \
+    react \
+    react-dom \
+    react-router-dom \
+    @mui/material \
+    @emotion/react \
+    @emotion/styled \
+    axios
 
-# Copiar el resto de los archivos del frontend
+# Instalar el resto de las dependencias
+RUN npm install --no-package-lock --no-audit --no-fund --production
+
+# Etapa de construcción del frontend
+FROM node:18-alpine as frontend-build
+
+WORKDIR /frontend
+
+# Copiar las dependencias instaladas
+COPY --from=frontend-deps /frontend/node_modules ./node_modules
 COPY frontend/ .
 
 # Construir el frontend
-RUN npm run build
+RUN GENERATE_SOURCEMAP=false npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
