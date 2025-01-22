@@ -38,41 +38,43 @@ ENV NODE_ENV=production \
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
 
-# Copiar archivos del frontend
+# Copiar package.json primero
+COPY frontend/package*.json ./
+
+# Instalar react-scripts y babel primero
+RUN npm install --save-dev react-scripts@4.0.3 && \
+    npm install --save-dev \
+    @babel/core@7.12.3 \
+    @babel/preset-env@7.12.1 \
+    @babel/preset-react@7.12.1 \
+    @babel/plugin-proposal-private-property-in-object@7.12.1 \
+    @babel/plugin-proposal-class-properties@7.12.1 \
+    babel-loader@8.1.0
+
+# Instalar el resto de las dependencias
+RUN npm install --legacy-peer-deps
+
+# Copiar el resto de los archivos
 COPY frontend/ .
 
-# Crear configuración de Babel
+# Crear configuración de Babel compatible
 RUN echo '{\
     "presets": [\
         "@babel/preset-env",\
         "@babel/preset-react"\
     ],\
     "plugins": [\
-        "@babel/plugin-transform-private-property-in-object",\
-        "@babel/plugin-transform-class-properties"\
+        "@babel/plugin-proposal-private-property-in-object",\
+        "@babel/plugin-proposal-class-properties"\
     ]\
 }' > .babelrc
 
-# Instalar react-scripts primero
-RUN npm install react-scripts@5.0.1
-
-# Instalar dependencias específicas
-RUN npm install --save-dev \
-    @babel/core@7.22.20 \
-    @babel/preset-env@7.22.20 \
-    @babel/preset-react@7.22.15 \
-    @babel/plugin-transform-private-property-in-object@7.22.11 \
-    @babel/plugin-transform-class-properties@7.22.5 \
-    babel-loader@9.1.3
-
-# Instalar el resto de las dependencias
-RUN npm install --legacy-peer-deps
-
 # Verificar la instalación
-RUN npm list react-scripts
+RUN npm list react-scripts && \
+    npm list @babel/plugin-proposal-private-property-in-object
 
-# Construir el frontend usando la ruta completa
-RUN ./node_modules/.bin/react-scripts build
+# Construir el frontend
+RUN npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
