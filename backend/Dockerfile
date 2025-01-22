@@ -7,20 +7,21 @@ WORKDIR /frontend
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production
-ENV REACT_APP_API_URL=https://tu-api-url.railway.app
+ENV REACT_APP_API_URL=under-gestion-production.up.railway.app
 
 # Copiar solo los archivos de package primero
 COPY frontend/package*.json ./
 
 # Instalar dependencias
 RUN apk add --no-cache python3 make g++ \
-    && npm install --legacy-peer-deps
+    && npm install --legacy-peer-deps \
+    && npm install --save-dev @babel/plugin-proposal-private-property-in-object
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
 # Construir el frontend con variables de entorno explícitas
-RUN DISABLE_ESLINT_PLUGIN=true npm run build
+RUN DISABLE_ESLINT_PLUGIN=true CI=false npm run build
 
 # Stage para compilar psycopg2
 FROM python:3.12-slim as builder
