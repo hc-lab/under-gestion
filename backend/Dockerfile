@@ -1,5 +1,5 @@
-# Usa Node.js 20 como imagen base para construir el frontend
-FROM node:20-alpine as frontend-build
+# Usa Node.js 18 como imagen base para construir el frontend
+FROM node:18-alpine as frontend-build
 
 WORKDIR /frontend
 
@@ -8,27 +8,20 @@ ENV NODE_ENV=production
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV REACT_APP_API_URL=under-gestion-production.up.railway.app
 
+# Instalar dependencias del sistema
+RUN apk add --no-cache python3 make g++
+
 # Copia package.json y package-lock.json
 COPY frontend/package*.json ./
 
-# Instalar dependencias necesarias para la compilación
-RUN apk add --no-cache python3 make g++ \
-    && npm install --legacy-peer-deps \
-    && npm install --save-dev @babel/plugin-proposal-private-property-in-object \
-    && npm install --save-dev @babel/core @babel/preset-react \
-    && npm audit fix --force
+# Instalar todas las dependencias (incluyendo devDependencies)
+RUN npm install --legacy-peer-deps
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
-# Limpiar caché de npm y reconstruir node_modules
-RUN npm cache clean --force \
-    && rm -rf node_modules \
-    && npm install --legacy-peer-deps \
-    && npm install --save-dev @babel/plugin-proposal-private-property-in-object
-
-# Construir el frontend
-RUN DISABLE_ESLINT_PLUGIN=true CI=false npm run build
+# Construir el frontend con variables explícitas
+RUN DISABLE_ESLINT_PLUGIN=true CI=false NODE_ENV=production npm run build
 
 # Stage para compilar psycopg2
 FROM python:3.12-slim as builder
