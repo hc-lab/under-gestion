@@ -10,7 +10,7 @@ restartPolicyMaxRetries = 10
 
 [[deploy.variables]]
 key = "PYTHONPATH"
-value = "/app"
+value = "/app/backend"
 
 [[deploy.variables]]
 key = "DJANGO_SETTINGS_MODULE"
