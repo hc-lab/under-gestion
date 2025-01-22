@@ -19,32 +19,25 @@ COPY frontend/ .
 # Construir el frontend
 RUN npm run build
 
-# Stage final con Python y Nginx
-FROM python:3.12-slim
+# Stage final con Python Alpine
+FROM python:3.12-alpine
 
-# Establecer variables de entorno para reducir el tamaño de la imagen
+# Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive \
     DJANGO_SETTINGS_MODULE=almacen.settings \
     PYTHONPATH=/app/backend \
     PORT=8000
 
-# Actualizar e instalar dependencias esenciales primero
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+# Instalar dependencias del sistema
+RUN apk add --no-cache \
     nginx \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Instalar dependencias de compilación
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    postgresql-libs \
+    postgresql-dev \
     gcc \
+    musl-dev \
     python3-dev \
-    libpq-dev \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    && mkdir -p /run/nginx
 
 # Establecer el directorio de trabajo y crear directorios necesarios
 WORKDIR /app/backend
@@ -64,6 +57,9 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     rm -rf ~/.cache/pip/*
 
+# Limpiar dependencias de compilación
+RUN apk del gcc musl-dev python3-dev postgresql-dev
+
 # Copiar el resto del backend
 COPY backend/ .
 
@@ -71,7 +67,7 @@ COPY backend/ .
 COPY --from=frontend-build /frontend/dist /var/www/html
 
 # Copiar la configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/http.d/default.conf
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py
@@ -82,7 +78,7 @@ RUN echo '#!/bin/sh\n\
     python manage.py collectstatic --noinput --clear\n\
     python manage.py migrate\n\
     python manage.py createsuperuser --noinput || echo "Superuser already exists"\n\
-    service nginx start\n\
+    nginx\n\
     exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
     chmod +x /start.sh
 
