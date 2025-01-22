@@ -23,7 +23,7 @@ RUN npm install --no-package-lock --no-audit --no-fund && \
     @babel/plugin-transform-class-properties
 
 # Etapa de construcción del frontend
-FROM node:18-alpine as frontend-build
+FROM node:16-alpine as frontend-build
 
 WORKDIR /frontend
 
@@ -32,7 +32,8 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=512" \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
-    PATH="/frontend/node_modules/.bin:${PATH}"
+    PATH="/frontend/node_modules/.bin:${PATH}" \
+    NODE_OPTIONS=--openssl-legacy-provider
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
