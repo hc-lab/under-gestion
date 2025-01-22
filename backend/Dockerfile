@@ -48,9 +48,18 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app/backend
 
-# Copiar requirements.txt y crear directorios necesarios
-COPY backend/requirements.txt .
-RUN mkdir -p static staticfiles media /var/www/html /run/nginx
+# Crear directorios necesarios
+RUN mkdir -p /app/backend/static \
+    /app/backend/media \
+    /app/backend/staticfiles \
+    /var/www/html \
+    /run/nginx \
+    /var/log/nginx \
+    /var/lib/nginx/body \
+    /var/lib/nginx/fastcgi \
+    /var/lib/nginx/proxy \
+    /var/lib/nginx/scgi \
+    /var/lib/nginx/uwsgi
 
 # Instalar nginx y dependencias mínimas
 RUN apt-get update \
@@ -79,10 +88,17 @@ RUN rm -f /etc/nginx/sites-enabled/default
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
-# Verificar la estructura y permisos
+# Configurar permisos
 RUN chmod +x manage.py \
     && python manage.py collectstatic --noinput \
-    && chown -R www-data:www-data /var/www/html /app/backend/static /app/backend/media /run/nginx
+    && chown -R www-data:www-data \
+        /var/www/html \
+        /app/backend/static \
+        /app/backend/media \
+        /run/nginx \
+        /var/log/nginx \
+        /var/lib/nginx \
+    && chmod -R 755 /var/www/html /var/lib/nginx
 
 # Script de inicio
 COPY backend/start.sh /start.sh
