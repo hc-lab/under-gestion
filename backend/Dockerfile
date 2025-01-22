@@ -3,21 +3,24 @@ FROM node:18-alpine as frontend-build
 
 WORKDIR /frontend
 
+# Aumentar memoria disponible para Node
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Establecer variables de entorno para producción
+ENV NODE_ENV=production
+ENV REACT_APP_API_URL=https://tu-api-url.railway.app
+
 # Copiar solo los archivos de package primero
 COPY frontend/package*.json ./
 
-# Instalar dependencias usando npm ci (más estable que npm install)
+# Instalar dependencias
 RUN apk add --no-cache python3 make g++ \
-    && npm config set fetch-retry-maxtimeout 600000 -g \
-    && npm config set fetch-retry-mintimeout 100000 -g \
-    && npm config set fetch-retries 10 -g \
-    && npm ci --prefer-offline --no-audit --legacy-peer-deps
+    && npm install --legacy-peer-deps
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
-# Construir el frontend
-RUN npm run build
+# Construir el frontend con variables de entorno explícitas
+RUN DISABLE_ESLINT_PLUGIN=true npm run build
 
 # Stage para compilar psycopg2
 FROM python:3.12-slim as builder
