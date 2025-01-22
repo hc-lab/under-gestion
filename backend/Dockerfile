@@ -26,17 +26,26 @@ COPY frontend/ .
 # Construir el frontend
 RUN npm run build
 
-# Stage para compilar psycopg2
+# Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
 
+WORKDIR /wheels
+
+# Instalar dependencias necesarias para la compilación
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     libpq-dev \
-    && pip install --no-cache-dir psycopg2-binary \
-    && mkdir -p /wheels \
-    && pip wheel --no-cache-dir --no-deps --wheel-dir /wheels psycopg2-binary
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar requirements.txt
+COPY backend/requirements.txt .
+
+# Construir wheels para todas las dependencias
+RUN pip install --no-cache-dir wheel && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt && \
+    pip wheel --no-cache-dir --no-deps --wheel-dir /wheels gunicorn whitenoise
 
 # Stage final
 FROM python:3.12-slim
@@ -63,9 +72,6 @@ RUN mkdir -p /app/backend/static \
     /var/lib/nginx/scgi \
     /var/lib/nginx/uwsgi
 
-# Copiar requirements.txt
-COPY backend/requirements.txt .
-
 # Instalar nginx y dependencias mínimas
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -75,11 +81,10 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copiar psycopg2 precompilado e instalar dependencias
+# Copiar wheels precompilados e instalar
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir /wheels/* \
-    && rm -rf /wheels \
-    && pip install --no-cache-dir -r requirements.txt gunicorn whitenoise
+RUN pip install --no-cache-dir --no-index --find-links=/wheels /* && \
+    rm -rf /wheels /root/.cache/pip/*
 
 # Copiar el resto del backend
 COPY backend/ .
