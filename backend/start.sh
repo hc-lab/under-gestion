@@ -3,9 +3,12 @@ set -e
 
 echo "Iniciando servicios..."
 
+# Obtener el puerto del entorno o usar 8000 por defecto
+PORT="${PORT:-8000}"
+echo "Puerto configurado: $PORT"
+
 # Cambiar al directorio del backend
 cd /app/backend
-#cd
 
 # Ejecutar migraciones
 echo "Aplicando migraciones..."
@@ -37,11 +40,14 @@ chmod -R 755 /var/www/html /var/lib/nginx
 rm -f /run/nginx.pid
 rm -f /run/nginx/nginx.pid
 
+# Modificar la configuración de nginx para usar el puerto correcto
+sed -i "s/listen 80/listen ${PORT}/" /etc/nginx/nginx.conf
+
 # Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."
 nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
 
-# Iniciar nginx en primer plano
+# Iniciar nginx
 echo "Iniciando nginx..."
 nginx
 
@@ -55,11 +61,19 @@ if ! ps aux | grep -q '[n]ginx: master process'; then
     exit 1
 fi
 
+# Calcular el puerto para Gunicorn (usar un puerto diferente al de nginx)
+GUNICORN_PORT=$((PORT + 1))
+echo "Puerto de Gunicorn: $GUNICORN_PORT"
+
+# Modificar la configuración de nginx para el upstream
+sed -i "s/127.0.0.1:8000/127.0.0.1:${GUNICORN_PORT}/" /etc/nginx/nginx.conf
+nginx -s reload
+
 echo "Iniciando Gunicorn..."
-# Iniciar Gunicorn
+# Iniciar Gunicorn con el nuevo puerto
 exec gunicorn almacen.wsgi:application \
     --log-file - \
-    --bind 0.0.0.0:8000 \
+    --bind "0.0.0.0:${GUNICORN_PORT}" \
     --workers 3 \
     --timeout 120 \
     --preload
