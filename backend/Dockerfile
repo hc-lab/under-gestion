@@ -40,12 +40,30 @@ RUN apk add --no-cache python3 make g++
 # Copiar archivos del frontend
 COPY frontend/ .
 
-# Instalar todas las dependencias incluyendo devDependencies
+# Crear configuración de Babel
+RUN echo '{\
+    "presets": [\
+        "@babel/preset-env",\
+        "@babel/preset-react"\
+    ],\
+    "plugins": [\
+        "@babel/plugin-transform-private-property-in-object",\
+        "@babel/plugin-transform-class-properties"\
+    ]\
+}' > .babelrc
+
+# Instalar dependencias específicas primero
+RUN npm install --save-dev \
+    @babel/core@7.22.20 \
+    @babel/preset-env@7.22.20 \
+    @babel/preset-react@7.22.15 \
+    @babel/plugin-transform-private-property-in-object@7.22.11 \
+    @babel/plugin-transform-class-properties@7.22.5 \
+    babel-loader@9.1.3
+
+# Instalar el resto de las dependencias
 RUN npm install --legacy-peer-deps && \
-    npm install --save-dev @babel/plugin-proposal-private-property-in-object@latest && \
-    npm install --save-dev @babel/plugin-transform-private-property-in-object@latest && \
-    npm install --save-dev @babel/plugin-proposal-class-properties@latest && \
-    npm install --save-dev @babel/plugin-transform-class-properties@latest
+    npm install --save-dev react-scripts@5.0.1
 
 # Construir el frontend
 RUN npm run build
