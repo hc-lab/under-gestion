@@ -27,15 +27,27 @@ FROM node:18-alpine as frontend-build
 
 WORKDIR /frontend
 
-# Copiar las dependencias instaladas
-COPY --from=frontend-deps /frontend/node_modules ./node_modules
-COPY frontend/ .
-
-# Construir el frontend
-ENV DISABLE_ESLINT_PLUGIN=true \
+# Establecer variables de entorno para producción
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=512" \
+    DISABLE_ESLINT_PLUGIN=true \
     CI=false \
     BABEL_ENV=production
 
+# Instalar dependencias del sistema
+RUN apk add --no-cache python3 make g++
+
+# Copiar archivos del frontend
+COPY frontend/ .
+
+# Instalar todas las dependencias incluyendo devDependencies
+RUN npm install --legacy-peer-deps && \
+    npm install --save-dev @babel/plugin-proposal-private-property-in-object@latest && \
+    npm install --save-dev @babel/plugin-transform-private-property-in-object@latest && \
+    npm install --save-dev @babel/plugin-proposal-class-properties@latest && \
+    npm install --save-dev @babel/plugin-transform-class-properties@latest
+
+# Construir el frontend
 RUN npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
