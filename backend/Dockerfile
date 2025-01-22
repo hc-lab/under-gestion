@@ -43,8 +43,21 @@ COPY frontend/package*.json ./
 # Limpiar node_modules existentes si existen
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
-# Instalar todas las dependencias en un solo paso para optimizar las capas
-RUN npm install --legacy-peer-deps
+# Instalar react-scripts primero
+RUN npm install --save react-scripts@4.0.3
+
+# Instalar dependencias principales
+RUN npm install --save \
+    react@17.0.2 \
+    react-dom@17.0.2 \
+    react-router-dom@5.3.0 \
+    styled-components@5.3.0 \
+    @mui/material@5.0.0 \
+    @mui/icons-material@5.0.0 \
+    @emotion/react@11.4.1 \
+    @emotion/styled@11.3.0 \
+    axios@0.21.1 \
+    --legacy-peer-deps
 
 # Copiar el resto de los archivos
 COPY frontend/ .
@@ -53,13 +66,10 @@ COPY frontend/ .
 RUN npm cache clean --force && \
     rm -rf node_modules/.cache
 
-# Construir el frontend con todas las variables necesarias y más memoria
-RUN export NODE_OPTIONS="--max-old-space-size=4096" && \
-    SKIP_PREFLIGHT_CHECK=true \
+# Construir el frontend
+RUN SKIP_PREFLIGHT_CHECK=true \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
-    BABEL_ENV=production \
-    GENERATE_SOURCEMAP=false \
     npm run build
 
 # Verificar que los archivos se construyeron correctamente
