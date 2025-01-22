@@ -16,6 +16,9 @@ RUN apt-get update && \
 # Copiar el contenido del directorio backend
 COPY backend/ .
 
+# Crear directorios necesarios
+RUN mkdir -p static staticfiles
+
 # Instalar dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt \
     && rm -rf ~/.cache/pip/*
@@ -40,7 +43,7 @@ RUN echo '#!/bin/sh\n\
     echo "Directory contents:"\n\
     ls -la\n\
     echo "Running collectstatic..."\n\
-    python manage.py collectstatic --noinput\n\
+    python manage.py collectstatic --noinput --clear\n\
     echo "Running migrations..."\n\
     python manage.py migrate\n\
     echo "Creating superuser..."\n\
