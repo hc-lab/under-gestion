@@ -44,29 +44,29 @@ COPY frontend/package*.json ./
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
 # Instalar react-scripts primero
-RUN npm install --save react-scripts@4.0.3 --legacy-peer-deps
+RUN npm install --save react-scripts@5.0.1 --legacy-peer-deps
 
 # Instalar dependencias principales
 RUN npm install --save \
-    react@17.0.2 \
-    react-dom@17.0.2 \
-    react-router-dom@5.3.0 \
-    styled-components@5.3.0 \
-    @mui/material@5.0.0 \
-    @mui/icons-material@5.0.0 \
-    @emotion/react@11.4.1 \
-    @emotion/styled@11.3.0 \
-    axios@0.21.1 \
+    react@18.2.0 \
+    react-dom@18.2.0 \
+    react-router-dom@6.11.2 \
+    styled-components@5.3.11 \
+    @mui/material@5.13.0 \
+    @mui/icons-material@5.11.16 \
+    @emotion/react@11.11.0 \
+    @emotion/styled@11.11.0 \
+    axios@1.4.0 \
     --legacy-peer-deps
 
 # Instalar babel y plugins como devDependencies
 RUN npm install --save-dev \
-    @babel/core@7.12.3 \
-    @babel/preset-env@7.12.1 \
-    @babel/preset-react@7.12.1 \
-    @babel/plugin-proposal-class-properties@7.12.1 \
-    @babel/plugin-proposal-private-property-in-object@7.12.1 \
-    babel-loader@8.1.0 \
+    @babel/core@7.21.8 \
+    @babel/preset-env@7.21.5 \
+    @babel/preset-react@7.18.6 \
+    @babel/plugin-proposal-class-properties@7.18.6 \
+    @babel/plugin-proposal-private-property-in-object@7.21.11 \
+    babel-loader@9.1.2 \
     --legacy-peer-deps
 
 # Copiar el resto de los archivos
