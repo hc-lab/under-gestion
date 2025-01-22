@@ -3,6 +3,8 @@ FROM node:20-alpine as build
 
 WORKDIR /frontend
 
+# Aumentar memoria disponible para Node
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Aumentar memoria disponible para Node
 ENV NODE_OPTIONS="--max-old-space-size=4096"
@@ -52,6 +54,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000
 
 WORKDIR /app/backend
+
 
 # Copiar requirements.txt y crear directorios necesarios
 COPY backend/requirements.txt .
@@ -105,4 +108,4 @@ RUN echo '#!/bin/sh\n\
 EXPOSE 80 8000
 
 # Comando para iniciar la aplicación
-CMD ["/start.sh"]
+CMD ["/start.sh"]   
