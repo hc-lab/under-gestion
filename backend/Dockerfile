@@ -4,51 +4,44 @@ FROM python:3.12-slim
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
+# Instalar dependencias del sistema y limpiar en el mismo paso
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
-# Copiar requirements.txt e instalar dependencias
+# Copiar solo los archivos necesarios
 COPY ./requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt \
+    && rm -rf ~/.cache/pip/*
 
 # Copiar el código del backend
-COPY ./almacen /app/almacen/
-COPY ./manage.py /app/
-COPY ./noticias /app/noticias/
-COPY ./personales /app/personales/
-COPY ./productos /app/productos/
-
-# Exponer el puerto (Railway lo sobreescribirá con PORT)
-EXPOSE 8000
+COPY ./almacen ./almacen
+COPY ./manage.py .
+COPY ./noticias ./noticias
+COPY ./personales ./personales
+COPY ./productos ./productos
 
 # Configurar variables de entorno
-ENV PYTHONUNBUFFERED=1
-ENV DJANGO_SETTINGS_MODULE=almacen.settings
-ENV PYTHONPATH=/app
-ENV PORT=8000
-
-# Verificar la estructura del proyecto
-RUN echo "Verificando estructura del proyecto:" && \
-    ls -la /app && \
-    echo "Contenido de almacen:" && \
-    ls -la /app/almacen
+ENV PYTHONUNBUFFERED=1 \
+    DJANGO_SETTINGS_MODULE=almacen.settings \
+    PYTHONPATH=/app \
+    PORT=8000
 
 # Crear script de inicio
-RUN echo '#!/bin/bash\n\
-    echo "Contenido del directorio actual:"\n\
-    ls -la\n\
-    echo "PYTHONPATH=$PYTHONPATH"\n\
-    echo "Ejecutando collectstatic..."\n\
-    python manage.py collectstatic --noinput\n\
-    echo "Ejecutando migraciones..."\n\
-    python manage.py migrate\n\
-    echo "Iniciando Gunicorn..."\n\
-    exec gunicorn almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000}' > /start.sh && \
+RUN echo '#!/bin/sh\n\
+python manage.py collectstatic --noinput\n\
+python manage.py migrate\n\
+exec gunicorn almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000}' > /start.sh && \
     chmod +x /start.sh
+
+# Exponer el puerto
+EXPOSE 8000
 
 # Comando para iniciar la aplicación
 CMD ["/start.sh"]
