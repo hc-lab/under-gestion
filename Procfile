@@ -1,2 +1,2 @@
-release: python backend/manage.py migrate
-web: gunicorn --chdir backend almacen.wsgi:application --bind 0.0.0.0:$PORT
+release: cd backend && python manage.py migrate
+web: cd backend && gunicorn almacen.wsgi:application --bind 0.0.0.0:$PORT
