@@ -14,27 +14,21 @@ python manage.py migrate --noinput
 echo "Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-# Crear superusuario si no existe
+# Crear superusuario si no existe (ignorar error si ya existe)
 echo "Verificando superusuario..."
-python manage.py createsuperuser --noinput || echo "Superuser already exists"
+python manage.py createsuperuser --noinput || true
 
 # Asegurarse de que los directorios necesarios existan
 mkdir -p /run/nginx
-chown -R www-data:www-data /var/www/html
-chown -R www-data:www-data /run/nginx
+chown -R www-data:www-data /var/www/html /run/nginx
 
-# Iniciar nginx
+# Asegurarse de que nginx.conf sea válido
+echo "Verificando configuración de nginx..."
+nginx -t
+
+# Iniciar nginx en segundo plano
 echo "Iniciando nginx..."
-nginx -t && service nginx start
-
-# Esperar un momento para asegurarse de que nginx haya iniciado
-sleep 2
-
-# Verificar que nginx esté corriendo
-if ! pgrep nginx > /dev/null; then
-    echo "Error: nginx no se pudo iniciar"
-    exit 1
-fi
+service nginx start || (echo "Error al iniciar nginx" && exit 1)
 
 echo "Iniciando Gunicorn..."
 # Iniciar Gunicorn

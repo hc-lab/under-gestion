@@ -57,6 +57,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     nginx \
     libpq5 \
+    procps \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -72,12 +73,16 @@ COPY backend/ .
 # Copiar los archivos del frontend construido
 COPY --from=frontend-build /frontend/build /var/www/html/
 
+# Eliminar la configuración por defecto de nginx
+RUN rm -f /etc/nginx/sites-enabled/default
+
 # Copiar la configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py \
-    && python manage.py collectstatic --noinput
+    && python manage.py collectstatic --noinput \
+    && chown -R www-data:www-data /var/www/html /app/backend/static /app/backend/media /run/nginx
 
 # Script de inicio
 COPY backend/start.sh /start.sh

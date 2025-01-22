@@ -4,31 +4,16 @@ dockerfilePath = "backend/Dockerfile"
 buildContext = "."
 
 [deploy]
+startCommand = "/start.sh"
 healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [[deploy.variables]]
-key = "PYTHONPATH"
-value = "/app/backend"
+key = "PORT"
+value = "80"
 
 [[deploy.variables]]
 key = "DJANGO_SETTINGS_MODULE"
 value = "almacen.settings"
-
-[[deploy.variables]]
-key = "DEBUG"
-value = "False"
-
-[[deploy.variables]]
-key = "DJANGO_SUPERUSER_USERNAME"
-value = "admin"
-
-[[deploy.variables]]
-key = "DJANGO_SUPERUSER_EMAIL"
-value = "admin@example.com"
-
-[[deploy.variables]]
-key = "DJANGO_SUPERUSER_PASSWORD"
-value = "admin123"
