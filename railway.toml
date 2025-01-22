@@ -10,8 +10,16 @@ restartPolicyMaxRetries = 10
 
 [[deploy.variables]]
 key = "PYTHONPATH"
-value = "/app/backend"
+value = "/app"
 
 [[deploy.variables]]
 key = "DJANGO_SETTINGS_MODULE"
 value = "almacen.settings"
+
+[[deploy.variables]]
+key = "DEBUG"
+value = "False"
+
+[[deploy.variables]]
+key = "ALLOWED_HOSTS"
+value = ".railway.app"
