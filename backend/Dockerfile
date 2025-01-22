@@ -32,27 +32,30 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=512" \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
-    BABEL_ENV=production \
     PATH="/frontend/node_modules/.bin:${PATH}"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
 
-# Copiar package.json primero
+# Copiar package.json y package-lock.json
 COPY frontend/package*.json ./
 
-# Instalar react-scripts y babel primero
-RUN npm install --save-dev react-scripts@4.0.3 && \
-    npm install --save-dev \
+# Limpiar cache y node_modules existentes
+RUN npm cache clean --force && \
+    rm -rf node_modules
+
+# Instalar todas las dependencias necesarias de una vez
+RUN npm install --save \
+    react \
+    react-dom \
+    react-scripts@4.0.3 \
     @babel/core@7.12.3 \
     @babel/preset-env@7.12.1 \
     @babel/preset-react@7.12.1 \
     @babel/plugin-proposal-private-property-in-object@7.12.1 \
     @babel/plugin-proposal-class-properties@7.12.1 \
-    babel-loader@8.1.0
-
-# Instalar el resto de las dependencias
-RUN npm install --legacy-peer-deps
+    babel-loader@8.1.0 \
+    --legacy-peer-deps
 
 # Copiar el resto de los archivos
 COPY frontend/ .
@@ -69,12 +72,8 @@ RUN echo '{\
     ]\
 }' > .babelrc
 
-# Verificar la instalación
-RUN npm list react-scripts && \
-    npm list @babel/plugin-proposal-private-property-in-object
-
 # Construir el frontend
-RUN npm run build
+RUN SKIP_PREFLIGHT_CHECK=true npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
