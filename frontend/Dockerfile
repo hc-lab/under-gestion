@@ -1,27 +1,32 @@
 # proyecto_root/frontend/Dockerfile
-FROM node:20-alpine 
+# Build stage
+FROM node:20-alpine as build
 
-WORKDIR /app/frontend
+WORKDIR /app
 
-# Copiar package.json y package-lock.json primero
+# Copiar package.json y package-lock.json
 COPY package*.json ./
 
-# Limpiar caché e instalar dependencias
-RUN rm -rf /root/.npm && \
-    rm -f package-lock.json && \
-    npm cache clean --force && \
-    npm install -g npm@latest && \
-    npm install --legacy-peer-deps --force && \
-    npm install html2canvas jspdf @react-pdf/renderer --legacy-peer-deps && \
-    npm install ajv@latest ajv-keywords@latest
-    RUN npm install react-d3-speedometer
+# Instalar dependencias
+RUN npm install --legacy-peer-deps --force
 
 # Copiar el resto de los archivos
 COPY . .
 
+# Construir la aplicación
+RUN npm run build
+
+# Production stage
+FROM nginx:alpine
+
+# Copiar la configuración de nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copiar los archivos construidos
+COPY --from=build /app/build /usr/share/nginx/html
+
 # Exponer el puerto
-EXPOSE 3000
+EXPOSE 80
 
-# Comando para iniciar la aplicación
-CMD ["npm", "start"]
-
+# Comando para iniciar nginx
+CMD ["nginx", "-g", "daemon off;"]

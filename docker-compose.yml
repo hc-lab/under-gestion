@@ -27,6 +27,20 @@ services:
     networks:
       - mynetwork
 
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - mynetwork
+
   db:
     image: postgres:13
     volumes:

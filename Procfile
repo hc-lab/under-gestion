@@ -1,4 +1,2 @@
-web: gunicorn backend.wsgi:application --bind 0.0.0.0:8080
-
-
-
+release: python backend/manage.py migrate
+web: gunicorn --chdir backend almacen.wsgi:application --bind 0.0.0.0:$PORT
