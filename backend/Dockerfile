@@ -22,21 +22,40 @@ RUN npm run build
 # Stage final con Python y Nginx
 FROM python:3.12-slim
 
-# Instalar nginx y dependencias necesarias en un solo paso
+# Establecer variables de entorno para reducir el tamaño de la imagen
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    DJANGO_SETTINGS_MODULE=almacen.settings \
+    PYTHONPATH=/app/backend \
+    PORT=8000
+
+# Actualizar e instalar dependencias esenciales primero
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     nginx \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Instalar dependencias de compilación
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     gcc \
     python3-dev \
     libpq-dev \
     && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir gunicorn whitenoise psycopg2-binary && \
-    rm -rf ~/.cache/pip/*
+    rm -rf /var/lib/apt/lists/*
 
 # Establecer el directorio de trabajo y crear directorios necesarios
 WORKDIR /app/backend
 RUN mkdir -p static staticfiles
+
+# Instalar dependencias base de Python
+RUN pip install --no-cache-dir \
+    gunicorn \
+    whitenoise \
+    psycopg2-binary \
+    && rm -rf ~/.cache/pip/*
 
 # Copiar solo requirements.txt primero
 COPY backend/requirements.txt .
@@ -53,12 +72,6 @@ COPY --from=frontend-build /frontend/dist /var/www/html
 
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
-
-# Configurar variables de entorno
-ENV PYTHONUNBUFFERED=1 \
-    DJANGO_SETTINGS_MODULE=almacen.settings \
-    PYTHONPATH=/app/backend \
-    PORT=8000
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py
