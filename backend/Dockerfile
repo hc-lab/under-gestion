@@ -13,15 +13,16 @@ RUN apk add --no-cache python3 make g++
 
 # Copia package.json y package-lock.json
 COPY frontend/package*.json ./
+COPY frontend/.babelrc ./
 
 # Instalar todas las dependencias (incluyendo devDependencies)
-RUN npm install --legacy-peer-deps
+RUN NODE_ENV=development npm install --legacy-peer-deps
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
 # Construir el frontend con variables explícitas
-RUN DISABLE_ESLINT_PLUGIN=true CI=false NODE_ENV=production npm run build
+RUN BABEL_ENV=production NODE_ENV=production npm run build
 
 # Stage para compilar psycopg2
 FROM python:3.12-slim as builder
