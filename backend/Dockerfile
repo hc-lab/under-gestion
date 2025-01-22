@@ -6,9 +6,12 @@ WORKDIR /frontend
 # Copiar solo los archivos de package primero
 COPY frontend/package*.json ./
 
-# Limpiar cache de npm y reinstalar
-RUN npm cache clean --force && \
-    npm install --legacy-peer-deps
+# Instalar dependencias usando npm ci (más estable que npm install)
+RUN apk add --no-cache python3 make g++ \
+    && npm config set fetch-retry-maxtimeout 600000 -g \
+    && npm config set fetch-retry-mintimeout 100000 -g \
+    && npm config set fetch-retries 10 -g \
+    && npm ci --prefer-offline --no-audit --legacy-peer-deps
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
