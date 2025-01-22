@@ -19,8 +19,8 @@ COPY frontend/ .
 # Construir el frontend
 RUN npm run build
 
-# Stage final con Python Alpine
-FROM python:3.12-alpine
+# Stage final con Python Alpine y psycopg2 precompilado
+FROM jfloff/alpine-python:3.9-slim
 
 # Establecer variables de entorno
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -35,17 +35,11 @@ WORKDIR /app/backend
 COPY backend/requirements.txt .
 RUN mkdir -p static staticfiles /run/nginx
 
-# Instalar todas las dependencias en un solo paso
-RUN apk add --no-cache \
-    nginx \
-    postgresql-libs \
-    postgresql-dev \
-    gcc \
-    musl-dev \
-    python3-dev \
-    && pip install --no-cache-dir -r requirements.txt gunicorn whitenoise psycopg2-binary \
-    && rm -rf ~/.cache/pip/* \
-    && apk del gcc musl-dev python3-dev postgresql-dev
+# Instalar nginx y dependencias mínimas
+RUN apk add --no-cache nginx postgresql-libs
+
+# Instalar dependencias de Python
+RUN pip install --no-cache-dir -r requirements.txt gunicorn whitenoise psycopg2-binary
 
 # Copiar el resto del backend
 COPY backend/ .
