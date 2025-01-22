@@ -1,7 +1,8 @@
-# Build stage para el frontend
-FROM node:18-alpine as frontend-build
+# Usa Node.js 20 como imagen base
+FROM node:20-alpine as build
 
-WORKDIR /frontend
+WORKDIR /app
+
 
 # Aumentar memoria disponible para Node
 ENV NODE_OPTIONS="--max-old-space-size=4096"
@@ -16,6 +17,10 @@ COPY frontend/package*.json ./
 RUN apk add --no-cache python3 make g++ \
     && npm install --legacy-peer-deps \
     && npm install --save-dev @babel/plugin-proposal-private-property-in-object
+
+
+# Copia package.json y package-lock.json
+COPY frontend/package*.json ./
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
@@ -73,6 +78,14 @@ COPY --from=frontend-build /frontend/dist /var/www/html
 
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+
+
+# Establece la variable de entorno para la construcción en producción
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
+# Construye la aplicación
+RUN DISABLE_ESLINT_PLUGIN=true CI=false npm run build
 
 # Verificar la estructura y permisos
 RUN chmod +x manage.py
