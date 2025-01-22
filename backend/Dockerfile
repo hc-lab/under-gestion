@@ -22,28 +22,31 @@ RUN npm run build
 # Stage final con Python y Nginx
 FROM python:3.12-slim
 
-# Instalar nginx y dependencias necesarias
+# Instalar nginx y dependencias necesarias en un solo paso
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     nginx \
     gcc \
     python3-dev \
     libpq-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install --no-cache-dir gunicorn whitenoise psycopg2-binary && \
+    rm -rf ~/.cache/pip/*
 
-# Establecer el directorio de trabajo
+# Establecer el directorio de trabajo y crear directorios necesarios
 WORKDIR /app/backend
-
-# Copiar el contenido del directorio backend
-COPY backend/ .
-
-# Crear directorios necesarios
 RUN mkdir -p static staticfiles
 
+# Copiar solo requirements.txt primero
+COPY backend/requirements.txt .
+
 # Instalar dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt \
-    && rm -rf ~/.cache/pip/*
+RUN pip install --no-cache-dir -r requirements.txt && \
+    rm -rf ~/.cache/pip/*
+
+# Copiar el resto del backend
+COPY backend/ .
 
 # Copiar los archivos del frontend construido
 COPY --from=frontend-build /frontend/dist /var/www/html
@@ -58,21 +61,15 @@ ENV PYTHONUNBUFFERED=1 \
     PORT=8000
 
 # Verificar la estructura y permisos
-RUN ls -la && \
-    chmod +x manage.py
+RUN chmod +x manage.py
 
 # Crear script de inicio
 RUN echo '#!/bin/sh\n\
     cd /app/backend\n\
-    echo "Running collectstatic..."\n\
     python manage.py collectstatic --noinput --clear\n\
-    echo "Running migrations..."\n\
     python manage.py migrate\n\
-    echo "Creating superuser..."\n\
     python manage.py createsuperuser --noinput || echo "Superuser already exists"\n\
-    echo "Starting Nginx..."\n\
     service nginx start\n\
-    echo "Starting Gunicorn..."\n\
     exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
     chmod +x /start.sh
 
