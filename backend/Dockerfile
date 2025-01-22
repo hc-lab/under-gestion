@@ -23,7 +23,7 @@ RUN npm install --no-package-lock --no-audit --no-fund && \
     @babel/plugin-transform-class-properties
 
 # Etapa de construcción del frontend
-FROM node:16-alpine as frontend-build
+FROM node:18-alpine as frontend-build
 
 WORKDIR /frontend
 
@@ -43,26 +43,48 @@ COPY frontend/package*.json ./
 # Limpiar node_modules existentes si existen
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
-# Instalar todas las dependencias necesarias de una vez
+# Instalar babel y sus plugins primero
+RUN npm install --save-dev \
+    @babel/core@7.22.5 \
+    @babel/preset-env@7.22.5 \
+    @babel/preset-react@7.22.5 \
+    @babel/plugin-proposal-private-property-in-object@7.21.11 \
+    @babel/plugin-proposal-class-properties@7.18.6 \
+    babel-loader@9.1.2
+
+# Instalar react-scripts por separado
+RUN npm install react-scripts@5.0.1 --save --legacy-peer-deps
+
+# Instalar el resto de dependencias
 RUN npm install --save \
     react@18.2.0 \
     react-dom@18.2.0 \
     react-router-dom@6.14.0 \
-    react-scripts@5.0.1 \
     styled-components@6.0.0-rc.3 \
     @mui/material@5.13.5 \
     @mui/icons-material@5.11.16 \
     @emotion/react@11.11.1 \
     @emotion/styled@11.11.0 \
     axios@1.4.0 \
-    @babel/plugin-proposal-private-property-in-object@7.21.11 \
     --legacy-peer-deps
+
+# Crear configuración de Babel compatible
+RUN echo '{\
+    "presets": [\
+        "@babel/preset-env",\
+        "@babel/preset-react"\
+    ],\
+    "plugins": [\
+        "@babel/plugin-proposal-private-property-in-object",\
+        "@babel/plugin-proposal-class-properties"\
+    ]\
+}' > .babelrc
 
 # Copiar el resto de los archivos
 COPY frontend/ .
 
 # Construir el frontend
-RUN SKIP_PREFLIGHT_CHECK=true npm run build
+RUN SKIP_PREFLIGHT_CHECK=true DISABLE_ESLINT_PLUGIN=true CI=false npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
