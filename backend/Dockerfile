@@ -29,7 +29,7 @@ WORKDIR /frontend
 
 # Establecer variables de entorno para producción
 ENV NODE_ENV=production \
-    NODE_OPTIONS="--max-old-space-size=512" \
+    NODE_OPTIONS="--max-old-space-size=4096" \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
     PATH="/frontend/node_modules/.bin:${PATH}"
@@ -43,24 +43,18 @@ COPY frontend/package*.json ./
 # Limpiar node_modules existentes si existen
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
-# Instalar react-scripts primero
-RUN npm install --save react-scripts@5.0.1 --legacy-peer-deps
-
-# Instalar dependencias principales
+# Instalar todas las dependencias en un solo paso para optimizar las capas
 RUN npm install --save \
     react@18.2.0 \
     react-dom@18.2.0 \
     react-router-dom@6.11.2 \
+    react-scripts@5.0.1 \
     styled-components@5.3.11 \
     @mui/material@5.13.0 \
     @mui/icons-material@5.11.16 \
     @emotion/react@11.11.0 \
     @emotion/styled@11.11.0 \
     axios@1.4.0 \
-    --legacy-peer-deps
-
-# Instalar babel y plugins como devDependencies
-RUN npm install --save-dev \
     @babel/core@7.21.8 \
     @babel/preset-env@7.21.5 \
     @babel/preset-react@7.18.6 \
@@ -72,11 +66,17 @@ RUN npm install --save-dev \
 # Copiar el resto de los archivos
 COPY frontend/ .
 
-# Construir el frontend con todas las variables necesarias
-RUN SKIP_PREFLIGHT_CHECK=true \
+# Limpiar caché y módulos no necesarios antes de construir
+RUN npm cache clean --force && \
+    rm -rf node_modules/.cache
+
+# Construir el frontend con todas las variables necesarias y más memoria
+RUN export NODE_OPTIONS="--max-old-space-size=4096" && \
+    SKIP_PREFLIGHT_CHECK=true \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
     BABEL_ENV=production \
+    GENERATE_SOURCEMAP=false \
     npm run build
 
 # Stage para compilar psycopg2 y otras dependencias
