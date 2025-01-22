@@ -44,24 +44,7 @@ COPY frontend/package*.json ./
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
 # Instalar todas las dependencias en un solo paso para optimizar las capas
-RUN npm install --save \
-    react@18.2.0 \
-    react-dom@18.2.0 \
-    react-router-dom@6.11.2 \
-    react-scripts@5.0.1 \
-    styled-components@5.3.11 \
-    @mui/material@5.13.0 \
-    @mui/icons-material@5.11.16 \
-    @emotion/react@11.11.0 \
-    @emotion/styled@11.11.0 \
-    axios@1.4.0 \
-    @babel/core@7.21.8 \
-    @babel/preset-env@7.21.5 \
-    @babel/preset-react@7.18.6 \
-    @babel/plugin-proposal-class-properties@7.18.6 \
-    @babel/plugin-proposal-private-property-in-object@7.21.11 \
-    babel-loader@9.1.2 \
-    --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 # Copiar el resto de los archivos
 COPY frontend/ .
@@ -78,6 +61,9 @@ RUN export NODE_OPTIONS="--max-old-space-size=4096" && \
     BABEL_ENV=production \
     GENERATE_SOURCEMAP=false \
     npm run build
+
+# Verificar que los archivos se construyeron correctamente
+RUN ls -la build/
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
@@ -149,8 +135,9 @@ RUN pip install --no-cache-dir packaging && \
 # Copiar el resto del backend
 COPY backend/ .
 
-# Copiar los archivos del frontend construido
+# Copiar los archivos del frontend construido y asegurarse de que existan
 COPY --from=frontend-build /frontend/build /var/www/html/
+RUN ls -la /var/www/html/ || echo "Error: No se encontraron archivos del frontend"
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
