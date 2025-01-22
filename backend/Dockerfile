@@ -48,10 +48,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app/backend
 
-
 # Copiar requirements.txt y crear directorios necesarios
 COPY backend/requirements.txt .
-RUN mkdir -p static staticfiles /run/nginx
+RUN mkdir -p static staticfiles media /var/www/html /run/nginx
 
 # Instalar nginx y dependencias mínimas
 RUN apt-get update \
@@ -71,31 +70,19 @@ RUN pip install --no-cache-dir /wheels/* \
 COPY backend/ .
 
 # Copiar los archivos del frontend construido
-COPY --from=frontend-build /frontend/build /var/www/html
+COPY --from=frontend-build /frontend/build /var/www/html/
 
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 
-
-# Establece la variable de entorno para la construcción en producción
-ARG VITE_API_URL
-ENV VITE_API_URL=${VITE_API_URL}
-
 # Verificar la estructura y permisos
-RUN chmod +x manage.py
+RUN chmod +x manage.py \
+    && python manage.py collectstatic --noinput
 
-# Crear script de inicio
-RUN echo '#!/bin/sh\n\
-    cd /app/backend\n\
-    python manage.py collectstatic --noinput --clear\n\
-    python manage.py migrate\n\
-    python manage.py createsuperuser --noinput || echo "Superuser already exists"\n\
-    service nginx start\n\
-    exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
-    chmod +x /start.sh
+# Script de inicio
+COPY backend/start.sh /start.sh
+RUN chmod +x /start.sh
 
-# Exponer puertos
-EXPOSE 80 8000
+EXPOSE 80
 
-# Comando para iniciar la aplicación
-CMD ["/start.sh"]   
+CMD ["/start.sh"]
