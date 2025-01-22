@@ -16,8 +16,16 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app').split(',')
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '.railway.app',
+    'healthcheck.railway.app',
+    'under-gestion-production.up.railway.app',
+    '*'
+]
+
+CSRF_TRUSTED_ORIGINS = ['https://*.railway.app']
 
 """
 ALLOWED_HOSTS = [
@@ -74,7 +82,6 @@ MIDDLEWARE = [
 
 # Configuración básica
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
 
 # Configuración CORS
 CORS_ALLOW_ALL_ORIGINS = False
@@ -103,7 +110,6 @@ CORS_ALLOW_HEADERS = [
 ]
 
 # Configuración de seguridad
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app').split(',')
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
@@ -251,8 +257,6 @@ SIMPLE_JWT = {
 
 # Agregar estas líneas
 CORS_ALLOW_ALL_ORIGINS = False
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,.railway.app').split(',')
-CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', 'https://*.railway.app').split(',')
 
 # Agregar la configuración de CRONJOBS
 CRONJOBS = [

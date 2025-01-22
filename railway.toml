@@ -20,7 +20,3 @@ value = "almacen.settings"
 [[deploy.variables]]
 key = "DEBUG"
 value = "False"
-
-[[deploy.variables]]
-key = "ALLOWED_HOSTS"
-value = "*"
