@@ -32,7 +32,8 @@ ENV NODE_ENV=production \
     NODE_OPTIONS="--max-old-space-size=512" \
     DISABLE_ESLINT_PLUGIN=true \
     CI=false \
-    BABEL_ENV=production
+    BABEL_ENV=production \
+    PATH="/frontend/node_modules/.bin:${PATH}"
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
@@ -52,7 +53,10 @@ RUN echo '{\
     ]\
 }' > .babelrc
 
-# Instalar dependencias específicas primero
+# Instalar react-scripts primero
+RUN npm install react-scripts@5.0.1
+
+# Instalar dependencias específicas
 RUN npm install --save-dev \
     @babel/core@7.22.20 \
     @babel/preset-env@7.22.20 \
@@ -62,11 +66,13 @@ RUN npm install --save-dev \
     babel-loader@9.1.3
 
 # Instalar el resto de las dependencias
-RUN npm install --legacy-peer-deps && \
-    npm install --save-dev react-scripts@5.0.1
+RUN npm install --legacy-peer-deps
 
-# Construir el frontend
-RUN npm run build
+# Verificar la instalación
+RUN npm list react-scripts
+
+# Construir el frontend usando la ruta completa
+RUN ./node_modules/.bin/react-scripts build
 
 # Stage para compilar psycopg2 y otras dependencias
 FROM python:3.12-slim as builder
