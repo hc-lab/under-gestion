@@ -4,25 +4,27 @@ FROM node:18-alpine as frontend-build
 WORKDIR /frontend
 
 # Establecer variables de entorno para producción
-ENV NODE_ENV=production
-ENV NODE_OPTIONS="--max-old-space-size=4096"
-ENV REACT_APP_API_URL=under-gestion-production.up.railway.app
+ENV NODE_ENV=production \
+    NODE_OPTIONS="--max-old-space-size=2048" \
+    REACT_APP_API_URL=under-gestion-production.up.railway.app
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
 
-# Copia package.json y package-lock.json
+# Copiar solo los archivos necesarios para la instalación
 COPY frontend/package*.json ./
 COPY frontend/.babelrc ./
 
-# Instalar todas las dependencias (incluyendo devDependencies)
-RUN NODE_ENV=development npm install --legacy-peer-deps
+# Limpiar caché de npm e instalar dependencias con opciones de memoria optimizadas
+RUN npm cache clean --force && \
+    npm install --legacy-peer-deps --no-audit --no-fund --prefer-offline && \
+    npm cache clean --force
 
 # Copiar el resto de los archivos del frontend
 COPY frontend/ .
 
-# Construir el frontend con variables explícitas
-RUN BABEL_ENV=production NODE_ENV=production npm run build
+# Construir el frontend
+RUN npm run build
 
 # Stage para compilar psycopg2
 FROM python:3.12-slim as builder
@@ -60,6 +62,9 @@ RUN mkdir -p /app/backend/static \
     /var/lib/nginx/proxy \
     /var/lib/nginx/scgi \
     /var/lib/nginx/uwsgi
+
+# Copiar requirements.txt
+COPY backend/requirements.txt .
 
 # Instalar nginx y dependencias mínimas
 RUN apt-get update \
