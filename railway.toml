@@ -11,6 +11,10 @@ restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [[deploy.variables]]
+key = "VITE_API_URL"
+value = "https://under-gestion-production.up.railway.app"
+
+[[deploy.variables]]
 key = "PORT"
 value = "80"
 
