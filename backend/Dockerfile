@@ -26,11 +26,26 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
     PORT=8000
 
+# Verificar la estructura y permisos
+RUN ls -la && \
+    chmod +x manage.py && \
+    python -c "import sys; print(sys.path)" && \
+    python -c "import os; print(os.getcwd())" && \
+    python -c "from almacen.wsgi import application" || echo "Failed to import WSGI application"
+
 # Crear script de inicio
 RUN echo '#!/bin/sh\n\
+cd /app\n\
+echo "Current directory: $(pwd)"\n\
+echo "Python path: $PYTHONPATH"\n\
+echo "Directory contents:"\n\
+ls -la\n\
+echo "Running collectstatic..."\n\
 python manage.py collectstatic --noinput\n\
+echo "Running migrations..."\n\
 python manage.py migrate\n\
-exec gunicorn almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000}' > /start.sh && \
+echo "Starting Gunicorn..."\n\
+exec gunicorn --chdir /app almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
     chmod +x /start.sh
 
 # Exponer el puerto
