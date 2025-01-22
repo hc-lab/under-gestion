@@ -34,17 +34,19 @@ RUN ls -la && \
 
 # Crear script de inicio
 RUN echo '#!/bin/sh\n\
-cd /app/backend\n\
-echo "Current directory: $(pwd)"\n\
-echo "Python path: $PYTHONPATH"\n\
-echo "Directory contents:"\n\
-ls -la\n\
-echo "Running collectstatic..."\n\
-python manage.py collectstatic --noinput\n\
-echo "Running migrations..."\n\
-python manage.py migrate\n\
-echo "Starting Gunicorn..."\n\
-exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
+    cd /app/backend\n\
+    echo "Current directory: $(pwd)"\n\
+    echo "Python path: $PYTHONPATH"\n\
+    echo "Directory contents:"\n\
+    ls -la\n\
+    echo "Running collectstatic..."\n\
+    python manage.py collectstatic --noinput\n\
+    echo "Running migrations..."\n\
+    python manage.py migrate\n\
+    echo "Creating superuser..."\n\
+    python manage.py createsuperuser --noinput || echo "Superuser already exists"\n\
+    echo "Starting Gunicorn..."\n\
+    exec gunicorn --chdir /app/backend almacen.wsgi:application --log-file - --bind 0.0.0.0:${PORT:-8000} --preload' > /start.sh && \
     chmod +x /start.sh
 
 # Exponer el puerto

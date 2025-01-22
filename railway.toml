@@ -20,3 +20,15 @@ value = "almacen.settings"
 [[deploy.variables]]
 key = "DEBUG"
 value = "False"
+
+[[deploy.variables]]
+key = "DJANGO_SUPERUSER_USERNAME"
+value = "admin"
+
+[[deploy.variables]]
+key = "DJANGO_SUPERUSER_EMAIL"
+value = "admin@example.com"
+
+[[deploy.variables]]
+key = "DJANGO_SUPERUSER_PASSWORD"
+value = "admin12345"
