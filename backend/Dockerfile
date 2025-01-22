@@ -43,22 +43,26 @@ COPY frontend/package*.json ./
 # Limpiar node_modules existentes si existen
 RUN if [ -d "node_modules" ]; then rm -rf node_modules; fi
 
-# Instalar todas las dependencias necesarias de una vez
-RUN npm install --save \
-    react \
-    react-dom \
-    react-router-dom@5.3.0 \
-    react-scripts@4.0.3 \
-    @mui/material@5.0.0 \
-    @mui/icons-material@5.0.0 \
-    @emotion/react@11.4.1 \
-    @emotion/styled@11.3.0 \
+# Instalar dependencias de desarrollo primero
+RUN npm install --save-dev \
     @babel/core@7.12.3 \
     @babel/preset-env@7.12.1 \
     @babel/preset-react@7.12.1 \
     @babel/plugin-proposal-private-property-in-object@7.12.1 \
     @babel/plugin-proposal-class-properties@7.12.1 \
-    babel-loader@8.1.0 \
+    babel-loader@8.1.0
+
+# Instalar dependencias de producción
+RUN npm install --save \
+    react@17.0.2 \
+    react-dom@17.0.2 \
+    react-router-dom@5.3.0 \
+    react-scripts@4.0.3 \
+    styled-components@5.3.0 \
+    @mui/material@5.0.0 \
+    @mui/icons-material@5.0.0 \
+    @emotion/react@11.4.1 \
+    @emotion/styled@11.3.0 \
     axios@0.21.1 \
     --legacy-peer-deps
 
