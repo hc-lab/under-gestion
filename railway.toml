@@ -4,7 +4,7 @@ dockerfilePath = "backend/Dockerfile"
 buildContext = "."
 
 [deploy]
-healthcheckPath = "/admin/"
+healthcheckPath = "/"
 healthcheckTimeout = 100
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
@@ -23,4 +23,4 @@ value = "False"
 
 [[deploy.variables]]
 key = "ALLOWED_HOSTS"
-value = ".railway.app,healthcheck.railway.app"
+value = "*"
