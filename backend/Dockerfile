@@ -18,13 +18,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar el resto del código
 COPY . .
 
-# Exponer el puerto (Railway lo sobreescribirá con $PORT)
+# Exponer el puerto (Railway lo sobreescribirá con PORT)
 EXPOSE 8000
 
 # Configurar variables de entorno
 ENV PYTHONUNBUFFERED=1
 ENV DJANGO_SETTINGS_MODULE=almacen.settings
 ENV PYTHONPATH=/app/backend
+ENV PORT=8000
+
+# Crear script de inicio
+RUN echo '#!/bin/bash\n\
+gunicorn --chdir /app/backend almacen.wsgi:application --bind 0.0.0.0:${PORT}' > /start.sh && \
+    chmod +x /start.sh
 
 # Comando para iniciar la aplicación
-CMD ["gunicorn", "--chdir", "/app/backend", "almacen.wsgi:application", "--bind", "0.0.0.0:$PORT"]
+CMD ["/start.sh"]
