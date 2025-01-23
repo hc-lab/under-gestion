@@ -6,6 +6,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # Serve frontend's index.html for all other routes
-    re_path(r'^.*', TemplateView.as_view(template_name='frontend/index.html')),
+    # Add your API URLs here
+    
+    # This should be the last URL pattern
+    re_path(r'^.*', TemplateView.as_view(template_name='index.html')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

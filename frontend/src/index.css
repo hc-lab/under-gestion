@@ -1,33 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-    body {
-        @apply bg-gray-50;
-    }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@layer components {
-    .page-container {
-        @apply container mx-auto px-4 py-6 mt-16;
-    }
-
-    .card {
-        @apply bg-white rounded-lg shadow-sm p-6;
-    }
-
-    .input-field {
-        @apply w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 border-gray-300;
-    }
-
-    .btn-primary {
-        @apply px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors;
-    }
-
-    .nav-link {
-        @apply px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors;
-    }
+.App {
+  text-align: center;
 }
 
-/* Tus otros estilos personalizados */
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
