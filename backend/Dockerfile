@@ -145,13 +145,11 @@ RUN pip install --no-cache-dir packaging && \
 # Copiar el resto del backend
 COPY backend/ .
 
-# Copiar los archivos del frontend construido
+# Copiar los archivos del frontend construido y configurar permisos
 COPY frontend/build/ /var/www/html/
-RUN ls -la /var/www/html/ && \
-    ls -la /var/www/html/static/js/ && \
-    ls -la /var/www/html/static/css/ && \
-    chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html && \
+    mkdir -p /var/www/html/static/js /var/www/html/static/css
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
