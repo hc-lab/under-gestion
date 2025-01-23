@@ -25,12 +25,38 @@ RUN rm -rf /usr/share/nginx/html/* && \
 # Copiar los archivos construidos
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copiar la configuración de nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+# Crear template de nginx
+RUN echo 'events { \n\
+    worker_connections 1024; \n\
+} \n\
+\n\
+http { \n\
+    include /etc/nginx/mime.types; \n\
+    default_type application/octet-stream; \n\
+    sendfile on; \n\
+\n\
+    server { \n\
+        listen $PORT; \n\
+        root /usr/share/nginx/html; \n\
+        index index.html; \n\
+\n\
+        location / { \n\
+            try_files $uri $uri/ /index.html; \n\
+        } \n\
+\n\
+        location /static/ { \n\
+            expires 1y; \n\
+            add_header Cache-Control "public"; \n\
+        } \n\
+    } \n\
+}' > /etc/nginx/nginx.template
 
 # Script de inicio
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+RUN echo '#!/bin/sh \n\
+export PORT="${PORT:-8080}" \n\
+envsubst "\$PORT" < /etc/nginx/nginx.template > /etc/nginx/nginx.conf \n\
+nginx -g "daemon off;"' > /docker-entrypoint.sh && \
+    chmod +x /docker-entrypoint.sh
 
 # Configurar permisos
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
@@ -45,4 +71,4 @@ USER nginx
 
 EXPOSE 8080
 
-CMD ["nginx"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
