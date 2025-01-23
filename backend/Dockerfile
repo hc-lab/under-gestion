@@ -12,11 +12,14 @@ RUN apt-get update && \
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create directory for static files and frontend
+RUN mkdir -p staticfiles frontend/build
+
+# Copy frontend build files
+COPY frontend/build/ frontend/build/
+
 # Copy backend files
 COPY backend/ .
-
-# Create directory for static files
-RUN mkdir -p staticfiles
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
