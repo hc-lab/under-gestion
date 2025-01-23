@@ -147,6 +147,11 @@ COPY backend/ .
 
 # Copiar los archivos del frontend construido
 COPY frontend/build/ /var/www/html/
+RUN ls -la /var/www/html/ && \
+    ls -la /var/www/html/static/js/ && \
+    ls -la /var/www/html/static/css/ && \
+    chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
