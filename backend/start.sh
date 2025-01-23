@@ -4,8 +4,12 @@ set -e
 echo "Iniciando servicios..."
 
 # Obtener el puerto del entorno o usar 8000 por defecto
-PORT="${PORT:-8000}"
-echo "Puerto configurado: $PORT"
+export NGINX_PORT="${PORT:-8000}"
+echo "Puerto configurado: $NGINX_PORT"
+
+# Calcular el puerto para Gunicorn (usar un puerto diferente al de nginx)
+export GUNICORN_PORT=$((NGINX_PORT + 1))
+echo "Puerto de Gunicorn: $GUNICORN_PORT"
 
 # Cambiar al directorio del backend
 cd /app/backend
@@ -40,8 +44,9 @@ chmod -R 755 /var/www/html /var/lib/nginx
 rm -f /run/nginx.pid
 rm -f /run/nginx/nginx.pid
 
-# Modificar la configuración de nginx para usar el puerto correcto
-sed -i "s/listen 80/listen ${PORT}/" /etc/nginx/nginx.conf
+# Reemplazar variables en la configuración de nginx
+envsubst '$NGINX_PORT $GUNICORN_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
+mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
 
 # Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."
@@ -60,14 +65,6 @@ if ! ps aux | grep -q '[n]ginx: master process'; then
     cat /var/log/nginx/error.log
     exit 1
 fi
-
-# Calcular el puerto para Gunicorn (usar un puerto diferente al de nginx)
-GUNICORN_PORT=$((PORT + 1))
-echo "Puerto de Gunicorn: $GUNICORN_PORT"
-
-# Modificar la configuración de nginx para el upstream
-sed -i "s/127.0.0.1:8000/127.0.0.1:${GUNICORN_PORT}/" /etc/nginx/nginx.conf
-nginx -s reload
 
 echo "Iniciando Gunicorn..."
 # Iniciar Gunicorn con el nuevo puerto
