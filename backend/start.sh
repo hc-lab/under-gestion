@@ -44,9 +44,26 @@ chmod -R 755 /var/www/html /var/lib/nginx
 rm -f /run/nginx.pid
 rm -f /run/nginx/nginx.pid
 
+# Función para reemplazar variables en la configuración
+replace_vars() {
+    local input_file="$1"
+    local output_file="$2"
+    
+    if command -v envsubst >/dev/null 2>&1; then
+        echo "Usando envsubst para reemplazar variables..."
+        envsubst '$NGINX_PORT $GUNICORN_PORT' < "$input_file" > "$output_file"
+    else
+        echo "envsubst no encontrado, usando sed..."
+        cp "$input_file" "$output_file"
+        sed -i "s/\$NGINX_PORT/$NGINX_PORT/g" "$output_file"
+        sed -i "s/\$GUNICORN_PORT/$GUNICORN_PORT/g" "$output_file"
+    fi
+}
+
 # Reemplazar variables en la configuración de nginx
-envsubst '$NGINX_PORT $GUNICORN_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
-mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
+echo "Configurando nginx..."
+replace_vars "/etc/nginx/nginx.conf" "/etc/nginx/nginx.conf.tmp"
+mv "/etc/nginx/nginx.conf.tmp" "/etc/nginx/nginx.conf"
 
 # Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."

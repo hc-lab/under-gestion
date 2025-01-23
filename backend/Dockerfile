@@ -129,6 +129,7 @@ RUN apt-get update \
     nginx \
     libpq5 \
     procps \
+    gettext-base \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
