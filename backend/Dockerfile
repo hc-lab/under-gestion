@@ -145,9 +145,8 @@ RUN pip install --no-cache-dir packaging && \
 # Copiar el resto del backend
 COPY backend/ .
 
-# Copiar los archivos del frontend construido y asegurarse de que existan
-COPY --from=frontend-build /frontend/build /var/www/html/
-RUN ls -la /var/www/html/ || echo "Error: No se encontraron archivos del frontend"
+# Copiar los archivos del frontend construido
+COPY frontend/build/ /var/www/html/
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
