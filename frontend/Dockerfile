@@ -6,17 +6,18 @@ WORKDIR /app
 # Debug: Mostrar directorio actual
 RUN pwd && ls -la
 
-# Copiar package.json y package-lock.json (desde el directorio correcto)
+# Copiar solo los archivos necesarios primero
 COPY package*.json ./
-
-# Debug: Verificar package.json
-RUN ls -la
+COPY webpack.config.js ./
+COPY tailwind.config.js ./
+COPY .babelrc ./
 
 # Instalar dependencias
 RUN npm install
 
-# Copiar todos los archivos del frontend (desde el directorio correcto)
-COPY . .
+# Copiar el código fuente
+COPY src/ ./src/
+COPY public/ ./public/
 
 # Debug: Mostrar archivos copiados
 RUN ls -la
@@ -28,14 +29,17 @@ ENV VITE_API_URL=${VITE_API_URL}
 # Construir la aplicación
 RUN npm run build
 
-# Debug: Mostrar contenido del dist
-RUN ls -la dist/
+# Debug: Mostrar contenido del build
+RUN ls -la build/
 
 # Production stage
 FROM nginx:alpine
 
+# Remover el contenido por defecto de nginx
+RUN rm -rf /usr/share/nginx/html/*
+
 # Copiar los archivos construidos
-COPY --from=build /app/dist /usr/share/nginx/html/
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Debug: Verificar contenido de nginx html
 RUN ls -la /usr/share/nginx/html/
