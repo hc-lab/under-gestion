@@ -24,9 +24,7 @@ RUN echo "=== Contenido del directorio build ===" && \
     echo -e "\n=== Contenido del directorio build/static/js ===" && \
     ls -la build/static/js/ && \
     echo -e "\n=== Contenido del directorio build/static/css ===" && \
-    ls -la build/static/css/ && \
-    echo -e "\n=== Contenido de index.html ===" && \
-    cat build/index.html
+    ls -la build/static/css/
 
 # Production stage
 FROM nginx:alpine
@@ -34,32 +32,22 @@ FROM nginx:alpine
 # Install required packages
 RUN apk add --no-cache bash gettext
 
-# Remove default nginx static assets
-RUN rm -rf /usr/share/nginx/html/*
+# Remove default nginx static assets and create directory
+RUN rm -rf /usr/share/nginx/html/* && \
+    mkdir -p /usr/share/nginx/html
 
-# Create necessary directories with correct permissions
-RUN mkdir -p /app/frontend/build/static/js \
-    && mkdir -p /app/frontend/build/static/css \
-    && mkdir -p /app/frontend/build/static/media \
-    && chown -R nginx:nginx /app
-
-# Copy the entire build directory with explicit paths
-COPY --from=build /app/build/index.html /app/frontend/build/
-COPY --from=build /app/build/static/js/ /app/frontend/build/static/js/
-COPY --from=build /app/build/static/css/ /app/frontend/build/static/css/
-COPY --from=build /app/build/static/media/ /app/frontend/build/static/media/
+# Copy static files from builder
+COPY --from=build /app/build /usr/share/nginx/html
 
 # Verify the copied files
 RUN echo "=== Verificando archivos copiados ===" && \
-    ls -la /app/frontend/build/ && \
+    ls -la /usr/share/nginx/html/ && \
     echo -e "\n=== Verificando archivos estáticos ===" && \
-    ls -la /app/frontend/build/static/ && \
+    ls -la /usr/share/nginx/html/static/ && \
     echo -e "\n=== Verificando archivos JS ===" && \
-    ls -la /app/frontend/build/static/js/ && \
+    ls -la /usr/share/nginx/html/static/js/ && \
     echo -e "\n=== Verificando archivos CSS ===" && \
-    ls -la /app/frontend/build/static/css/ && \
-    echo -e "\n=== Verificando permisos ===" && \
-    ls -la /app/frontend/
+    ls -la /usr/share/nginx/html/static/css/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -69,8 +57,11 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Set permissions
-RUN chown -R nginx:nginx /app/frontend/build \
-    && chmod -R 755 /app/frontend/build
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
+# Switch to non-root user
+USER nginx
 
 # Set entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]

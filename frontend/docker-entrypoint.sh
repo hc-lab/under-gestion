@@ -11,8 +11,6 @@ check_file() {
     if [ -f "$file" ]; then
         echo " Archivo encontrado: $file"
         ls -l "$file"
-        echo "Contenido del directorio $(dirname "$file"):"
-        ls -la "$(dirname "$file")"
     else
         echo " ERROR: Archivo no encontrado: $file"
         echo "Contenido del directorio padre:"
@@ -36,9 +34,9 @@ ls -la /app/frontend/build/static/css/
 
 # Verificar archivos críticos
 echo -e "\n=== Verificando archivos críticos ==="
-check_file "/app/frontend/build/index.html"
-check_file "/app/frontend/build/static/js/main.e5ffc45d.js"
-check_file "/app/frontend/build/static/css/main.a1768e97.css"
+check_file "/usr/share/nginx/html/index.html"
+check_file "/usr/share/nginx/html/static/js/main.e5ffc45d.js"
+check_file "/usr/share/nginx/html/static/css/main.a1768e97.css"
 
 # Asegurar que los directorios necesarios existan y tengan los permisos correctos
 echo -e "\n=== Configurando permisos ==="
@@ -61,7 +59,7 @@ chown -R nginx:nginx /run/nginx
 
 # Reemplazar variables en la configuración de nginx
 echo -e "\n=== Configurando nginx ==="
-envsubst '$NGINX_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
+envsubst '$NGINX_PORT $GUNICORN_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
 mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
 
 # Verificar la configuración de nginx
