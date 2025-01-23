@@ -99,84 +99,41 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels -r requirements.txt &
     pip wheel --no-cache-dir --wheel-dir /wheels gunicorn whitenoise packaging
 
 # Stage final
-FROM python:3.12-slim
-
-# Establecer variables de entorno
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    DJANGO_SETTINGS_MODULE=almacen.settings \
-    PYTHONPATH=/app/backend \
-    PORT=8000
+FROM python:3.11-slim
 
 WORKDIR /app/backend
 
-# Crear directorios necesarios
-RUN mkdir -p /app/backend/static \
-    /app/backend/media \
-    /app/backend/staticfiles \
-    /app/frontend/build \
-    /run/nginx \
-    /var/log/nginx \
-    /var/lib/nginx/body \
-    /var/lib/nginx/fastcgi \
-    /var/lib/nginx/proxy \
-    /var/lib/nginx/scgi \
-    /var/lib/nginx/uwsgi
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instalar nginx y dependencias mínimas
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    nginx \
-    libpq5 \
-    procps \
-    gettext-base \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Copiar requirements.txt y wheels
+# Install Python dependencies
 COPY backend/requirements.txt .
-COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Instalar dependencias
-RUN pip install --no-cache-dir packaging && \
-    pip install --no-cache-dir --no-index --find-links=/wheels -r requirements.txt && \
-    pip install --no-cache-dir --no-index --find-links=/wheels gunicorn whitenoise && \
-    rm -rf /wheels /root/.cache/pip/*
-
-# Copiar el resto del backend
+# Copy backend files
 COPY backend/ .
 
-# Copiar los archivos del frontend y verificar
-COPY frontend/build/ /app/frontend/build/
-RUN echo "Verificando archivos del frontend..." && \
-    ls -la /app/frontend/build/ && \
-    ls -la /app/frontend/build/static/ && \
-    echo "Contenido de index.html:" && \
-    cat /app/frontend/build/index.html && \
-    # Asegurar que los archivos tienen los permisos correctos
-    chown -R www-data:www-data /app/frontend/build && \
-    chmod -R 755 /app/frontend/build
+# Create directory for static files
+RUN mkdir -p staticfiles
 
-# Eliminar la configuración por defecto de nginx
-RUN rm -f /etc/nginx/sites-enabled/default
+# Copy frontend build files
+COPY --from=frontend-build /frontend/build/ staticfiles/frontend/
 
-# Copiar la configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/nginx.conf
+# Collect static files
+RUN python manage.py collectstatic --noinput
 
-# Configurar permisos y recolectar archivos estáticos
-RUN chmod +x manage.py \
-    && python manage.py collectstatic --noinput \
-    && chown -R www-data:www-data \
-        /app \
-        /run/nginx \
-        /var/log/nginx \
-        /var/lib/nginx \
-    && chmod -R 755 /app
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PORT=8080
+ENV DJANGO_SETTINGS_MODULE=almacen.settings
 
-# Script de inicio
+# Copy and set permissions for start script
 COPY backend/start.sh /start.sh
 RUN chmod +x /start.sh
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["/start.sh"]
