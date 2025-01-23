@@ -1,6 +1,5 @@
-# proyecto_root/frontend/Dockerfile
 # Build stage
-FROM node:18 as build
+FROM node:18-alpine as build
 
 WORKDIR /app
 
@@ -36,24 +35,16 @@ COPY frontend/nginx.conf /etc/nginx/nginx.conf
 COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Crear directorios necesarios y establecer permisos
+# Crear directorios necesarios
 RUN mkdir -p /tmp/nginx && \
-    mkdir -p /var/cache/nginx && \
-    mkdir -p /var/log/nginx && \
-    chown -R nobody:nobody /tmp/nginx && \
-    chown -R nobody:nobody /var/cache/nginx && \
-    chown -R nobody:nobody /var/log/nginx && \
-    chown -R nobody:nobody /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html && \
-    chmod -R 755 /tmp/nginx && \
-    chmod -R 755 /var/cache/nginx && \
-    chmod -R 755 /var/log/nginx
+    chmod -R 777 /tmp/nginx && \
+    chmod -R 777 /var/log/nginx && \
+    chmod -R 777 /var/cache/nginx && \
+    chmod -R 777 /usr/share/nginx/html
 
 # Variables de entorno por defecto
 ENV PORT=80
 
 EXPOSE ${PORT}
-
-USER nobody
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
