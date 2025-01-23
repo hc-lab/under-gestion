@@ -114,7 +114,6 @@ WORKDIR /app/backend
 RUN mkdir -p /app/backend/static \
     /app/backend/media \
     /app/backend/staticfiles \
-    /var/www/html \
     /run/nginx \
     /var/log/nginx \
     /var/lib/nginx/body \
@@ -145,15 +144,8 @@ RUN pip install --no-cache-dir packaging && \
 # Copiar el resto del backend
 COPY backend/ .
 
-# Copiar los archivos del frontend construido y configurar permisos
-COPY frontend/build/ /var/www/html/
-
-# Verificar y configurar archivos estáticos
-RUN echo "Verificando archivos estáticos..." && \
-    ls -la /var/www/html/ && \
-    ls -la /var/www/html/static/ && \
-    chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+# Copiar los archivos del frontend
+COPY frontend/build /app/backend/frontend/build
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
@@ -161,17 +153,15 @@ RUN rm -f /etc/nginx/sites-enabled/default
 # Copiar la configuración de nginx
 COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
-# Configurar permisos
+# Configurar permisos y recolectar archivos estáticos
 RUN chmod +x manage.py \
     && python manage.py collectstatic --noinput \
     && chown -R www-data:www-data \
-        /var/www/html \
-        /app/backend/static \
-        /app/backend/media \
+        /app/backend \
         /run/nginx \
         /var/log/nginx \
         /var/lib/nginx \
-    && chmod -R 755 /var/www/html /var/lib/nginx
+    && chmod -R 755 /app/backend
 
 # Script de inicio
 COPY backend/start.sh /start.sh
