@@ -13,16 +13,19 @@ FROM nginx:alpine
 # Remove default nginx files
 RUN rm -rf /usr/share/nginx/html/* && rm -rf /etc/nginx/conf.d/default.conf
 
+# Install envsubst
+RUN apk add --no-cache gettext
+
 # Copy build files
 COPY --from=build /app/build /usr/share/nginx/html/
 
 # Copy nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY nginx.conf /etc/nginx/nginx.conf.template
 
 # Verify files were copied correctly
 RUN ls -la /usr/share/nginx/html/ && \
     echo "Content of index.html:" && \
     cat /usr/share/nginx/html/index.html
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Script to start nginx with the correct port
+CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"]
