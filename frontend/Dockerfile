@@ -27,5 +27,8 @@ RUN ls -la /usr/share/nginx/html/ && \
     echo "Content of index.html:" && \
     cat /usr/share/nginx/html/index.html
 
+# Set default port
+ENV PORT=80
+
 # Script to start nginx with the correct port
-CMD ["/bin/sh", "-c", "envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"]
+CMD ["/bin/sh", "-c", "envsubst '$PORT' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"]
