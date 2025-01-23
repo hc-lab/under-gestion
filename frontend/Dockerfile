@@ -1,42 +1,53 @@
 # Build stage
 FROM node:18-alpine as build
 
+# Set working directory
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
+# Copy package files
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Install dependencies
+RUN npm ci
 
-# Copiar el resto de los archivos
+# Copy source files
 COPY . .
 
-# Construir la aplicación
+# Build the app
 RUN npm run build
+
+# Show the contents of the build directory
+RUN echo "Contenido del directorio build:" && \
+    ls -la build/ && \
+    echo "Contenido del directorio build/static:" && \
+    ls -la build/static/ && \
+    echo "Contenido de index.html:" && \
+    cat build/index.html
 
 # Production stage
 FROM nginx:alpine
 
-# Copiar los archivos construidos
-COPY --from=build /app/build /usr/share/nginx/html
+# Install required packages
+RUN apk add --no-cache bash gettext
 
-# Copiar script de entrada
+# Remove default nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy static files from builder
+COPY --from=build /app/build /app/frontend/build
+
+# Verify the copied files
+RUN echo "Verificando archivos copiados:" && \
+    ls -la /app/frontend/build/ && \
+    echo "Verificando archivos estáticos:" && \
+    ls -la /app/frontend/build/static/
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Copy entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Configurar permisos
-RUN chmod +x /docker-entrypoint.sh && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html && \
-    # Asegurar que nginx puede escribir en los directorios necesarios
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid
-
-USER nginx
-
-EXPOSE 8080
-
+# Set entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]

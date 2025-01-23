@@ -1,82 +1,58 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
-# Esperar 5 segundos para asegurarnos de que cualquier otra configuración se haya completado
-sleep 5
+# Obtener el puerto del entorno o usar 8080 por defecto
+export NGINX_PORT="${PORT:-8080}"
+echo "Puerto configurado: $NGINX_PORT"
 
-# Configurar el puerto
-PORT=${PORT:-8080}
-echo "Configurando nginx para usar puerto: $PORT"
+# Verificar que los archivos del frontend existen
+echo "Verificando archivos del frontend..."
+if [ ! -f "/app/frontend/build/index.html" ]; then
+    echo "Error: No se encuentra /app/frontend/build/index.html"
+    ls -la /app/frontend/build/
+    exit 1
+fi
 
-# Crear configuración de nginx
-cat > /etc/nginx/nginx.conf << EOF
-events {
-    worker_connections 1024;
-}
+echo "Verificando archivos estáticos..."
+if [ ! -d "/app/frontend/build/static" ]; then
+    echo "Error: No se encuentra el directorio /app/frontend/build/static"
+    exit 1
+fi
 
-http {
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
-    sendfile on;
-    keepalive_timeout 65;
-    gzip on;
-    client_max_body_size 100M;
+ls -la /app/frontend/build/static/
 
-    upstream backend {
-        server 127.0.0.1:8000;
-    }
+# Asegurar que los directorios necesarios existan y tengan los permisos correctos
+echo "Configurando permisos..."
+mkdir -p /run/nginx
+mkdir -p /var/log/nginx
+mkdir -p /var/lib/nginx/body
+mkdir -p /var/lib/nginx/fastcgi
+mkdir -p /var/lib/nginx/proxy
+mkdir -p /var/lib/nginx/scgi
+mkdir -p /var/lib/nginx/uwsgi
 
-    server {
-        listen $PORT;
-        server_name _;
-        root /app/frontend/build;
-        index index.html;
+# Configurar permisos
+chown -R nginx:nginx /app/frontend/build
+chmod -R 755 /app/frontend/build
+chown -R nginx:nginx /var/cache/nginx
+chown -R nginx:nginx /var/log/nginx
+chown -R nginx:nginx /etc/nginx
+chown -R nginx:nginx /var/lib/nginx
+chown -R nginx:nginx /run/nginx
 
-        # Frontend routes
-        location / {
-            try_files \$uri \$uri/ /index.html;
-            add_header Cache-Control "no-cache";
-        }
+# Reemplazar variables en la configuración de nginx
+echo "Configurando nginx..."
+envsubst '$NGINX_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
+mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
 
-        # Backend API routes
-        location /api/ {
-            proxy_pass http://backend;
-            proxy_set_header Host \$host;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-        }
-
-        # Django admin
-        location /admin/ {
-            proxy_pass http://backend;
-            proxy_set_header Host \$host;
-            proxy_set_header X-Real-IP \$remote_addr;
-            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto \$scheme;
-        }
-
-        # Django static files
-        location /static/ {
-            alias /app/backend/staticfiles/;
-            expires 1y;
-            add_header Cache-Control "public";
-        }
-
-        # Django media files
-        location /media/ {
-            alias /app/backend/media/;
-            expires 1y;
-            add_header Cache-Control "public";
-        }
-    }
-}
-EOF
-
-# Verificar la configuración
+# Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."
-nginx -t
+nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
+
+# Mostrar la configuración final
+echo "Configuración final de nginx:"
+cat /etc/nginx/nginx.conf
 
 # Iniciar nginx
 echo "Iniciando nginx..."
-exec nginx -g "daemon off;"
+nginx -g "daemon off;"
