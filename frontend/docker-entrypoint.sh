@@ -5,24 +5,43 @@ set -e
 export NGINX_PORT="${PORT:-8080}"
 echo "Puerto configurado: $NGINX_PORT"
 
-# Verificar que los archivos del frontend existen
-echo "Verificando archivos del frontend..."
-if [ ! -f "/app/frontend/build/index.html" ]; then
-    echo "Error: No se encuentra /app/frontend/build/index.html"
-    ls -la /app/frontend/build/
-    exit 1
-fi
+# Función para verificar archivos
+check_file() {
+    local file="$1"
+    if [ -f "$file" ]; then
+        echo " Archivo encontrado: $file"
+        ls -l "$file"
+        echo "Contenido del directorio $(dirname "$file"):"
+        ls -la "$(dirname "$file")"
+    else
+        echo " ERROR: Archivo no encontrado: $file"
+        echo "Contenido del directorio padre:"
+        ls -la "$(dirname "$file")"
+        return 1
+    fi
+}
 
-echo "Verificando archivos estáticos..."
-if [ ! -d "/app/frontend/build/static" ]; then
-    echo "Error: No se encuentra el directorio /app/frontend/build/static"
-    exit 1
-fi
-
+# Verificar estructura de archivos
+echo "=== Verificando estructura de archivos ==="
+echo "Contenido de /app/frontend:"
+ls -la /app/frontend/
+echo -e "\nContenido de /app/frontend/build:"
+ls -la /app/frontend/build/
+echo -e "\nContenido de /app/frontend/build/static:"
 ls -la /app/frontend/build/static/
+echo -e "\nContenido de /app/frontend/build/static/js:"
+ls -la /app/frontend/build/static/js/
+echo -e "\nContenido de /app/frontend/build/static/css:"
+ls -la /app/frontend/build/static/css/
+
+# Verificar archivos críticos
+echo -e "\n=== Verificando archivos críticos ==="
+check_file "/app/frontend/build/index.html"
+check_file "/app/frontend/build/static/js/main.e5ffc45d.js"
+check_file "/app/frontend/build/static/css/main.a1768e97.css"
 
 # Asegurar que los directorios necesarios existan y tengan los permisos correctos
-echo "Configurando permisos..."
+echo -e "\n=== Configurando permisos ==="
 mkdir -p /run/nginx
 mkdir -p /var/log/nginx
 mkdir -p /var/lib/nginx/body
@@ -41,18 +60,18 @@ chown -R nginx:nginx /var/lib/nginx
 chown -R nginx:nginx /run/nginx
 
 # Reemplazar variables en la configuración de nginx
-echo "Configurando nginx..."
+echo -e "\n=== Configurando nginx ==="
 envsubst '$NGINX_PORT' < /etc/nginx/nginx.conf > /etc/nginx/nginx.conf.tmp
 mv /etc/nginx/nginx.conf.tmp /etc/nginx/nginx.conf
 
 # Verificar la configuración de nginx
-echo "Verificando configuración de nginx..."
+echo -e "\n=== Verificando configuración de nginx ==="
 nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
 
 # Mostrar la configuración final
-echo "Configuración final de nginx:"
+echo -e "\n=== Configuración final de nginx ==="
 cat /etc/nginx/nginx.conf
 
 # Iniciar nginx
-echo "Iniciando nginx..."
+echo -e "\n=== Iniciando nginx ==="
 nginx -g "daemon off;"

@@ -17,15 +17,15 @@ COPY . .
 RUN npm run build
 
 # Show the contents of the build directory
-RUN echo "Contenido del directorio build:" && \
+RUN echo "=== Contenido del directorio build ===" && \
     ls -la build/ && \
-    echo "\nContenido del directorio build/static:" && \
+    echo -e "\n=== Contenido del directorio build/static ===" && \
     ls -la build/static/ && \
-    echo "\nContenido del directorio build/static/js:" && \
+    echo -e "\n=== Contenido del directorio build/static/js ===" && \
     ls -la build/static/js/ && \
-    echo "\nContenido del directorio build/static/css:" && \
+    echo -e "\n=== Contenido del directorio build/static/css ===" && \
     ls -la build/static/css/ && \
-    echo "\nContenido de index.html:" && \
+    echo -e "\n=== Contenido de index.html ===" && \
     cat build/index.html
 
 # Production stage
@@ -37,18 +37,29 @@ RUN apk add --no-cache bash gettext
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy the entire build directory
-COPY --from=build /app/build /app/frontend/build
+# Create necessary directories with correct permissions
+RUN mkdir -p /app/frontend/build/static/js \
+    && mkdir -p /app/frontend/build/static/css \
+    && mkdir -p /app/frontend/build/static/media \
+    && chown -R nginx:nginx /app
+
+# Copy the entire build directory with explicit paths
+COPY --from=build /app/build/index.html /app/frontend/build/
+COPY --from=build /app/build/static/js/ /app/frontend/build/static/js/
+COPY --from=build /app/build/static/css/ /app/frontend/build/static/css/
+COPY --from=build /app/build/static/media/ /app/frontend/build/static/media/
 
 # Verify the copied files
-RUN echo "Verificando archivos copiados:" && \
+RUN echo "=== Verificando archivos copiados ===" && \
     ls -la /app/frontend/build/ && \
-    echo "\nVerificando archivos estáticos:" && \
+    echo -e "\n=== Verificando archivos estáticos ===" && \
     ls -la /app/frontend/build/static/ && \
-    echo "\nVerificando archivos JS:" && \
+    echo -e "\n=== Verificando archivos JS ===" && \
     ls -la /app/frontend/build/static/js/ && \
-    echo "\nVerificando archivos CSS:" && \
-    ls -la /app/frontend/build/static/css/
+    echo -e "\n=== Verificando archivos CSS ===" && \
+    ls -la /app/frontend/build/static/css/ && \
+    echo -e "\n=== Verificando permisos ===" && \
+    ls -la /app/frontend/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
