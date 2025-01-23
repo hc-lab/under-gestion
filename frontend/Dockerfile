@@ -21,17 +21,22 @@ FROM nginx:alpine
 # Copiar los archivos construidos
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Copiar archivos de configuración
-COPY nginx.conf.template /app/frontend/nginx.conf.template
-COPY start.sh /app/frontend/start.sh
+# Copiar script de entrada
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 # Configurar permisos
-RUN chmod +x /app/frontend/start.sh && \
+RUN chmod +x /docker-entrypoint.sh && \
     chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+    chmod -R 755 /usr/share/nginx/html && \
+    # Asegurar que nginx puede escribir en los directorios necesarios
+    chown -R nginx:nginx /var/cache/nginx && \
+    chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /etc/nginx && \
+    touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid
 
 USER nginx
 
 EXPOSE 8080
 
-CMD ["/app/frontend/start.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

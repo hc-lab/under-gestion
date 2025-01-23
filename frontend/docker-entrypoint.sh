@@ -1,3 +1,15 @@
+#!/bin/sh
+set -e
+
+# Esperar 5 segundos para asegurarnos de que cualquier otra configuración se haya completado
+sleep 5
+
+# Configurar el puerto
+PORT=${PORT:-8080}
+echo "Configurando nginx para usar puerto: $PORT"
+
+# Crear configuración de nginx
+cat > /etc/nginx/nginx.conf << EOF
 events {
     worker_connections 1024;
 }
@@ -15,33 +27,33 @@ http {
     }
 
     server {
-        listen NGINX_PORT;
+        listen $PORT;
         server_name _;
         root /app/frontend/build;
         index index.html;
 
         # Frontend routes
         location / {
-            try_files $uri $uri/ /index.html;
+            try_files \$uri \$uri/ /index.html;
             add_header Cache-Control "no-cache";
         }
 
         # Backend API routes
         location /api/ {
             proxy_pass http://backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
         }
 
         # Django admin
         location /admin/ {
             proxy_pass http://backend;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
         }
 
         # Django static files
@@ -59,3 +71,12 @@ http {
         }
     }
 }
+EOF
+
+# Verificar la configuración
+echo "Verificando configuración de nginx..."
+nginx -t
+
+# Iniciar nginx
+echo "Iniciando nginx..."
+exec nginx -g "daemon off;"
