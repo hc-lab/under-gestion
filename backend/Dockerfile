@@ -114,6 +114,7 @@ WORKDIR /app/backend
 RUN mkdir -p /app/backend/static \
     /app/backend/media \
     /app/backend/staticfiles \
+    /app/frontend/build \
     /run/nginx \
     /var/log/nginx \
     /var/lib/nginx/body \
@@ -144,8 +145,11 @@ RUN pip install --no-cache-dir packaging && \
 # Copiar el resto del backend
 COPY backend/ .
 
-# Copiar los archivos del frontend
-COPY frontend/build /app/backend/frontend/build
+# Copiar los archivos del frontend y verificar
+COPY frontend/build/ /app/frontend/build/
+RUN echo "Verificando archivos del frontend..." && \
+    ls -la /app/frontend/build/ && \
+    ls -la /app/frontend/build/static/
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
@@ -157,11 +161,11 @@ COPY frontend/nginx.conf /etc/nginx/nginx.conf
 RUN chmod +x manage.py \
     && python manage.py collectstatic --noinput \
     && chown -R www-data:www-data \
-        /app/backend \
+        /app \
         /run/nginx \
         /var/log/nginx \
         /var/lib/nginx \
-    && chmod -R 755 /app/backend
+    && chmod -R 755 /app
 
 # Script de inicio
 COPY backend/start.sh /start.sh
