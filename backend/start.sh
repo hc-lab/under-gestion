@@ -1,109 +1,33 @@
 #!/bin/bash
 set -e
 
-echo "Iniciando servicios..."
+echo "Starting Django server..."
+echo "Port: $PORT"
 
-# Obtener el puerto del entorno o usar 8000 por defecto
-export NGINX_PORT="${PORT:-8000}"
-echo "Puerto configurado: $NGINX_PORT"
-
-# Calcular el puerto para Gunicorn (usar un puerto diferente al de nginx)
-export GUNICORN_PORT=$((NGINX_PORT + 1))
-echo "Puerto de Gunicorn: $GUNICORN_PORT"
-
-# Verificar que los archivos del frontend existen
-echo "Verificando archivos del frontend..."
-if [ ! -f "/app/frontend/build/index.html" ]; then
-    echo "Error: No se encuentra /app/frontend/build/index.html"
-    ls -la /app/frontend/build/
-    exit 1
+# Verify frontend files
+echo "Verifying frontend files..."
+if [ -f "staticfiles/frontend/index.html" ]; then
+    echo "Frontend files found"
+    ls -la staticfiles/frontend/
+else
+    echo "Warning: Frontend files not found in staticfiles/frontend/"
+    echo "Current directory structure:"
+    ls -R
 fi
 
-# Cambiar al directorio del backend
-cd /app/backend
+# Apply database migrations
+echo "Applying database migrations..."
+python manage.py migrate
 
-# Ejecutar migraciones
-echo "Aplicando migraciones..."
-python manage.py migrate --noinput
-
-# Recolectar archivos estáticos
-echo "Recolectando archivos estáticos..."
+# Collect static files
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Crear superusuario si no existe (ignorar error si ya existe)
-echo "Verificando superusuario..."
-python manage.py createsuperuser --noinput || true
-
-# Asegurarse de que los directorios necesarios existan y tengan los permisos correctos
-echo "Configurando permisos..."
-mkdir -p /run/nginx
-mkdir -p /var/log/nginx
-mkdir -p /var/lib/nginx/body
-mkdir -p /var/lib/nginx/fastcgi
-mkdir -p /var/lib/nginx/proxy
-mkdir -p /var/lib/nginx/scgi
-mkdir -p /var/lib/nginx/uwsgi
-
-# Configurar permisos
-chown -R www-data:www-data /var/www/html /run/nginx /var/log/nginx /var/lib/nginx
-chmod -R 755 /var/www/html /var/lib/nginx
-
-# Limpiar archivos antiguos de nginx
-rm -f /run/nginx.pid
-rm -f /run/nginx/nginx.pid
-
-# Función para reemplazar variables en la configuración
-replace_vars() {
-    local input_file="$1"
-    local output_file="$2"
-    
-    if command -v envsubst >/dev/null 2>&1; then
-        echo "Usando envsubst para reemplazar variables..."
-        envsubst '$NGINX_PORT $GUNICORN_PORT' < "$input_file" > "$output_file"
-    else
-        echo "envsubst no encontrado, usando sed..."
-        cp "$input_file" "$output_file"
-        sed -i "s/\$NGINX_PORT/$NGINX_PORT/g" "$output_file"
-        sed -i "s/\$GUNICORN_PORT/$GUNICORN_PORT/g" "$output_file"
-    fi
-}
-
-# Reemplazar variables en la configuración de nginx
-echo "Configurando nginx..."
-replace_vars "/etc/nginx/nginx.conf" "/etc/nginx/nginx.conf.tmp"
-mv "/etc/nginx/nginx.conf.tmp" "/etc/nginx/nginx.conf"
-
-# Verificar la configuración de nginx
-echo "Verificando configuración de nginx..."
-nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
-
-# Mostrar la configuración final de nginx
-echo "Configuración final de nginx:"
-cat /etc/nginx/nginx.conf
-
-# Verificar permisos de los archivos del frontend
-echo "Verificando permisos del frontend..."
-ls -la /app/frontend/build/
-
-# Iniciar nginx
-echo "Iniciando nginx..."
-nginx
-
-# Esperar un momento para asegurarse de que nginx haya iniciado
-sleep 2
-
-# Verificar que nginx esté corriendo
-if ! ps aux | grep -q '[n]ginx: master process'; then
-    echo "Error: nginx no se pudo iniciar"
-    cat /var/log/nginx/error.log
-    exit 1
-fi
-
-echo "Iniciando Gunicorn..."
-# Iniciar Gunicorn con el nuevo puerto
-exec gunicorn almacen.wsgi:application \
-    --log-file - \
-    --bind "0.0.0.0:${GUNICORN_PORT}" \
+# Start Gunicorn
+echo "Starting Gunicorn..."
+exec gunicorn backend.wsgi:application \
+    --bind 0.0.0.0:$PORT \
     --workers 3 \
-    --timeout 120 \
-    --preload
+    --log-level debug \
+    --access-logfile - \
+    --error-logfile -

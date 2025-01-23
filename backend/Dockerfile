@@ -8,28 +8,28 @@ RUN apt-get update && \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-COPY backend/requirements.txt .
+# Copy requirements first
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Create directory for static files and frontend
-RUN mkdir -p staticfiles frontend/build
+# Create necessary directories
+RUN mkdir -p staticfiles
+
+# Copy the entire backend directory
+COPY . .
 
 # Copy frontend build files
-COPY frontend/build/ frontend/build/
-
-# Copy backend files
-COPY backend/ .
+COPY ../frontend/build/ staticfiles/frontend/
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 ENV DJANGO_SETTINGS_MODULE=backend.settings
 
-# Start script
-COPY backend/start.sh /start.sh
-RUN chmod +x /start.sh
+# Copy and set permissions for start script
+COPY start.sh .
+RUN chmod +x start.sh
 
 EXPOSE 8000
 
-CMD ["/start.sh"]
+CMD ["./start.sh"]
