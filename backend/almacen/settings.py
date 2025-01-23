@@ -213,14 +213,17 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Directorio donde se encuentran los archivos estáticos del frontend
+FRONTEND_DIR = os.path.join(BASE_DIR, '..', 'frontend', 'build')
+
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, '..', 'frontend', 'build'),
-    os.path.join(BASE_DIR, '..', 'frontend', 'build', 'static'),
+    os.path.join(FRONTEND_DIR, 'static'),
 ]
 
 # Whitenoise configuration
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-WHITENOISE_ROOT = os.path.join(BASE_DIR, '..', 'frontend', 'build')
+WHITENOISE_ROOT = FRONTEND_DIR
 
 # Media files
 MEDIA_URL = '/media/'
