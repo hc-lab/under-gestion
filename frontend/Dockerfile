@@ -37,20 +37,14 @@ RUN apk add --no-cache bash gettext
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Create necessary directories
-RUN mkdir -p /app/frontend/build/static/js \
-    && mkdir -p /app/frontend/build/static/css \
-    && mkdir -p /app/frontend/build/static/media
-
-# Copy static files from builder with explicit paths
-COPY --from=build /app/build/index.html /app/frontend/build/
-COPY --from=build /app/build/static/js/ /app/frontend/build/static/js/
-COPY --from=build /app/build/static/css/ /app/frontend/build/static/css/
-COPY --from=build /app/build/static/media/ /app/frontend/build/static/media/
+# Copy the entire build directory
+COPY --from=build /app/build /app/frontend/build
 
 # Verify the copied files
 RUN echo "Verificando archivos copiados:" && \
     ls -la /app/frontend/build/ && \
+    echo "\nVerificando archivos estáticos:" && \
+    ls -la /app/frontend/build/static/ && \
     echo "\nVerificando archivos JS:" && \
     ls -la /app/frontend/build/static/js/ && \
     echo "\nVerificando archivos CSS:" && \
