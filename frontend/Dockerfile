@@ -17,18 +17,9 @@ RUN mkdir -p /tmp/client_temp /tmp/proxy_temp /tmp/fastcgi_temp /tmp/uwsgi_temp 
 # Copy build files
 COPY --from=build /app/build /usr/share/nginx/html/
 
-# Copy nginx config
+# Copy nginx config and startup script
 COPY nginx.conf /etc/nginx/nginx.conf
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Create start script
-RUN echo '#!/bin/sh\n\
-export PORT="${PORT:-8080}"\n\
-echo "Puerto configurado: $PORT"\n\
-sed -i "s/listen 80/listen $PORT/" /etc/nginx/nginx.conf\n\
-echo "Configuración de nginx:"\n\
-cat /etc/nginx/nginx.conf\n\
-echo "Iniciando nginx..."\n\
-exec nginx -g "daemon off;"' > /start.sh && \
-chmod +x /start.sh
-
-CMD ["/start.sh"]
+CMD ["/docker-entrypoint.sh"]
