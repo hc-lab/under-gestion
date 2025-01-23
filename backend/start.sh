@@ -11,6 +11,14 @@ echo "Puerto configurado: $NGINX_PORT"
 export GUNICORN_PORT=$((NGINX_PORT + 1))
 echo "Puerto de Gunicorn: $GUNICORN_PORT"
 
+# Verificar que los archivos del frontend existen
+echo "Verificando archivos del frontend..."
+if [ ! -f "/app/frontend/build/index.html" ]; then
+    echo "Error: No se encuentra /app/frontend/build/index.html"
+    ls -la /app/frontend/build/
+    exit 1
+fi
+
 # Cambiar al directorio del backend
 cd /app/backend
 
@@ -68,6 +76,14 @@ mv "/etc/nginx/nginx.conf.tmp" "/etc/nginx/nginx.conf"
 # Verificar la configuración de nginx
 echo "Verificando configuración de nginx..."
 nginx -t || (echo "Error en la configuración de nginx" && cat /etc/nginx/nginx.conf && exit 1)
+
+# Mostrar la configuración final de nginx
+echo "Configuración final de nginx:"
+cat /etc/nginx/nginx.conf
+
+# Verificar permisos de los archivos del frontend
+echo "Verificando permisos del frontend..."
+ls -la /app/frontend/build/
 
 # Iniciar nginx
 echo "Iniciando nginx..."

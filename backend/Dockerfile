@@ -150,7 +150,12 @@ COPY backend/ .
 COPY frontend/build/ /app/frontend/build/
 RUN echo "Verificando archivos del frontend..." && \
     ls -la /app/frontend/build/ && \
-    ls -la /app/frontend/build/static/
+    ls -la /app/frontend/build/static/ && \
+    echo "Contenido de index.html:" && \
+    cat /app/frontend/build/index.html && \
+    # Asegurar que los archivos tienen los permisos correctos
+    chown -R www-data:www-data /app/frontend/build && \
+    chmod -R 755 /app/frontend/build
 
 # Eliminar la configuración por defecto de nginx
 RUN rm -f /etc/nginx/sites-enabled/default
