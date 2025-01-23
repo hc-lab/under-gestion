@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: `${API_URL}/api`,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -45,11 +47,11 @@ axiosInstance.interceptors.response.use(
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
-                .then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return axiosInstance(originalRequest);
-                })
-                .catch(err => Promise.reject(err));
+                    .then(token => {
+                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        return axiosInstance(originalRequest);
+                    })
+                    .catch(err => Promise.reject(err));
             }
 
             originalRequest._retry = true;
@@ -61,7 +63,7 @@ axiosInstance.interceptors.response.use(
             }
 
             try {
-                const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+                const response = await axios.post(`${API_URL}/api/token/refresh/`, {
                     refresh: refreshToken
                 });
 

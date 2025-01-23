@@ -2,6 +2,8 @@ import React, { createContext, useState, useContext, useEffect, useRef } from 'r
 import axios from 'axios';
 import axiosInstance from './axiosInstance';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -55,7 +57,7 @@ export const AuthProvider = ({ children }) => {
                 if (error.response?.status === 401) {
                     try {
                         const refreshResponse = await axios.post(
-                            'http://localhost:8000/api/token/refresh/',
+                            `${API_URL}/api/token/refresh/`,
                             { refresh: refreshToken },
                             { signal: abortControllerRef.current.signal }
                         );
@@ -137,7 +139,7 @@ export const AuthProvider = ({ children }) => {
             handleLogout();
             
             const tokenResponse = await axios.post(
-                'http://localhost:8000/api/token/',
+                `${API_URL}/api/token/`,
                 credentials,
                 {
                     headers: {
