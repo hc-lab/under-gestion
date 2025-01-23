@@ -1,11 +1,14 @@
 #!/bin/bash
 set -e
 
-# Asegurarnos de estar en el directorio frontend
-cd "$(dirname "$0")"
+echo "Limpiando contenedores anteriores..."
+docker rm -f frontend-app || true
 
-# Construir la imagen
+echo "Construyendo la imagen..."
 docker build -t frontend-app .
 
-# Mostrar mensaje de éxito
-echo "Imagen construida exitosamente"
+echo "Ejecutando el contenedor..."
+docker run -d --name frontend-app -p 8080:8080 frontend-app
+
+echo "Mostrando logs del contenedor..."
+docker logs -f frontend-app
