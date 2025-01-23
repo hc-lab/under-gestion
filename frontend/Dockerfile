@@ -23,14 +23,27 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
+# Instalar bash para el script de inicio
+RUN apk add --no-cache bash
+
 # Copiar los archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copiar la configuración de nginx
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
-# Exponer el puerto
+# Crear directorio para los logs de nginx
+RUN mkdir -p /var/log/nginx
+
+# Asegurarse de que nginx puede escribir en los directorios necesarios
+RUN chown -R nginx:nginx /var/log/nginx && \
+    chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
+
+# Script de inicio
+COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 EXPOSE 80
 
-# Comando para iniciar nginx
-CMD ["nginx", "-g", "daemon off;"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
