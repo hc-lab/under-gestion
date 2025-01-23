@@ -1,7 +1,13 @@
 #!/bin/bash
+set -e
 
-# Reemplazar variables de entorno en la configuración de nginx
-envsubst '${PORT}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf
+# Asegurarse de que PORT está definido
+if [ -z "$PORT" ]; then
+    export PORT=80
+fi
+
+# Reemplazar la variable PORT en la configuración de nginx
+sed -i "s/\$PORT/$PORT/g" /etc/nginx/nginx.conf
 
 # Reemplazar la variable de entorno en los archivos estáticos si existe
 if [ ! -z "$VITE_API_URL" ]; then
