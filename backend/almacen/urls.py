@@ -11,27 +11,49 @@ from rest_framework_simplejwt.views import (
 )
 from django.views.generic import RedirectView
 from django.http import HttpResponse, FileResponse
-from django.views.static import serve
 import os
+import mimetypes
 
+def serve_static_file(request, file_path, content_type=None):
+    """Sirve un archivo estático con el tipo MIME correcto."""
+    if not os.path.exists(file_path):
+        return HttpResponse(status=404)
+        
+    if content_type is None:
+        content_type, _ = mimetypes.guess_type(file_path)
+        if content_type is None:
+            content_type = 'application/octet-stream'
+            
+    response = FileResponse(open(file_path, 'rb'), content_type=content_type)
+    response['Content-Type'] = content_type
+    return response
 
 def serve_frontend(request, path=''):
+    """Sirve el frontend y los archivos estáticos."""
     if request.headers.get('Host') == 'healthcheck.railway.app':
         return HttpResponse("OK")
-        
-    # Si es un archivo estático, servirlo desde el directorio correcto
+    
+    # Ruta base del frontend
+    frontend_dir = os.path.join(settings.BASE_DIR, '..', 'frontend', 'build')
+    
+    # Si es un archivo estático, servirlo con el tipo MIME correcto
     if path.startswith('static/'):
-        file_path = os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', path)
-        if os.path.exists(file_path):
-            return FileResponse(open(file_path, 'rb'))
+        file_path = os.path.join(frontend_dir, path)
+        if path.endswith('.js'):
+            return serve_static_file(request, file_path, 'application/javascript')
+        elif path.endswith('.css'):
+            return serve_static_file(request, file_path, 'text/css')
+        else:
+            return serve_static_file(request, file_path)
     
     # Para cualquier otra ruta, servir index.html
-    try:
-        index_file = open(os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'index.html'), 'rb')
-        return FileResponse(index_file)
-    except FileNotFoundError:
-        return HttpResponse("Frontend not found", status=404)
+    index_path = os.path.join(frontend_dir, 'index.html')
+    return serve_static_file(request, index_path, 'text/html')
 
+# Configurar tipos MIME adicionales
+mimetypes.add_type("application/javascript", ".js")
+mimetypes.add_type("text/css", ".css")
+mimetypes.add_type("image/x-icon", ".ico")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,14 +61,14 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include('productos.urls')),
     path('api/personales/', include('personales.urls')),
-    # Servir archivos estáticos directamente
-    re_path(r'^static/(?P<path>.*)$', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'static')}),
-    # Servir archivos en la raíz
-    path('favicon.ico', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build'), 'path': 'favicon.ico'}),
-    path('logo192.png', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build'), 'path': 'logo192.png'}),
-    path('logo512.png', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build'), 'path': 'logo512.png'}),
-    path('manifest.json', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build'), 'path': 'manifest.json'}),
-    path('robots.txt', serve, {'document_root': os.path.join(settings.BASE_DIR, '..', 'frontend', 'build'), 'path': 'robots.txt'}),
-    # Servir el frontend por defecto para todas las rutas no encontradas
+    
+    # Servir archivos en la raíz con tipos MIME específicos
+    path('favicon.ico', lambda r: serve_static_file(r, os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'favicon.ico'), 'image/x-icon')),
+    path('logo192.png', lambda r: serve_static_file(r, os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'logo192.png'), 'image/png')),
+    path('logo512.png', lambda r: serve_static_file(r, os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'logo512.png'), 'image/png')),
+    path('manifest.json', lambda r: serve_static_file(r, os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'manifest.json'), 'application/json')),
+    path('robots.txt', lambda r: serve_static_file(r, os.path.join(settings.BASE_DIR, '..', 'frontend', 'build', 'robots.txt'), 'text/plain')),
+    
+    # Servir el frontend y archivos estáticos
     re_path(r'^(?P<path>.*)$', serve_frontend),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
