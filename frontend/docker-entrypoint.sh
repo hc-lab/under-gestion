@@ -32,6 +32,10 @@ ls -la /app/frontend/build/static/js/
 echo -e "\nContenido de /app/frontend/build/static/css:"
 ls -la /app/frontend/build/static/css/
 
+# Asegurarse de que no haya archivos por defecto
+echo "=== Limpiando archivos por defecto ==="
+rm -rf /usr/share/nginx/html/50x.html
+
 # Verificar archivos críticos
 echo -e "\n=== Verificando archivos críticos ==="
 check_file "/usr/share/nginx/html/index.html"
