@@ -5,8 +5,9 @@ set -e
 export PORT=${PORT:-8080}
 echo "Puerto configurado: $PORT"
 
-# Reemplazar el puerto en la configuración de nginx
-sed -i "s/listen 8080/listen $PORT/" /etc/nginx/nginx.conf
+# Generar la configuración de nginx
+cp /app/frontend/nginx.conf.template /etc/nginx/nginx.conf
+sed -i "s/NGINX_PORT/$PORT/" /etc/nginx/nginx.conf
 
 # Verificar la configuración
 nginx -t
