@@ -1,0 +1,30 @@
+/* Regla global para texto delgado */
+* {
+    font-weight: 300 !important;
+}
+
+/* Excepciones específicas para negrita */
+.brand-logo,
+table thead th,
+table th,
+.table thead th,
+.table th,
+thead tr th {
+    font-weight: 700 !important;
+}
+
+/* Asegurar que el cuerpo de la tabla no tenga negrita */
+table tbody tr,
+table tbody td,
+.table tbody tr,
+.table tbody td {
+    font-weight: 300 !important;
+}
+
+/* Estilos específicos para las tablas */
+table th,
+.table th,
+.table thead th {
+    color: #333 !important;
+    background-color: #f2f2f2;
+}
