@@ -18,16 +18,15 @@ RUN mkdir -p staticfiles
 # Copy the entire backend directory
 COPY . .
 
-# Copy frontend build files
-COPY ../frontend/build/ staticfiles/frontend/
+# Create frontend directory
+RUN mkdir -p staticfiles/frontend
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
 ENV DJANGO_SETTINGS_MODULE=backend.settings
 
-# Copy and set permissions for start script
-COPY start.sh .
+# Set permissions for start script
 RUN chmod +x start.sh
 
 EXPOSE 8000
