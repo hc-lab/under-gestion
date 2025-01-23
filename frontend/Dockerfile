@@ -17,7 +17,12 @@ COPY --from=build /app/build /usr/share/nginx/html/
 COPY nginx.conf /etc/nginx/nginx.conf
 
 # Create start script
-RUN echo '#!/bin/sh\nsed -i "s/listen 80/listen $PORT/" /etc/nginx/nginx.conf\nnginx -g "daemon off;"' > /start.sh && \
-    chmod +x /start.sh
+RUN echo '#!/bin/sh\n\
+PORT="${PORT:-8080}"\n\
+sed -i "s/listen 80/listen $PORT/" /etc/nginx/nginx.conf\n\
+echo "Nginx configurado para escuchar en puerto: $PORT"\n\
+cat /etc/nginx/nginx.conf\n\
+nginx -g "daemon off;"' > /start.sh && \
+chmod +x /start.sh
 
 CMD ["/start.sh"]
