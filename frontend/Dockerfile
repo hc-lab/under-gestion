@@ -36,15 +36,24 @@ COPY frontend/nginx.conf /etc/nginx/nginx.conf
 COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Crear directorio para los logs de nginx y establecer permisos
-RUN mkdir -p /var/log/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
+# Crear directorios necesarios y establecer permisos
+RUN mkdir -p /tmp/nginx && \
+    mkdir -p /var/cache/nginx && \
+    mkdir -p /var/log/nginx && \
+    chown -R nobody:nobody /tmp/nginx && \
+    chown -R nobody:nobody /var/cache/nginx && \
+    chown -R nobody:nobody /var/log/nginx && \
+    chown -R nobody:nobody /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html && \
+    chmod -R 755 /tmp/nginx && \
+    chmod -R 755 /var/cache/nginx && \
+    chmod -R 755 /var/log/nginx
 
 # Variables de entorno por defecto
 ENV PORT=80
 
 EXPOSE ${PORT}
+
+USER nobody
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
