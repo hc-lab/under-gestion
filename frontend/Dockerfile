@@ -19,9 +19,13 @@ RUN npm run build
 # Show the contents of the build directory
 RUN echo "Contenido del directorio build:" && \
     ls -la build/ && \
-    echo "Contenido del directorio build/static:" && \
+    echo "\nContenido del directorio build/static:" && \
     ls -la build/static/ && \
-    echo "Contenido de index.html:" && \
+    echo "\nContenido del directorio build/static/js:" && \
+    ls -la build/static/js/ && \
+    echo "\nContenido del directorio build/static/css:" && \
+    ls -la build/static/css/ && \
+    echo "\nContenido de index.html:" && \
     cat build/index.html
 
 # Production stage
@@ -33,14 +37,24 @@ RUN apk add --no-cache bash gettext
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy static files from builder
-COPY --from=build /app/build /app/frontend/build
+# Create necessary directories
+RUN mkdir -p /app/frontend/build/static/js \
+    && mkdir -p /app/frontend/build/static/css \
+    && mkdir -p /app/frontend/build/static/media
+
+# Copy static files from builder with explicit paths
+COPY --from=build /app/build/index.html /app/frontend/build/
+COPY --from=build /app/build/static/js/ /app/frontend/build/static/js/
+COPY --from=build /app/build/static/css/ /app/frontend/build/static/css/
+COPY --from=build /app/build/static/media/ /app/frontend/build/static/media/
 
 # Verify the copied files
 RUN echo "Verificando archivos copiados:" && \
     ls -la /app/frontend/build/ && \
-    echo "Verificando archivos estáticos:" && \
-    ls -la /app/frontend/build/static/
+    echo "\nVerificando archivos JS:" && \
+    ls -la /app/frontend/build/static/js/ && \
+    echo "\nVerificando archivos CSS:" && \
+    ls -la /app/frontend/build/static/css/
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -48,6 +62,10 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy entrypoint script
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
+
+# Set permissions
+RUN chown -R nginx:nginx /app/frontend/build \
+    && chmod -R 755 /app/frontend/build
 
 # Set entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]
