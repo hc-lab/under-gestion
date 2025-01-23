@@ -22,9 +22,6 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Instalar bash
-RUN apk add --no-cache bash
-
 # Copiar los archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
 
@@ -35,17 +32,6 @@ COPY frontend/nginx.conf /etc/nginx/nginx.conf
 COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Crear directorios necesarios
-RUN mkdir -p /tmp/nginx && \
-    chmod -R 777 /tmp/nginx && \
-    chmod -R 777 /var/log/nginx && \
-    chmod -R 777 /var/cache/nginx && \
-    chmod -R 777 /usr/share/nginx/html
-
-# Variables de entorno por defecto
-ENV PORT=80
-
-# Exponer el puerto dinámicamente
-EXPOSE 80
+EXPOSE 8080
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
