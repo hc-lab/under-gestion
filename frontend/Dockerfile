@@ -22,21 +22,19 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine
 
-# Instalar gettext para envsubst
-RUN apk add --no-cache gettext
-
 # Copiar los archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copiar la configuración de nginx como template
-COPY frontend/nginx.conf.template /etc/nginx/nginx.conf.template
+# Copiar la configuración de nginx
+COPY frontend/nginx.conf /etc/nginx/nginx.conf
 
 # Script de inicio
 COPY frontend/docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
-# Variables de entorno por defecto
-ENV PORT=8080
+# Configurar permisos
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
 EXPOSE 8080
 
