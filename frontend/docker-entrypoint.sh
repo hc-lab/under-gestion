@@ -9,7 +9,7 @@ fi
 echo "Configurando puerto: $PORT"
 
 # Reemplazar la variable PORT en la configuración de nginx
-sed -i "s/\$PORT/$PORT/g" /etc/nginx/nginx.conf
+sed -i "s/listen PORT/listen $PORT/g" /etc/nginx/nginx.conf
 
 # Reemplazar la variable de entorno en los archivos estáticos si existe
 if [ ! -z "$VITE_API_URL" ]; then

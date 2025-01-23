@@ -45,6 +45,7 @@ RUN mkdir -p /tmp/nginx && \
 # Variables de entorno por defecto
 ENV PORT=80
 
-EXPOSE ${PORT}
+# Exponer el puerto dinámicamente
+EXPOSE 80
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
