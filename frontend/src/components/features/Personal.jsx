@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../axiosInstance';
-import { UsersIcon } from '@heroicons/react/24/outline';
+
 
 const Personal = () => {
     const [personal, setPersonal] = useState([]);

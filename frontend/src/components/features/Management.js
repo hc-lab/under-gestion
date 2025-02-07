@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../AuthContext';
+
 import { motion } from 'framer-motion';
 import { FaChartLine, FaClipboardList, FaBell } from 'react-icons/fa';
 import AOS from 'aos';
@@ -34,7 +34,7 @@ const FeatureCard = ({ icon: Icon, title, description, link }) => (
 );
 
 const Management = () => {
-    const auth = useAuth();
+
 
     useEffect(() => {
         AOS.init({
@@ -90,39 +90,21 @@ const Management = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <FeatureCard
                             icon={FaChartLine}
-                            title="Control en Tiempo Real"
-                            description="Monitorea tus existencias en tiempo real, con actualizaciones automáticas y seguimiento preciso de cada movimiento."
-                            link="/activity-history"
+                            title="Dashboard"
+                            description="Visualiza el estado actual de tu inventario con estadísticas en tiempo real y gráficos interactivos."
+                            link="/dashboard"
                         />
                         <FeatureCard
                             icon={FaClipboardList}
                             title="Gestión de Stock"
-                            description="Administra entradas, salidas, devoluciones y transferencias de productos con un sistema intuitivo y eficiente."
-                            link="/stock-report"
+                            description="Administra entradas, salidas y transferencias de productos con un sistema intuitivo y eficiente."
+                            link="/productos"
                         />
                         <FeatureCard
                             icon={FaBell}
-                            title="Sistema de Alertas"
-                            description="Configuración de niveles mínimos de stock y notificaciones automáticas para reabastecimiento oportuno."
-                            link="/alerts"
-                        />
-                        <FeatureCard
-                            icon={FaChartLine}
-                            title="Análisis de Datos"
-                            description="Visualiza tendencias, genera reportes detallados y toma decisiones basadas en datos precisos."
-                            link="/product-chart"
-                        />
-                        <FeatureCard
-                            icon={FaClipboardList}
-                            title="Categorización Inteligente"
-                            description="Organiza tus productos por categorías, ubicaciones y características para una gestión más eficiente."
-                            link="/dashboard/categories"
-                        />
-                        <FeatureCard
-                            icon={FaBell}
-                            title="Ingreso de Productos"
-                            description="Registra la entrada de nuevos productos al inventario de manera eficiente y mantén un control preciso del stock."
-                            link="/bulk-entry"
+                            title="Gestión de Personal"
+                            description="Administra el personal, registra asistencias y gestiona permisos de manera eficiente."
+                            link="/personal"
                         />
                     </div>
                 </div>

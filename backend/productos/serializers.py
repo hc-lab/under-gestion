@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, ImagenNoticia, IngresoProducto
+from .models import Producto, SalidaProducto, Categoria, Noticia, ImagenNoticia, IngresoProducto
 from django.contrib.auth import get_user_model
 
 class UserSerializer(serializers.ModelSerializer):
@@ -30,32 +30,14 @@ class ProductoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El stock no puede ser negativo")
         return value
 
-class HistorialProductoSerializer(serializers.ModelSerializer):
-    producto_nombre = serializers.CharField(source='producto.nombre', read_only=True)
-    usuario_nombre = serializers.CharField(source='usuario.username', read_only=True)
-    
-    class Meta:
-        model = HistorialProducto
-        fields = [
-            'id', 
-            'producto',
-            'producto_nombre',
-            'tipo_movimiento',
-            'cantidad',
-            'fecha',
-            'usuario_nombre',
-            'entregado_a'
-        ]
+
 
 class SalidaProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalidaProducto
         fields = ['id', 'producto', 'cantidad', 'fecha_hora', 'entregado_a', 'motivo']
 
-class HistorialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Historial
-        fields = '__all__'
+
 
 class ImagenNoticiaSerializer(serializers.ModelSerializer):
     class Meta:

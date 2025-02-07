@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import Producto, HistorialProducto, SalidaProducto, Historial, Categoria, Noticia, PerfilUsuario, IngresoProducto
-from .serializers import ProductoSerializer, HistorialProductoSerializer, SalidaProductoSerializer, HistorialSerializer, CategoriaSerializer, NoticiaSerializer, IngresoProductoSerializer, UserSerializer
+from .models import Producto, SalidaProducto, Categoria, Noticia, PerfilUsuario, IngresoProducto
+from .serializers import ProductoSerializer, SalidaProductoSerializer, CategoriaSerializer, NoticiaSerializer, IngresoProductoSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authtoken.models import Token
@@ -111,28 +111,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-class HistorialViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
-    serializer_class = HistorialSerializer
 
-    def get_queryset(self):
-        return Historial.objects.filter(usuario=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(usuario=self.request.user)
-
-class HistorialProductoViewSet(viewsets.ModelViewSet):
-    serializer_class = HistorialProductoSerializer
-    
-    def get_queryset(self):
-        try:
-            return HistorialProducto.objects.select_related(
-                'producto',
-                'usuario'
-            ).order_by('-fecha')
-        except Exception as e:
-            print(f"Error en get_queryset: {str(e)}")
-            return HistorialProducto.objects.none()
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

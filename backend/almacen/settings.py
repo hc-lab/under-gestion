@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django_filters',
     'productos',
     'personales',
+    'blasting.apps.BlastingConfig',
     'django_crontab',
 ]
 

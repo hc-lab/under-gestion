@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from .models import Producto, Categoria, HistorialProducto, SalidaProducto, Noticia, ImagenNoticia, PerfilUsuario, IngresoProducto
+from .models import Producto, Categoria, SalidaProducto, Noticia, ImagenNoticia, PerfilUsuario, IngresoProducto
 from personales.models import Personal
 
 class PerfilUsuarioInline(admin.StackedInline):
@@ -82,34 +82,6 @@ class ProductoAdmin(admin.ModelAdmin):
     search_fields = ('nombre', 'descripcion')
     ordering = ('nombre',)
 
-@admin.register(HistorialProducto)
-class HistorialProductoAdmin(admin.ModelAdmin):
-    list_display = [
-        'fecha',
-        'tipo_movimiento',
-        'get_producto_nombre',
-        'cantidad',
-        'usuario',
-        'entregado_a'
-    ]
-    list_filter = [
-        'tipo_movimiento',
-        'fecha',
-        'producto',
-        'usuario'
-    ]
-    search_fields = [
-        'producto__nombre',
-        'usuario__username',
-        'entregado_a'
-    ]
-    date_hierarchy = 'fecha'
-    ordering = ['-fecha']
-
-    def get_producto_nombre(self, obj):
-        return obj.producto.nombre if obj.producto else '-'
-    get_producto_nombre.short_description = 'Producto'
-    get_producto_nombre.admin_order_field = 'producto__nombre'
 
 @admin.register(SalidaProducto)
 class SalidaProductoAdmin(admin.ModelAdmin):

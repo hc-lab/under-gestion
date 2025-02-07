@@ -30,20 +30,15 @@ echo "Aplicando migraciones..."
 python manage.py migrate --noinput
 
 # Crear superusuario si no existe
-USERNAME=${DJANGO_SUPERUSER_USERNAME:-hitt}
-EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
-PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-1234}
-
-echo "Verificando si el superusuario existe..."
+echo "Creando superusuario..."
 python manage.py shell << END
-from django.contrib.auth.models import User
-
-# Verifica si el superusuario ya existe
-if not User.objects.filter(username='$USERNAME').exists():
-    print("Creando superusuario...")
-    User.objects.create_superuser('$USERNAME', '$EMAIL', '$PASSWORD')
+from django.contrib.auth import get_user_model
+User = get_user_model()
+if not User.objects.filter(username="$DJANGO_SUPERUSER_USERNAME").exists():
+    User.objects.create_superuser("$DJANGO_SUPERUSER_USERNAME", "$DJANGO_SUPERUSER_EMAIL", "$DJANGO_SUPERUSER_PASSWORD")
+    print("Superusuario creado exitosamente")
 else:
-    print("El superusuario ya existe.")
+    print("El superusuario ya existe")
 END
 
 # Configurar cronjobs

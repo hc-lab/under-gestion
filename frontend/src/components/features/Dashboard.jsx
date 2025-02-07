@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { 
-    ChartBarIcon, 
     CubeIcon, 
-    ExclamationTriangleIcon,
     ClockIcon,
     UsersIcon
 } from '@heroicons/react/24/outline';
 import axiosInstance from '../../axiosInstance';
-import { Radar, Doughnut, Bar, Line, PolarArea } from 'react-chartjs-2';
+import { Line, PolarArea } from 'react-chartjs-2';
 import { Chart as ChartJS, RadialLinearScale } from 'chart.js/auto';
-import ActivityList from './ActivityList';
+
 
 ChartJS.register(RadialLinearScale);
 
@@ -17,7 +15,6 @@ const Dashboard = () => {
     const [stats, setStats] = useState({
         totalProductos: 0,
         enStock: 0,
-        alertas: 0,
         movimientosHoy: 0,
         personalEnUnidad: 0,
         totalPersonalRegistrado: 0,
@@ -57,7 +54,7 @@ const Dashboard = () => {
                     totalPersonalRegistrado,
                     conteoTareos,
                     enStock: productosData.enStock || 0,
-                    alertas: productosData.alertas || 0,
+
                     totalProductos: productosData.totalProductos || 0,
                     movimientosHoy: productosData.movimientosHoy || 0
                 });
@@ -168,18 +165,7 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Card Alertas */}
-                    <div className="bg-white rounded-xl shadow-sm p-6">
-                        <div className="flex items-center">
-                            <div className="p-3 rounded-full bg-red-100 text-red-600">
-                                <ExclamationTriangleIcon className="h-6 w-6" />
-                            </div>
-                            <div className="ml-4">
-                                <p className="text-sm font-medium text-gray-500">Alertas</p>
-                                <p className="text-2xl font-semibold text-gray-900">{stats.alertas}</p>
-                            </div>
-                        </div>
-                    </div>
+
 
                     {/* Card Movimientos */}
                     <div className="bg-white rounded-xl shadow-sm p-6">
@@ -277,20 +263,6 @@ const Dashboard = () => {
                                         }
                                     }}
                                 />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Actividad Reciente */}
-                    <div className="col-span-4">
-                        <div className="bg-white rounded-xl shadow-sm">
-                            <div className="p-4 border-b border-gray-100">
-                                <h2 className="text-lg font-semibold text-gray-900">
-                                    Actividad Reciente
-                                </h2>
-                            </div>
-                            <div className="p-4">
-                                <ActivityList />
                             </div>
                         </div>
                     </div>

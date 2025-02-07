@@ -1,19 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axiosInstance from '../../axiosInstance';
 import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+
 import { toast } from 'react-hot-toast';
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import Tareo from './Tareo';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, RadialBarChart, RadialBar, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useTareo } from '../../context/TareoContext';
 import ExportPDF from './ExportPDF';
 
 const RRHH = () => {
     const { refreshTareos } = useTareo();
-    const [tareos, setTareos] = useState([]);
+
     const [personal, setPersonal] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -91,7 +91,7 @@ const RRHH = () => {
                     data
                 );
             } else {
-                response = await axiosInstance.post('tareos/', data);
+                await axiosInstance.post('tareos/', data);
             }
 
             toast.success('Tareo actualizado exitosamente');
@@ -159,18 +159,6 @@ const RRHH = () => {
         }));
     };
 
-    const getCargoColor = (cargo) => {
-        const colores = {
-            'OPERADOR': '#bfdbfe',      // azul muy suave
-            'SUPERVISOR': '#fde68a',    // amarillo suave
-            'GERENTE': '#ddd6fe',      // violeta suave
-            'ADMINISTRATIVO': '#fbcfe8', // rosa suave
-            'TÉCNICO': '#a7f3d0',      // verde menta suave
-            'AUXILIAR': '#fecaca',      // rojo suave
-            'OTROS': '#e5e7eb'         // gris suave
-        };
-        return colores[cargo] || '#f3f4f6';
-    };
 
     if (loading) {
         return (

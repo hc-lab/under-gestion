@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copiar el resto del código
 COPY . .
+RUN chmod +x /app/backend/start.sh
 
 # Exponer el puerto 8000
 EXPOSE 8000

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { UserCircleIcon, HomeIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowsUpDownIcon, BellAlertIcon, ClockIcon, ChevronDownIcon, UsersIcon, CubeIcon } from '@heroicons/react/24/outline';
+import { UserCircleIcon, HomeIcon, ChartBarIcon, ChevronDownIcon, UsersIcon, CubeIcon } from '@heroicons/react/24/outline';
 
 const Navigation = () => {
     const location = useLocation();
@@ -18,40 +18,16 @@ const Navigation = () => {
     // Lista de opciones adicionales
     const menuItems = [
         {
-            name: 'Estadísticas',
-            description: 'Visualización de datos y métricas',
-            icon: ChartBarIcon,
-            path: '/product-chart'
-        },
-        {
-            name: 'Registro de Productos',
-            description: 'Ingreso y gestión de nuevos productos',
-            icon: ArrowsUpDownIcon,
-            path: '/bulk-entry'
-        },
-        {
-            name: 'Historial',
-            description: 'Actividad y cambios recientes',
-            icon: ClockIcon,
-            path: '/activity-history'
-        },
-        {
-            name: 'Alertas',
-            description: 'Notificaciones y avisos',
-            icon: BellAlertIcon,
-            path: '/alerts'
-        },
-        {
-            name: 'Reportes',
-            description: 'Informes y documentación',
-            icon: ClipboardDocumentListIcon,
-            path: '/reports'
-        },
-        {
             name: 'Personal',
             description: 'Gestión del personal y permisos',
             icon: UsersIcon,
             path: '/personal'
+        },
+        {
+            name: 'Blasting',
+            description: 'Registro de operaciones de voladura',
+            icon: ChartBarIcon,
+            path: '/blasting'
         }
     ];
 

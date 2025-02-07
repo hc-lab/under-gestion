@@ -3,14 +3,14 @@ import axiosInstance from '../../axiosInstance';
 import { Dialog, Transition } from '@headlessui/react';
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../AuthContext';
+
 import { toast } from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { Combobox } from '@headlessui/react';
 import { CheckIcon, ChevronUpDownIcon } from '@heroicons/react/20/solid';
 
 const ProductList = () => {
-    const auth = useAuth();
+
     const navigate = useNavigate();
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
@@ -22,7 +22,7 @@ const ProductList = () => {
     const [historial, setHistorial] = useState([]);
     const [loading, setLoading] = useState(true);
     const [cantidad, setCantidad] = useState('');
-    const [entregadoA, setEntregadoA] = useState('');
+
     const [motivo, setMotivo] = useState('');
     const [error, setError] = useState(null);
     const [personal, setPersonal] = useState([]);
