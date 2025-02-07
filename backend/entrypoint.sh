@@ -29,6 +29,10 @@ python manage.py makemigrations personales productos
 echo "Aplicando migraciones..."
 python manage.py migrate --noinput
 
+# Recolectar archivos estáticos
+echo "Recolectando archivos estáticos..."
+python manage.py collectstatic --noinput
+
 # Crear superusuario si no existe
 echo "Creando superusuario..."
 python manage.py shell << END
@@ -46,6 +50,6 @@ echo "Configurando cronjobs..."
 python manage.py crontab remove  # Eliminar cron jobs existentes
 python manage.py crontab add     # Añadir cron jobs nuevos
 
-# Ejecutar el servidor de Django
-echo "Iniciando el servidor de Django..."
-exec python manage.py runserver 0.0.0.0:8000
+# Ejecutar gunicorn
+echo "Iniciando Gunicorn..."
+exec gunicorn almacen.wsgi:application --bind 0.0.0.0:$PORT
