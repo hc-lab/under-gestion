@@ -63,8 +63,14 @@ MIDDLEWARE = [
 ]
 
 # Configuración CORS
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOWED_ORIGINS = [
+    'https://under-gestion.onrender.com',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000'
+]
+
 CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = False  # Cambiamos esto a False para mayor seguridad
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -185,11 +191,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
-
-# Agregar estas líneas
-CORS_ALLOW_ALL_ORIGINS = True
-ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000']
 
 # Agregar la configuración de CRONJOBS
 CRONJOBS = [
