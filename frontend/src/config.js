@@ -13,18 +13,18 @@ const API_URL = process.env.REACT_APP_API_URL || (isProduction ? PROD_API_URL : 
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
     AUTH: {
-        LOGIN: `${API_URL}/token/`,
-        REFRESH: `${API_URL}/token/refresh/`,
-        VERIFY: `${API_URL}/token/verify/`,
+        LOGIN: `${API_URL}/api/token/`,
+        REFRESH: `${API_URL}/api/token/refresh/`,
+        VERIFY: `${API_URL}/api/token/verify/`,
     },
     USER: {
-        CURRENT: `${API_URL}/user/current/`,
-        PROFILE: `${API_URL}/user/profile/`,
+        CURRENT: `${API_URL}/api/user/current/`,
+        PROFILE: `${API_URL}/api/user/profile/`,
     },
-    NOTICIAS: `${API_URL}/noticias/`,
-    PRODUCTOS: `${API_URL}/productos/`,
-    PERSONALES: `${API_URL}/personales/`,
-    BLASTING: `${API_URL}/blasting/`,
+    NOTICIAS: `${API_URL}/api/noticias/`,
+    PRODUCTOS: `${API_URL}/api/productos/`,
+    PERSONALES: `${API_URL}/api/personales/`,
+    BLASTING: `${API_URL}/api/blasting/`,
 };
 
 // App Configuration
@@ -40,4 +40,5 @@ export const APP_CONFIG = {
 if (isDevelopment) {
     console.log('[Config] Environment:', process.env.NODE_ENV);
     console.log('[Config] API URL:', API_URL);
+    console.log('[Config] Endpoints:', API_ENDPOINTS);
 }
