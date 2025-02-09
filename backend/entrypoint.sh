@@ -1,21 +1,10 @@
 #!/bin/sh
 
-# Configurar variables de entorno por defecto si no están definidas
-: "${PORT:=8080}"
-export PORT
-
-echo "Iniciando aplicación en el puerto $PORT"
-
 # En producción, no necesitamos esperar por PostgreSQL ya que Render maneja eso
 if [ "$RENDER" = "true" ]; then
     echo "Ejecutando en Render.com..."
-    # Pequeña pausa para asegurar que la base de datos esté lista
-    sleep 5
 else
-    # Extraer host y puerto de DATABASE_URL para desarrollo local
-    POSTGRES_HOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\).*/\1/p')
-    POSTGRES_PORT=5432
-    
+    # Código existente para desarrollo local
     ATTEMPTS=0
     MAX_ATTEMPTS=60
     echo "Esperando a que PostgreSQL esté disponible..."
@@ -49,10 +38,9 @@ python manage.py migrate --noinput
 echo "Recolectando archivos estáticos..."
 python manage.py collectstatic --noinput
 
-# Crear superusuario si las variables están definidas
-if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_EMAIL" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
-    echo "Creando superusuario..."
-    python manage.py shell << END
+# Crear superusuario si no existe
+echo "Creando superusuario..."
+python manage.py shell << END
 from django.contrib.auth import get_user_model
 User = get_user_model()
 if not User.objects.filter(username="$DJANGO_SUPERUSER_USERNAME").exists():
@@ -61,8 +49,12 @@ if not User.objects.filter(username="$DJANGO_SUPERUSER_USERNAME").exists():
 else:
     print("El superusuario ya existe")
 END
-fi
 
-# Iniciar Gunicorn
-echo "Iniciando Gunicorn en el puerto $PORT..."
-exec gunicorn almacen.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60
+# Configurar cronjobs
+echo "Configurando cronjobs..."
+python manage.py crontab remove  # Eliminar cron jobs existentes
+python manage.py crontab add     # Añadir cron jobs nuevos
+
+# Ejecutar gunicorn
+echo "Iniciando Gunicorn..."
+exec gunicorn almacen.wsgi:application --bind 0.0.0.0:$PORT
