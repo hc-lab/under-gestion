@@ -15,7 +15,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-(rz+bg(+ysu9iz#j)sgx5t@zcs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+# ALLOWED_HOSTS
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'under-gestion-api.onrender.com',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -62,7 +67,7 @@ MIDDLEWARE = [
     'almacen.middleware.RoleMiddleware',
 ]
 
-# Configuración CORS
+# CORS Configuration
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
@@ -103,6 +108,10 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
 
 ROOT_URLCONF = 'almacen.urls'
 
