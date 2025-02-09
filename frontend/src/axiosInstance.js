@@ -1,9 +1,8 @@
 import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://under-gestion-api.onrender.com/api';
+import { API_ENDPOINTS } from './config';
 
 const axiosInstance = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_ENDPOINTS.BASE,
     timeout: 15000,
     headers: {
         'Content-Type': 'application/json',
@@ -59,33 +58,37 @@ axiosInstance.interceptors.response.use(
             originalRequest._retry = true;
             isRefreshing = true;
 
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (!refreshToken) {
-                return Promise.reject(error);
-            }
+            const refreshToken = async () => {
+                try {
+                    const refresh = localStorage.getItem('refresh_token');
+                    if (!refresh) {
+                        throw new Error('No refresh token available');
+                    }
 
-            try {
-                const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
-                    refresh: refreshToken
-                });
+                    const response = await axios.post(API_ENDPOINTS.AUTH.REFRESH, {
+                        refresh: refresh
+                    });
 
-                const { access } = response.data;
-                localStorage.setItem('token', access);
-                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-                originalRequest.headers.Authorization = `Bearer ${access}`;
+                    const { access } = response.data;
+                    localStorage.setItem('token', access);
+                    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+                    originalRequest.headers.Authorization = `Bearer ${access}`;
 
-                processQueue(null, access);
-                isRefreshing = false;
+                    processQueue(null, access);
+                    isRefreshing = false;
 
-                return axiosInstance(originalRequest);
-            } catch (refreshError) {
-                processQueue(refreshError, null);
-                isRefreshing = false;
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
-                window.location.href = '/login';
-                return Promise.reject(refreshError);
-            }
+                    return axiosInstance(originalRequest);
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    isRefreshing = false;
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                    return Promise.reject(refreshError);
+                }
+            };
+
+            return refreshToken();
         }
         return Promise.reject(error);
     }

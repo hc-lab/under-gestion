@@ -8,7 +8,7 @@ const AutocompletePersonal = ({ onSelect, value, onChange }) => {
 
   // Crear una instancia de axios con configuración base
   const axiosInstance = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
+    baseURL: process.env.REACT_APP_API_URL || 'https://under-gestion-api.onrender.com',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${localStorage.getItem('token')}`

@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import axiosInstance from './axiosInstance';
+import { API_ENDPOINTS } from './config';
 
 const API_BASE_URL = axiosInstance.defaults.baseURL;
 
@@ -39,7 +40,7 @@ export const AuthProvider = ({ children }) => {
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
             try {
-                const response = await axiosInstance.get('/user/current/', {
+                const response = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT, {
                     signal: abortControllerRef.current.signal
                 });
                 
@@ -57,7 +58,7 @@ export const AuthProvider = ({ children }) => {
                 if (error.response?.status === 401) {
                     try {
                         const refreshResponse = await axios.post(
-                            `${axiosInstance.defaults.baseURL}/token/refresh/`,
+                            API_ENDPOINTS.AUTH.REFRESH,
                             { refresh: refreshToken },
                             { signal: abortControllerRef.current.signal }
                         );
@@ -66,7 +67,7 @@ export const AuthProvider = ({ children }) => {
                         localStorage.setItem('token', newToken);
                         axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
 
-                        const userResponse = await axiosInstance.get('/user/current/', {
+                        const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT, {
                             signal: abortControllerRef.current.signal
                         });
                         
@@ -96,12 +97,12 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const debouncedCheckAuth = () => {
+    const debouncedCheckAuth = useCallback(() => {
         if (checkAuthTimeoutRef.current) {
             clearTimeout(checkAuthTimeoutRef.current);
         }
         checkAuthTimeoutRef.current = setTimeout(checkAuth, 100);
-    };
+    }, []);
 
     useEffect(() => {
         debouncedCheckAuth();
@@ -139,7 +140,7 @@ export const AuthProvider = ({ children }) => {
             handleLogout();
             
             const tokenResponse = await axios.post(
-                `${axiosInstance.defaults.baseURL}/token/`,
+                API_ENDPOINTS.AUTH.LOGIN,
                 credentials,
                 {
                     headers: {
@@ -155,7 +156,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('refreshToken', refresh);
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            const userResponse = await axiosInstance.get('/user/current/');
+            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
             if (!userResponse.data) {
                 throw new Error('No se pudo obtener la información del usuario');
             }
