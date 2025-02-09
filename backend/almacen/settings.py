@@ -65,12 +65,13 @@ MIDDLEWARE = [
 # Configuración CORS
 CORS_ALLOWED_ORIGINS = [
     'https://under-gestion.onrender.com',
+    'https://under-gestion-api.onrender.com',
     'http://localhost:3000',
     'http://127.0.0.1:3000'
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_ALLOW_ALL = False  # Cambiamos esto a False para mayor seguridad
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -95,15 +96,16 @@ CORS_ALLOW_HEADERS = [
 
 # Configuración de seguridad
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.onrender.com',
+    'https://under-gestion.onrender.com',
+    'https://under-gestion-api.onrender.com',
     'http://localhost:3000',
     'http://127.0.0.1:3000'
 ]
 
-CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
@@ -181,6 +183,9 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
