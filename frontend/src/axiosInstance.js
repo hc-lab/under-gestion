@@ -1,9 +1,13 @@
 import axios from 'axios';
 
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://under-gestion-api.onrender.com/api';
+
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:8000/api',
+    baseURL: API_BASE_URL,
+    timeout: 15000,
     headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
     },
     withCredentials: true
 });
@@ -61,7 +65,7 @@ axiosInstance.interceptors.response.use(
             }
 
             try {
-                const response = await axios.post('http://localhost:8000/api/token/refresh/', {
+                const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
                     refresh: refreshToken
                 });
 
