@@ -64,14 +64,11 @@ MIDDLEWARE = [
 
 # Configuración CORS
 CORS_ALLOWED_ORIGINS = [
-    'https://under-gestion.onrender.com',
-    'https://under-gestion-api.onrender.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    "http://localhost:3000",
+    "https://under-gestion-frontend.onrender.com",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOW_METHODS = [
     'DELETE',
@@ -96,10 +93,8 @@ CORS_ALLOW_HEADERS = [
 
 # Configuración de seguridad
 CSRF_TRUSTED_ORIGINS = [
-    'https://under-gestion.onrender.com',
-    'https://under-gestion-api.onrender.com',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
+    "http://localhost:3000",
+    "https://under-gestion-frontend.onrender.com",
 ]
 
 CSRF_COOKIE_SECURE = True
