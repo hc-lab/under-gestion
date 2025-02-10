@@ -7,23 +7,8 @@ const axiosInstance = axios.create({
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
-    },
-    withCredentials: true
+    }
 });
-
-let isRefreshing = false;
-let failedQueue = [];
-
-const processQueue = (error, token = null) => {
-    failedQueue.forEach(prom => {
-        if (error) {
-            prom.reject(error);
-        } else {
-            prom.resolve(token);
-        }
-    });
-    failedQueue = [];
-};
 
 // Interceptor para las peticiones
 axiosInstance.interceptors.request.use(
@@ -44,51 +29,29 @@ axiosInstance.interceptors.response.use(
         const originalRequest = error.config;
 
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                    failedQueue.push({ resolve, reject });
-                })
-                .then(token => {
-                    originalRequest.headers.Authorization = `Bearer ${token}`;
-                    return axiosInstance(originalRequest);
-                })
-                .catch(err => Promise.reject(err));
-            }
-
             originalRequest._retry = true;
-            isRefreshing = true;
-
-            const refreshToken = async () => {
-                try {
-                    const refresh = localStorage.getItem('refresh_token');
-                    if (!refresh) {
-                        throw new Error('No refresh token available');
-                    }
-
-                    const response = await axios.post(API_ENDPOINTS.AUTH.REFRESH, {
-                        refresh: refresh
-                    });
-
-                    const { access } = response.data;
-                    localStorage.setItem('token', access);
-                    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
-                    originalRequest.headers.Authorization = `Bearer ${access}`;
-
-                    processQueue(null, access);
-                    isRefreshing = false;
-
-                    return axiosInstance(originalRequest);
-                } catch (refreshError) {
-                    processQueue(refreshError, null);
-                    isRefreshing = false;
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('refresh_token');
-                    window.location.href = '/login';
-                    return Promise.reject(refreshError);
+            
+            try {
+                const refreshToken = localStorage.getItem('refreshToken');
+                if (!refreshToken) {
+                    throw new Error('No refresh token available');
                 }
-            };
 
-            return refreshToken();
+                const response = await axios.post(API_ENDPOINTS.AUTH.REFRESH, {
+                    refresh: refreshToken
+                });
+
+                const { access } = response.data;
+                localStorage.setItem('token', access);
+                axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+                originalRequest.headers.Authorization = `Bearer ${access}`;
+
+                return axiosInstance(originalRequest);
+            } catch (refreshError) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
+                return Promise.reject(refreshError);
+            }
         }
         return Promise.reject(error);
     }
