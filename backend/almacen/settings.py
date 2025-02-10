@@ -56,9 +56,9 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',  # Debe estar al inicio
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Para servir archivos estáticos
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,14 +68,13 @@ MIDDLEWARE = [
     'almacen.middleware.RoleMiddleware',
 ]
 
-# CORS Configuration
+# CORS settings
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
 ]
-
 CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -84,7 +83,6 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',

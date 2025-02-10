@@ -12,8 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN chmod +x /app/backend/start.sh
 
-# Exponer el puerto 8000
-EXPOSE 8000
+# Exponer el puerto 10000
+EXPOSE 10000
 
 # Configurar el PYTHONPATH para que Django encuentre los módulos
 ENV PYTHONPATH=/app/backend
