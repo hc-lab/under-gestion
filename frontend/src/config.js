@@ -13,9 +13,9 @@ const API_URL = process.env.REACT_APP_API_URL || (isProduction ? PROD_API_URL : 
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
     AUTH: {
-        LOGIN: `${API_URL}/api/token/`,
-        REFRESH: `${API_URL}/api/token/refresh/`,
-        VERIFY: `${API_URL}/api/token/verify/`,
+        LOGIN: `${API_URL}/api/auth/token/`,
+        REFRESH: `${API_URL}/api/auth/token/refresh/`,
+        VERIFY: `${API_URL}/api/auth/token/verify/`,
     },
     USER: {
         CURRENT: `${API_URL}/api/user/current/`,
