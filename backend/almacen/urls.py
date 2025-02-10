@@ -23,6 +23,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from django.views.generic import RedirectView
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "healthy"})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,10 +35,9 @@ urlpatterns = [
     path('api/', include('productos.urls')),
     path('api/', include('personales.urls')),
     path('api/', include('blasting.urls')),
+    path('api/health/', health_check, name='health_check'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 urlpatterns += [
     path('', RedirectView.as_view(url='/api/', permanent=True)),
 ]
-
-
