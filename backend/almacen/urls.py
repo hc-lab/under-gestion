@@ -30,14 +30,17 @@ def health_check(request):
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/', include('productos.urls')),
-    path('api/', include('personales.urls')),
-    path('api/', include('blasting.urls')),
-    path('api/health/', health_check, name='health_check'),
+    path('api/', include([
+        path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+        path('', include('productos.urls')),
+        path('', include('personales.urls')),
+        path('', include('blasting.urls')),
+        path('health/', health_check, name='health_check'),
+    ])),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+# Redirección de la raíz a /api/
 urlpatterns += [
     path('', RedirectView.as_view(url='/api/', permanent=True)),
 ]

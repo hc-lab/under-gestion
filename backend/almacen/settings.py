@@ -16,7 +16,12 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-(rz+bg(+ysu9iz#j)sgx5t@zcs
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 # ALLOWED_HOSTS
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'under-gestion-api.onrender.com',
+    '.onrender.com',
+]
 
 # Application definition
 INSTALLED_APPS = [
@@ -63,17 +68,41 @@ MIDDLEWARE = [
     'almacen.middleware.RoleMiddleware',
 ]
 
-# CORS Configuration - Temporary permissive settings for debugging
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS Configuration
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://under-gestion-frontend.onrender.com",
+]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.onrender\.com$",
+]
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = ['*']
-CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 # Configuración de seguridad
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
-    "https://under-gestion-api.onrender.com"
+    "https://under-gestion-api.onrender.com",
 ]
 
 CSRF_COOKIE_SECURE = True
