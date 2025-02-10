@@ -3,7 +3,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // API URLs
-const PROD_API_URL = 'https://under-gestion-api.onrender.com';
+const PROD_API_URL = 'https://under-gestion.onrender.com';
 const DEV_API_URL = 'http://localhost:8000';
 
 // Use environment variable if set, otherwise fallback based on environment

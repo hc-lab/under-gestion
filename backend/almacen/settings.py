@@ -19,6 +19,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
+    'under-gestion.onrender.com',
     'under-gestion-api.onrender.com',
     '.onrender.com',
 ]
@@ -73,6 +74,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
+    "https://under-gestion.onrender.com",
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.onrender\.com$",
@@ -102,6 +104,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
+    "https://under-gestion.onrender.com",
     "https://under-gestion-api.onrender.com",
 ]
 
