@@ -95,9 +95,6 @@ CORS_ALLOW_HEADERS = [
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
-    'access-control-allow-origin',
-    'access-control-allow-headers',
-    'access-control-allow-methods',
 ]
 
 # Configuración de seguridad
