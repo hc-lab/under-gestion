@@ -1,5 +1,8 @@
 from rest_framework import viewsets
-from .models import Producto, SalidaProducto, Categoria, Noticia, PerfilUsuario, IngresoProducto
+from .models import (
+    Producto, SalidaProducto, Categoria, Noticia, 
+    PerfilUsuario, IngresoProducto, HistorialProducto
+)
 from .serializers import ProductoSerializer, SalidaProductoSerializer, CategoriaSerializer, NoticiaSerializer, IngresoProductoSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -212,28 +215,47 @@ class DashboardDataView(APIView):
 
     def get(self, request):
         try:
-            # Obtener estadísticas básicas
-            total_productos = Producto.objects.count()
-            productos_en_stock = Producto.objects.filter(stock__gt=0).count()
-            productos_alerta = Producto.objects.filter(stock__lte=10).count()
+            # Usar select_related para optimizar las consultas
+            productos = Producto.objects.all()
+            
+            # Calcular estadísticas usando valores en memoria
+            total_productos = productos.count()
+            productos_en_stock = productos.filter(stock__gt=0).count()
+            productos_alerta = productos.filter(stock__lte=10).count()
 
-            # Obtener movimientos del día
+            # Obtener movimientos del día usando el índice de fecha
             hoy = timezone.now().date()
             movimientos_hoy = HistorialProducto.objects.filter(
                 fecha__date=hoy
-            ).count()
+            ).select_related('producto').count()
 
             data = {
                 'totalProductos': total_productos,
                 'enStock': productos_en_stock,
                 'alertas': productos_alerta,
-                'movimientosHoy': movimientos_hoy
+                'movimientosHoy': movimientos_hoy,
+                'ultimosMovimientos': []  # Lista vacía por defecto
             }
+
+            # Obtener los últimos 5 movimientos de manera eficiente
+            ultimos_movimientos = (
+                HistorialProducto.objects.select_related('producto', 'usuario')
+                .order_by('-fecha')[:5]
+            )
+            
+            data['ultimosMovimientos'] = [{
+                'tipo': m.tipo_movimiento,
+                'producto': m.producto.nombre,
+                'cantidad': m.cantidad,
+                'fecha': m.fecha,
+                'usuario': m.usuario.username if m.usuario else 'Sistema'
+            } for m in ultimos_movimientos]
 
             return Response(data)
         except Exception as e:
+            logger.error(f"Error en DashboardDataView: {str(e)}")
             return Response(
-                {'error': str(e)}, 
+                {'error': 'Error al cargar datos del dashboard'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

@@ -163,6 +163,18 @@ class IngresoProducto(models.Model):
                 fecha=self.fecha
             )
 
+class HistorialProducto(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    tipo_movimiento = models.CharField(max_length=50)  # 'Ingreso' o 'Salida'
+    cantidad = models.IntegerField()
+    fecha = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    motivo = models.TextField(blank=True, null=True)
+    entregado_a = models.ForeignKey(Personal, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.tipo_movimiento} de {self.producto.nombre} - {self.fecha}"
+
 class AuditoriaLog(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     accion = models.CharField(max_length=50)  # CREATE, UPDATE, DELETE
