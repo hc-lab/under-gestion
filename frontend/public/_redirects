@@ -1,4 +1,10 @@
-/* /index.html 200!
-/api/* https://under-gestion-api.onrender.com/api/:splat 200
-/static/* /static/:splat 200
-/assets/* /assets/:splat 200 
+/*    /index.html   200
+/dashboard    /index.html   200
+/login    /index.html   200
+/productos    /index.html   200
+/personal    /index.html   200
+/blasting    /index.html   200
+/rrhh    /index.html   200
+/api/*    https://under-gestion-api.onrender.com/api/:splat    200
+/static/*    /static/:splat    200
+/assets/*    /assets/:splat    200 
