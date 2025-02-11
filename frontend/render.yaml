@@ -4,7 +4,11 @@ services:
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./build
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
     routes:
       - type: rewrite
-        source: /*
+        source: /(.*) 
         destination: /index.html 
