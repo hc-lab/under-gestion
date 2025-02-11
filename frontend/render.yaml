@@ -8,6 +8,9 @@ services:
       - path: /*
         name: Cache-Control
         value: no-cache, no-store, must-revalidate
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
     routes:
       - type: rewrite
         source: /.*
