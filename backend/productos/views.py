@@ -215,6 +215,9 @@ class DashboardDataView(APIView):
 
     def get(self, request):
         try:
+            logger.info(f"Iniciando carga de dashboard para usuario: {request.user.username}")
+            start_time = timezone.now()
+
             # Usar select_related para optimizar las consultas
             productos = Producto.objects.all()
             
@@ -229,21 +232,13 @@ class DashboardDataView(APIView):
                 fecha__date=hoy
             ).select_related('producto').count()
 
-            data = {
-                'totalProductos': total_productos,
-                'enStock': productos_en_stock,
-                'alertas': productos_alerta,
-                'movimientosHoy': movimientos_hoy,
-                'ultimosMovimientos': []  # Lista vacía por defecto
-            }
-
             # Obtener los últimos 5 movimientos de manera eficiente
             ultimos_movimientos = (
                 HistorialProducto.objects.select_related('producto', 'usuario')
                 .order_by('-fecha')[:5]
             )
             
-            data['ultimosMovimientos'] = [{
+            movimientos_list = [{
                 'tipo': m.tipo_movimiento,
                 'producto': m.producto.nombre,
                 'cantidad': m.cantidad,
@@ -251,11 +246,52 @@ class DashboardDataView(APIView):
                 'usuario': m.usuario.username if m.usuario else 'Sistema'
             } for m in ultimos_movimientos]
 
+            data = {
+                'totalProductos': total_productos,
+                'enStock': productos_en_stock,
+                'alertas': productos_alerta,
+                'movimientosHoy': movimientos_hoy,
+                'ultimosMovimientos': movimientos_list
+            }
+
+            # Calcular tiempo de respuesta
+            tiempo_respuesta = (timezone.now() - start_time).total_seconds()
+            logger.info(
+                f"Dashboard cargado exitosamente para {request.user.username}. "
+                f"Tiempo: {tiempo_respuesta:.2f}s. "
+                f"Productos: {total_productos}, En Stock: {productos_en_stock}, "
+                f"Alertas: {productos_alerta}, Movimientos Hoy: {movimientos_hoy}"
+            )
+
             return Response(data)
-        except Exception as e:
-            logger.error(f"Error en DashboardDataView: {str(e)}")
+
+        except HistorialProducto.DoesNotExist as e:
+            logger.warning(
+                f"Error al acceder al historial de productos: {str(e)}",
+                exc_info=True
+            )
             return Response(
-                {'error': 'Error al cargar datos del dashboard'}, 
+                {
+                    'error': 'Error al acceder al historial de productos',
+                    'detalles': str(e)
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            logger.error(
+                f"Error inesperado en DashboardDataView: {str(e)}",
+                exc_info=True,
+                extra={
+                    'user': request.user.username,
+                    'path': request.path,
+                    'method': request.method
+                }
+            )
+            return Response(
+                {
+                    'error': 'Error al cargar datos del dashboard',
+                    'mensaje': 'Por favor, inténtelo de nuevo más tarde'
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 

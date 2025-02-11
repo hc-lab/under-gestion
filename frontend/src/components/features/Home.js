@@ -175,9 +175,50 @@ const NewsText = styled.p`
     padding: 0 1rem;
 `;
 
+const LoadingSpinner = styled.div`
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+`;
+
+const ErrorMessage = styled.div`
+  background-color: #fff3f3;
+  color: #d32f2f;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  text-align: center;
+  border: 1px solid #ffcdd2;
+`;
+
+const RetryButton = styled.button`
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+  &:hover {
+    background-color: #1976d2;
+  }
+`;
+
 const Home = () => {
   const [news, setNews] = useState([]);
   const [activeImages, setActiveImages] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -199,12 +240,15 @@ const Home = () => {
 
   useEffect(() => {
     fetchNews();
-  }, []);
+  }, [retryCount]);
 
   const fetchNews = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const response = await axiosInstance.get('noticias/');
       setNews(response.data);
+      
       // Inicializar las imágenes activas
       const initialActiveImages = {};
       response.data.forEach(item => {
@@ -215,7 +259,17 @@ const Home = () => {
       setActiveImages(initialActiveImages);
     } catch (error) {
       console.error('Error al cargar noticias:', error);
+      setError(
+        error.response?.data?.error || 
+        'Error al cargar las noticias. Por favor, inténtelo de nuevo.'
+      );
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
   };
 
   const handleImageClick = (noticiaId, imageIndex) => {
@@ -225,65 +279,95 @@ const Home = () => {
     }));
   };
 
+  if (loading) {
+    return (
+      <HomeContainer>
+        <LoadingSpinner />
+      </HomeContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <HomeContainer>
+        <ErrorMessage>
+          {error}
+          <RetryButton onClick={handleRetry}>
+            Intentar de nuevo
+          </RetryButton>
+        </ErrorMessage>
+      </HomeContainer>
+    );
+  }
+
   return (
     <HomeContainer>
       <NewsSection>
         <SectionTitle>Últimas Noticias</SectionTitle>
         <NewsGrid>
-          {news.map((item) => (
-            <NewsCard key={item.id}>
-              {item.imagenes && item.imagenes.length > 0 && (
-                <ImageContainer>
-                  {item.imagenes.map((imagen, index) => (
-                    <React.Fragment key={imagen.id}>
-                      <MainImage
-                        src={imagen.imagen}
-                        alt={item.titulo}
-                        $active={activeImages[item.id] === index}
-                        style={{
-                          zIndex: activeImages[item.id] === index ? 1 : 0
-                        }}
-                      />
-                      <ImageOverlay
-                        style={{
-                          zIndex: activeImages[item.id] === index ? 2 : 0,
-                          opacity: activeImages[item.id] === index ? 1 : 0
-                        }}
-                      />
-                    </React.Fragment>
-                  ))}
-                  {item.imagenes.length > 1 && (
-                    <ThumbnailsContainer style={{ zIndex: 3 }}>
-                      {item.imagenes.map((imagen, index) => (
-                        <Thumbnail
-                          key={imagen.id}
-                          src={imagen.imagen}
-                          alt={`Thumbnail ${index + 1}`}
-                          onClick={() => handleImageClick(item.id, index)}
-                          $active={activeImages[item.id] === index}
-                        />
-                      ))}
-                    </ThumbnailsContainer>
-                  )}
-                </ImageContainer>
-              )}
+          {news.length === 0 ? (
+            <NewsCard>
               <NewsContent>
-                <NewsTitle>{item.titulo}</NewsTitle>
-                <NewsDate>
-                  {new Date(item.fecha_creacion).toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </NewsDate>
-                <NewsText>{item.contenido}</NewsText>
+                <NewsTitle>No hay noticias disponibles</NewsTitle>
+                <NewsText>No hay noticias para mostrar en este momento.</NewsText>
               </NewsContent>
             </NewsCard>
-          ))}
+          ) : (
+            news.map((item) => (
+              <NewsCard key={item.id}>
+                {item.imagenes && item.imagenes.length > 0 && (
+                  <ImageContainer>
+                    {item.imagenes.map((imagen, index) => (
+                      <React.Fragment key={imagen.id}>
+                        <MainImage
+                          src={imagen.imagen}
+                          alt={item.titulo}
+                          $active={activeImages[item.id] === index}
+                          style={{
+                            zIndex: activeImages[item.id] === index ? 1 : 0
+                          }}
+                        />
+                        <ImageOverlay
+                          style={{
+                            zIndex: activeImages[item.id] === index ? 2 : 0,
+                            opacity: activeImages[item.id] === index ? 1 : 0
+                          }}
+                        />
+                      </React.Fragment>
+                    ))}
+                    {item.imagenes.length > 1 && (
+                      <ThumbnailsContainer style={{ zIndex: 3 }}>
+                        {item.imagenes.map((imagen, index) => (
+                          <Thumbnail
+                            key={imagen.id}
+                            src={imagen.imagen}
+                            alt={`Thumbnail ${index + 1}`}
+                            onClick={() => handleImageClick(item.id, index)}
+                            $active={activeImages[item.id] === index}
+                          />
+                        ))}
+                      </ThumbnailsContainer>
+                    )}
+                  </ImageContainer>
+                )}
+                <NewsContent>
+                  <NewsTitle>{item.titulo}</NewsTitle>
+                  <NewsDate>
+                    {new Date(item.fecha_creacion).toLocaleDateString('es-ES', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </NewsDate>
+                  <NewsText>{item.contenido}</NewsText>
+                </NewsContent>
+              </NewsCard>
+            ))
+          )}
         </NewsGrid>
       </NewsSection>
     </HomeContainer>
   );
 };
 
-export default Home; 
+export default Home;
