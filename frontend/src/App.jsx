@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './AuthContext';
 import ThemeProvider from './components/layout/ThemeProvider';
 import Layout from './components/layout/Layout';
-import Navbar from './components/common/Navbar';
+import Navbar from './components/layout/Navbar';
 
 // Componentes de características
 import Login from './components/features/Login';
