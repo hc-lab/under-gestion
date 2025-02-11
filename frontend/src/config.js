@@ -2,12 +2,8 @@
 const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// API URLs
-const PROD_API_URL = 'https://under-gestion.onrender.com';
-const DEV_API_URL = 'http://localhost:8000';
-
-// Use environment variable if set, otherwise fallback based on environment
-const API_URL = process.env.REACT_APP_API_URL || (isProduction ? PROD_API_URL : DEV_API_URL);
+// API URLs - Forzar URL correcta
+const API_URL = 'https://under-gestion.onrender.com';
 
 console.log('API URL:', API_URL); // Debug log
 
