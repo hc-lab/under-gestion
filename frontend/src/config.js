@@ -9,6 +9,8 @@ const DEV_API_URL = 'http://localhost:8000';
 // Use environment variable if set, otherwise fallback based on environment
 const API_URL = process.env.REACT_APP_API_URL || (isProduction ? PROD_API_URL : DEV_API_URL);
 
+console.log('API URL:', API_URL); // Debug log
+
 // API Configuration
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
@@ -19,7 +21,7 @@ export const API_ENDPOINTS = {
     },
     USER: {
         CURRENT: `${API_URL}/api/user/current/`,
-        PROFILE: `${API_URL}/api/user/profile/`,
+        PROFILE: `${API_URL}/api/user/current/`,
     },
     NOTICIAS: `${API_URL}/api/noticias/`,
     PRODUCTOS: `${API_URL}/api/productos/`,
@@ -37,8 +39,4 @@ export const APP_CONFIG = {
 };
 
 // Development Logging
-if (isDevelopment) {
-    console.log('[Config] Environment:', process.env.NODE_ENV);
-    console.log('[Config] API URL:', API_URL);
-    console.log('[Config] Endpoints:', API_ENDPOINTS);
-}
+console.log('[Config] API Endpoints:', API_ENDPOINTS); // Debug log
