@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from personales.models import Personal
 
+
 class Categoria(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
     descripcion = models.TextField(blank=True, null=True)
@@ -13,16 +14,21 @@ class Categoria(models.Model):
     def __str__(self):
         return self.nombre
 
+
 class Producto(models.Model):
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, default=1)  # Asegúrate de que el ID 1 exista en tu tabla de usuarios
-    nombre = models.CharField(max_length=200)
-    stock = models.IntegerField()
+    # Asegúrate de que el ID 1 exista en tu tabla de usuarios
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
+    # Índice para búsquedas
+    nombre = models.CharField(max_length=200, db_index=True)
+    # Índice para optimizar consultas
+    stock = models.IntegerField(db_index=True)
     unidad_medida = models.CharField(max_length=50, choices=[
         ('Unidad', 'Unidad'),
         ('Kg', 'Kg'),
         ('Par', 'Par'),
     ], default='Unidad')
-    estado = models.CharField(max_length=50, default='No disponible', editable=False)
+    estado = models.CharField(
+        max_length=50, default='No disponible', editable=False)
     descripcion = models.TextField(blank=True, null=True)
     fecha_creacion = models.DateTimeField(default=timezone.now)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
@@ -73,16 +79,16 @@ class SalidaProducto(models.Model):
         with transaction.atomic():
             # Obtener el producto con bloqueo
             producto = Producto.objects.select_for_update().get(id=self.producto.id)
-            
+
             self.clean()
-            
+
             # Guardar la salida primero
             super().save(*args, **kwargs)
-            
+
             # Actualizar el stock del producto
             producto.stock -= self.cantidad
             producto.save()
-            
+
             # Crear una entrada en el historial del producto
             HistorialProducto.objects.create(
                 producto=self.producto,
@@ -92,6 +98,7 @@ class SalidaProducto(models.Model):
                 motivo=self.motivo,
                 usuario=self.usuario
             )
+
 
 class Noticia(models.Model):
     titulo = models.CharField(max_length=200)
@@ -105,8 +112,10 @@ class Noticia(models.Model):
     def __str__(self):
         return self.titulo
 
+
 class ImagenNoticia(models.Model):
-    noticia = models.ForeignKey(Noticia, related_name='imagenes', on_delete=models.CASCADE)
+    noticia = models.ForeignKey(
+        Noticia, related_name='imagenes', on_delete=models.CASCADE)
     imagen = models.ImageField(upload_to='noticias/')
     descripcion = models.CharField(max_length=200, blank=True, null=True)
     orden = models.IntegerField(default=0)
@@ -116,6 +125,7 @@ class ImagenNoticia(models.Model):
 
     def __str__(self):
         return f"Imagen {self.orden} de {self.noticia.titulo}"
+
 
 class PerfilUsuario(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -134,8 +144,10 @@ class PerfilUsuario(models.Model):
             ("full_access", "Acceso total al sistema"),
         ]
 
+
 class IngresoProducto(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='ingresos')
+    producto = models.ForeignKey(
+        Producto, on_delete=models.CASCADE, related_name='ingresos')
     fecha = models.DateTimeField(default=timezone.now)
     cantidad = models.IntegerField()
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -148,11 +160,11 @@ class IngresoProducto(models.Model):
         with transaction.atomic():
             # Guardar el ingreso
             super().save(*args, **kwargs)
-            
+
             # Actualizar el stock del producto
             self.producto.stock += self.cantidad
             self.producto.save()
-            
+
             # Crear una entrada en el historial del producto
             HistorialProducto.objects.create(
                 producto=self.producto,
@@ -163,6 +175,7 @@ class IngresoProducto(models.Model):
                 fecha=self.fecha
             )
 
+
 class HistorialProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     tipo_movimiento = models.CharField(max_length=50)  # 'Ingreso' o 'Salida'
@@ -170,10 +183,12 @@ class HistorialProducto(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     motivo = models.TextField(blank=True, null=True)
-    entregado_a = models.ForeignKey(Personal, on_delete=models.SET_NULL, null=True, blank=True)
+    entregado_a = models.ForeignKey(
+        Personal, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.tipo_movimiento} de {self.producto.nombre} - {self.fecha}"
+
 
 class AuditoriaLog(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
@@ -182,6 +197,7 @@ class AuditoriaLog(models.Model):
     objeto_id = models.IntegerField()
     detalles = models.JSONField()
     fecha = models.DateTimeField(auto_now_add=True)
+
 
 class Notificacion(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)

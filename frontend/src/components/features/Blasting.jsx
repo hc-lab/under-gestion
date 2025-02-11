@@ -31,17 +31,34 @@ const Blasting = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            await axiosInstance.post('blasting/', formData);
-            toast.success('Registro añadido exitosamente');
-            fetchRegistros();
-            setFormData({
-                armadas: '',
-                longitud: '',
-                turno: 'DIA',
-                perforacion: 'EXTRACCION'
-            });
+            // Validar datos antes de enviar
+            if (!formData.armadas || formData.armadas <= 0) {
+                toast.error('El número de armadas debe ser mayor que 0');
+                return;
+            }
+            if (!formData.longitud || formData.longitud <= 0) {
+                toast.error('La longitud debe ser mayor que 0');
+                return;
+            }
+
+            const response = await axiosInstance.post('blasting/', formData);
+
+            if (response.data) {
+                toast.success('Registro añadido exitosamente');
+                await fetchRegistros();
+                setFormData({
+                    armadas: '',
+                    longitud: '',
+                    turno: 'DIA',
+                    perforacion: 'EXTRACCION'
+                });
+            }
         } catch (error) {
-            toast.error('Error al crear el registro');
+            console.error('Error al crear el registro:', error);
+            const errorMessage = error.response?.data?.error ||
+                error.response?.data?.detail ||
+                'Error al crear el registro';
+            toast.error(errorMessage);
         }
     };
 

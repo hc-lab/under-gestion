@@ -140,11 +140,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'almacen.wsgi.application'
 
 # Database configuration
-DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgres://hitt:1234@db:5432/almacen')
-    )
-}
+if os.getenv('RENDER', False):
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL', 'postgres://hitt:1234@db:5432/almacen')
+        )
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.getenv('DATABASE_URL', 'postgres://hitt:1234@localhost:5432/almacen')
+        )
+    }
 
 # Logging configuration
 LOGGING = {
