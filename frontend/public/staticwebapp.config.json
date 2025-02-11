@@ -1,0 +1,17 @@
+{
+    "navigationFallback": {
+        "rewrite": "index.html",
+        "exclude": [
+            "/static/*",
+            "/assets/*",
+            "/*.{png,jpg,gif,ico,svg}"
+        ]
+    },
+    "mimeTypes": {
+        ".json": "text/json"
+    },
+    "globalHeaders": {
+        "cache-control": "no-cache",
+        "X-Frame-Options": "DENY"
+    }
+}
