@@ -2,7 +2,7 @@ services:
   - type: web
     name: under-gestion-frontend
     env: static
-    buildCommand: npm install && npm run build
+    buildCommand: chmod +x render-build.sh && ./render-build.sh
     staticPublishPath: ./build
     headers:
       - path: /*
@@ -10,6 +10,6 @@ services:
         value: no-cache, no-store, must-revalidate
     routes:
       - type: rewrite
-        source: /(.*)
-        destination: /
+        source: /.*
+        destination: /index.html
     spa: true 
