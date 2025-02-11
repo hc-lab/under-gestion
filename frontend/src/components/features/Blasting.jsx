@@ -6,8 +6,8 @@ import { format } from 'date-fns';
 const ResumenEstadistico = ({ registros }) => {
     const totales = registros.reduce((acc, registro) => {
         return {
-            armadas: acc.armadas + registro.armadas,
-            longitud: acc.longitud + registro.longitud,
+            armadas: acc.armadas + (Number(registro.armadas) || 0),
+            longitud: acc.longitud + (Number(registro.longitud) || 0),
             dias: acc.dias + (registro.turno === 'DIA' ? 1 : 0),
             noches: acc.noches + (registro.turno === 'NOCHE' ? 1 : 0),
             extraccion: acc.extraccion + (registro.perforacion === 'EXTRACCION' ? 1 : 0),
@@ -16,8 +16,14 @@ const ResumenEstadistico = ({ registros }) => {
     }, { armadas: 0, longitud: 0, dias: 0, noches: 0, extraccion: 0, avance: 0 });
 
     const promedios = {
-        armadasPorDia: totales.armadas / registros.length || 0,
-        longitudPorArmada: totales.longitud / totales.armadas || 0
+        armadasPorDia: totales.armadas / (registros.length || 1),
+        longitudPorArmada: totales.longitud / (totales.armadas || 1)
+    };
+
+    // Función auxiliar para formatear números
+    const formatNumber = (value) => {
+        const num = Number(value);
+        return isNaN(num) ? '0.00' : num.toFixed(2);
     };
 
     return (
@@ -28,7 +34,7 @@ const ResumenEstadistico = ({ registros }) => {
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">Totales</h3>
                     <div className="space-y-3">
                         <p className="text-gray-600">Total Armadas: <span className="font-bold text-indigo-600">{totales.armadas}</span></p>
-                        <p className="text-gray-600">Longitud Total: <span className="font-bold text-indigo-600">{totales.longitud.toFixed(2)} pies</span></p>
+                        <p className="text-gray-600">Longitud Total: <span className="font-bold text-indigo-600">{formatNumber(totales.longitud)} pies</span></p>
                     </div>
                 </div>
 
@@ -60,7 +66,7 @@ const ResumenEstadistico = ({ registros }) => {
                             </svg>
                         </div>
                         <p className="text-gray-700">
-                            <span className="font-semibold">Promedio de armadas por día:</span> {promedios.armadasPorDia.toFixed(2)}
+                            <span className="font-semibold">Promedio de armadas por día:</span> {formatNumber(promedios.armadasPorDia)}
                         </p>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -70,7 +76,7 @@ const ResumenEstadistico = ({ registros }) => {
                             </svg>
                         </div>
                         <p className="text-gray-700">
-                            <span className="font-semibold">Longitud promedio por armada:</span> {promedios.longitudPorArmada.toFixed(2)} pies
+                            <span className="font-semibold">Longitud promedio por armada:</span> {formatNumber(promedios.longitudPorArmada)} pies
                         </p>
                     </div>
                     <div className="flex items-center space-x-2">
