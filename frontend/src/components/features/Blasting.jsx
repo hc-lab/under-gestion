@@ -10,7 +10,8 @@ const Blasting = () => {
         armadas: '',
         longitud: '',
         turno: 'DIA',
-        perforacion: 'EXTRACCION'
+        perforacion: 'EXTRACCION',
+        fecha: new Date().toISOString().split('T')[0] // Formato YYYY-MM-DD
     });
 
     const fetchRegistros = async () => {
@@ -18,6 +19,7 @@ const Blasting = () => {
             const response = await axiosInstance.get('blasting/');
             setRegistros(response.data);
         } catch (error) {
+            console.error('Error al cargar registros:', error);
             toast.error('Error al cargar los registros');
         } finally {
             setLoading(false);
@@ -30,6 +32,7 @@ const Blasting = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
             // Validar datos antes de enviar
             if (!formData.armadas || formData.armadas <= 0) {
@@ -41,16 +44,22 @@ const Blasting = () => {
                 return;
             }
 
-            const response = await axiosInstance.post('blasting/', formData);
+            const response = await axiosInstance.post('blasting/', {
+                ...formData,
+                fecha: new Date().toISOString().split('T')[0] // Asegurar formato YYYY-MM-DD
+            });
 
             if (response.data) {
                 toast.success('Registro añadido exitosamente');
-                await fetchRegistros();
+                // Actualizar la lista de registros inmediatamente
+                setRegistros(prevRegistros => [response.data, ...prevRegistros]);
+                // Limpiar el formulario
                 setFormData({
                     armadas: '',
                     longitud: '',
                     turno: 'DIA',
-                    perforacion: 'EXTRACCION'
+                    perforacion: 'EXTRACCION',
+                    fecha: new Date().toISOString().split('T')[0]
                 });
             }
         } catch (error) {
@@ -59,6 +68,8 @@ const Blasting = () => {
                 error.response?.data?.detail ||
                 'Error al crear el registro';
             toast.error(errorMessage);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -68,9 +79,9 @@ const Blasting = () => {
 
         // Convertir números a tipo numérico
         if (name === 'armadas') {
-            processedValue = parseInt(value);
+            processedValue = value === '' ? '' : parseInt(value);
         } else if (name === 'longitud') {
-            processedValue = parseFloat(value);
+            processedValue = value === '' ? '' : parseFloat(value);
         }
 
         setFormData(prev => ({
@@ -79,7 +90,7 @@ const Blasting = () => {
         }));
     };
 
-    if (loading) {
+    if (loading && registros.length === 0) {
         return (
             <div className="flex justify-center items-center min-h-screen">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
@@ -104,6 +115,7 @@ const Blasting = () => {
                             value={formData.armadas}
                             onChange={handleChange}
                             required
+                            min="1"
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         />
                     </div>
@@ -118,6 +130,7 @@ const Blasting = () => {
                             value={formData.longitud}
                             onChange={handleChange}
                             required
+                            min="0.01"
                             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         />
                     </div>
@@ -153,9 +166,10 @@ const Blasting = () => {
                 <div className="mt-6">
                     <button
                         type="submit"
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        disabled={loading}
+                        className={`bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        Registrar
+                        {loading ? 'Registrando...' : 'Registrar'}
                     </button>
                 </div>
             </form>
