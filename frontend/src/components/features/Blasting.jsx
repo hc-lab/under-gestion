@@ -3,6 +3,105 @@ import axiosInstance from '../../axiosInstance';
 import { toast } from 'react-hot-toast';
 import { format } from 'date-fns';
 
+const ResumenEstadistico = ({ registros }) => {
+    const totales = registros.reduce((acc, registro) => {
+        return {
+            armadas: acc.armadas + registro.armadas,
+            longitud: acc.longitud + registro.longitud,
+            dias: acc.dias + (registro.turno === 'DIA' ? 1 : 0),
+            noches: acc.noches + (registro.turno === 'NOCHE' ? 1 : 0),
+            extraccion: acc.extraccion + (registro.perforacion === 'EXTRACCION' ? 1 : 0),
+            avance: acc.avance + (registro.perforacion === 'AVANCE' ? 1 : 0)
+        };
+    }, { armadas: 0, longitud: 0, dias: 0, noches: 0, extraccion: 0, avance: 0 });
+
+    const promedios = {
+        armadasPorDia: totales.armadas / registros.length || 0,
+        longitudPorArmada: totales.longitud / totales.armadas || 0
+    };
+
+    return (
+        <div className="mt-8 space-y-8">
+            {/* Totales en Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Totales</h3>
+                    <div className="space-y-3">
+                        <p className="text-gray-600">Total Armadas: <span className="font-bold text-indigo-600">{totales.armadas}</span></p>
+                        <p className="text-gray-600">Longitud Total: <span className="font-bold text-indigo-600">{totales.longitud.toFixed(2)} pies</span></p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Distribución de Turnos</h3>
+                    <div className="space-y-3">
+                        <p className="text-gray-600">Turnos Día: <span className="font-bold text-indigo-600">{totales.dias}</span></p>
+                        <p className="text-gray-600">Turnos Noche: <span className="font-bold text-indigo-600">{totales.noches}</span></p>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Tipo de Perforación</h3>
+                    <div className="space-y-3">
+                        <p className="text-gray-600">Extracción: <span className="font-bold text-indigo-600">{totales.extraccion}</span></p>
+                        <p className="text-gray-600">Avance: <span className="font-bold text-indigo-600">{totales.avance}</span></p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Análisis Gerencial */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-md p-8 border border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-800 mb-6">Análisis Gerencial</h3>
+                <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-700">
+                            <span className="font-semibold">Promedio de armadas por día:</span> {promedios.armadasPorDia.toFixed(2)}
+                        </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-700">
+                            <span className="font-semibold">Longitud promedio por armada:</span> {promedios.longitudPorArmada.toFixed(2)} pies
+                        </p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <p className="text-gray-700">
+                            <span className="font-semibold">Distribución de trabajo:</span> {' '}
+                            {((totales.extraccion / registros.length) * 100).toFixed(1)}% extracción, {' '}
+                            {((totales.avance / registros.length) * 100).toFixed(1)}% avance
+                        </p>
+                    </div>
+                    <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+                        <p className="text-sm text-blue-800 leading-relaxed">
+                            <span className="font-semibold">Recomendaciones:</span><br />
+                            {totales.dias > totales.noches ?
+                                "La mayor parte del trabajo se realiza en turno día. Considerar equilibrar la carga de trabajo entre turnos para optimizar recursos." :
+                                "Existe un buen balance entre turnos día y noche, lo que indica una utilización eficiente del tiempo."}
+                            {promedios.armadasPorDia > 5 ?
+                                " El alto promedio de armadas por día sugiere una operación eficiente." :
+                                " Hay oportunidad de mejorar la eficiencia en el número de armadas por día."}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const Blasting = () => {
     const [registros, setRegistros] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -219,6 +318,9 @@ const Blasting = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Agregar el componente de resumen al final */}
+            <ResumenEstadistico registros={registros} />
         </div>
     );
 };
