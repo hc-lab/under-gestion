@@ -30,13 +30,12 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                // Actualizamos las URLs para que coincidan con la API en render.com
-                const tareoUrl = `${process.env.REACT_APP_API_URL}/api/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
                 const [personalRes, tareosRes, productosRes] = await Promise.all([
-                    axiosInstance.get('/api/personales/'),
+                    axiosInstance.get('/personales/'),
                     axiosInstance.get(tareoUrl),
-                    axiosInstance.get('/api/dashboard-data/')
+                    axiosInstance.get('/dashboard-data/')
                 ]);
 
                 // Agregamos manejo de errores más específico
