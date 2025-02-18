@@ -16,6 +16,9 @@ export const API_ENDPOINTS = {
         VERIFY: '/auth/token/verify/',
         CURRENT_USER: '/user/current/'
     },
+    USER: {
+        CURRENT: '/user/current/'
+    },
     PERSONAL: '/personal/',  // Verificar si es 'personal' o 'personales'
     TAREOS: '/tareos/',
     PRODUCTOS: '/productos/',
