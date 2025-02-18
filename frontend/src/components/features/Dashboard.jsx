@@ -7,7 +7,7 @@ import {
 import axiosInstance from '../../axiosInstance';
 import { Line, PolarArea } from 'react-chartjs-2';
 import { Chart as ChartJS, RadialLinearScale } from 'chart.js/auto';
-
+import config from '../../config';
 
 ChartJS.register(RadialLinearScale);
 
@@ -30,13 +30,21 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                console.log('Iniciando fetch de datos...'); // Debug
+
+                const tareoUrl = `${config.TAREOS}?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
                 const [personalRes, tareosRes, productosRes] = await Promise.all([
-                    axiosInstance.get('/personales/'),
+                    axiosInstance.get(config.PERSONAL),
                     axiosInstance.get(tareoUrl),
-                    axiosInstance.get('/dashboard-data/')
+                    axiosInstance.get(config.DASHBOARD)
                 ]);
+
+                console.log('Respuestas recibidas:', { // Debug
+                    personal: personalRes.data,
+                    tareos: tareosRes.data,
+                    productos: productosRes.data
+                });
 
                 // Agregamos manejo de errores más específico
                 if (!personalRes.data || !tareosRes.data || !productosRes.data) {
@@ -66,7 +74,12 @@ const Dashboard = () => {
 
                 setLoading(false);
             } catch (error) {
-                console.error('Error al cargar datos del dashboard:', error);
+                console.error('Error detallado:', {
+                    message: error.message,
+                    status: error.response?.status,
+                    data: error.response?.data,
+                    config: error.config
+                });
                 setLoading(false);
                 // Podrías agregar aquí una notificación de error al usuario
             }

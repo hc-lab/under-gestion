@@ -11,19 +11,18 @@ console.log('API URL:', API_URL); // Debug log
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
     AUTH: {
-        LOGIN: `${API_URL}/api/auth/token/`,
-        REFRESH: `${API_URL}/api/auth/token/refresh/`,
-        VERIFY: `${API_URL}/api/auth/token/verify/`,
+        LOGIN: '/auth/token/',
+        REFRESH: '/auth/token/refresh/',
+        VERIFY: '/auth/token/verify/',
+        CURRENT_USER: '/user/current/'
     },
-    USER: {
-        CURRENT: `${API_URL}/api/user/current/`,
-        PROFILE: `${API_URL}/api/user/current/`,
-    },
-    NOTICIAS: `${API_URL}/api/noticias/`,
-    PRODUCTOS: `${API_URL}/api/productos/`,
-    PERSONALES: `${API_URL}/api/personales/`,
-    BLASTING: `${API_URL}/api/blasting/`,
+    PERSONAL: '/personal/',  // Verificar si es 'personal' o 'personales'
+    TAREOS: '/tareos/',
+    PRODUCTOS: '/productos/',
+    DASHBOARD: '/dashboard-data/'
 };
+
+export default API_ENDPOINTS;
 
 // App Configuration
 export const APP_CONFIG = {
