@@ -30,13 +30,19 @@ const Dashboard = () => {
                 const month = today.getMonth() + 1;
                 const day = today.getDate();
 
-                const tareoUrl = `/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                // Actualizamos las URLs para que coincidan con la API en render.com
+                const tareoUrl = `${process.env.REACT_APP_API_URL}/api/tareos/?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
                 const [personalRes, tareosRes, productosRes] = await Promise.all([
-                    axiosInstance.get('/personal/'),
+                    axiosInstance.get('/api/personales/'),
                     axiosInstance.get(tareoUrl),
-                    axiosInstance.get('/dashboard-data/')
+                    axiosInstance.get('/api/dashboard-data/')
                 ]);
+
+                // Agregamos manejo de errores más específico
+                if (!personalRes.data || !tareosRes.data || !productosRes.data) {
+                    throw new Error('Error al obtener datos del servidor');
+                }
 
                 const totalPersonalRegistrado = personalRes.data.length;
                 const tareosDia = tareosRes.data;
@@ -54,15 +60,16 @@ const Dashboard = () => {
                     totalPersonalRegistrado,
                     conteoTareos,
                     enStock: productosData.enStock || 0,
-
                     totalProductos: productosData.totalProductos || 0,
-                    movimientosHoy: productosData.movimientosHoy || 0
+                    movimientosHoy: productosData.movimientosHoy || 0,
+                    alertas: productosData.alertas || 0 // Agregamos manejo de alertas
                 });
 
                 setLoading(false);
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error al cargar datos del dashboard:', error);
                 setLoading(false);
+                // Podrías agregar aquí una notificación de error al usuario
             }
         };
 
@@ -278,4 +285,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard; 
+export default Dashboard;
