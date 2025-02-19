@@ -1,100 +1,89 @@
-import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import axios from 'axios';
-import axiosInstance from './axiosInstance';
 import { API_ENDPOINTS } from './config';
-
-const API_BASE_URL = axiosInstance.defaults.baseURL;
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-    const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return !!localStorage.getItem('token');
-    });
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
-    const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const abortControllerRef = useRef(null);
-    const checkAuthTimeoutRef = useRef(null);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        delete axiosInstance.defaults.headers.common['Authorization'];
         setIsAuthenticated(false);
         setUser(null);
-        setUserRole(null);
     };
 
     const login = async (credentials) => {
         try {
-            handleLogout(); // Limpiar estado anterior
+            // Primero obtener el token
+            const tokenResponse = await axios.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
             
-            console.log('Intentando login con:', API_ENDPOINTS.AUTH.LOGIN);
-            
-            const tokenResponse = await axios.post(
-                API_ENDPOINTS.AUTH.LOGIN,
-                credentials,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
-
-            console.log('Respuesta de login:', tokenResponse.data);
+            if (!tokenResponse.data.access) {
+                throw new Error('Token no recibido');
+            }
 
             const { access, refresh } = tokenResponse.data;
-            
             localStorage.setItem('token', access);
             localStorage.setItem('refreshToken', refresh);
-            axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
-            console.log('Respuesta de usuario:', userResponse.data);
+            // Configurar el token para la siguiente petición
+            const headers = {
+                'Authorization': `Bearer ${access}`,
+                'Content-Type': 'application/json'
+            };
 
+            // Obtener datos del usuario
+            const userResponse = await axios.get(API_ENDPOINTS.USER.CURRENT, { headers });
+            
             if (!userResponse.data) {
                 throw new Error('No se pudo obtener la información del usuario');
             }
 
             setUser(userResponse.data);
-            setUserRole(userResponse.data.perfil?.rol || 'OPERADOR');
             setIsAuthenticated(true);
             
             return true;
         } catch (error) {
             console.error('Error en login:', error);
-            console.error('Detalles del error:', error.response?.data);
             handleLogout();
-            throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
+            
+            // Mensaje de error más específico
+            if (error.response?.status === 404) {
+                throw new Error('Ruta de API no encontrada');
+            } else if (error.response?.status === 401) {
+                throw new Error('Credenciales inválidas');
+            } else {
+                throw new Error(error.response?.data?.detail || 'Error en el inicio de sesión');
+            }
         }
     };
 
     const checkAuth = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            handleLogout();
+            setIsLoading(false);
+            return;
+        }
+
         try {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-            abortControllerRef.current = new AbortController();
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
 
-            const token = localStorage.getItem('token');
-            if (!token) {
-                handleLogout();
-                setIsLoading(false);
-                return;
-            }
-
-            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
-            if (userResponse.data && userResponse.data.perfil) {
+            const userResponse = await axios.get(API_ENDPOINTS.USER.CURRENT, { headers });
+            if (userResponse.data) {
                 setUser(userResponse.data);
-                setUserRole(userResponse.data.perfil.rol);
                 setIsAuthenticated(true);
             }
         } catch (error) {
-            if (!axios.isCancel(error)) {
-                console.error('Error checking auth:', error);
-                handleLogout();
-            }
+            console.error('Error verificando autenticación:', error);
+            handleLogout();
         } finally {
             setIsLoading(false);
         }
@@ -102,22 +91,12 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         checkAuth();
-        return () => {
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
     }, []);
-
-    if (isLoading) {
-        return <div>Cargando...</div>;
-    }
 
     return (
         <AuthContext.Provider value={{
             isAuthenticated,
             user,
-            userRole,
             login,
             logout: handleLogout,
             isLoading

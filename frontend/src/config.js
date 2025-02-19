@@ -3,7 +3,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // API URLs - Forzar URL correcta
-export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://under-gestion.onrender.com';
+export const API_BASE_URL = 'https://under-gestion.onrender.com';
 
 console.log('API URL:', API_BASE_URL); // Debug log
 
@@ -12,9 +12,11 @@ export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: `${API_BASE_URL}/api/token/`,
         REFRESH: `${API_BASE_URL}/api/token/refresh/`,
+        VERIFY: `${API_BASE_URL}/api/token/verify/`,
     },
     USER: {
-        CURRENT: `${API_BASE_URL}/api/users/me/`,
+        CURRENT: `${API_BASE_URL}/api/user/me/`,  // Corregido de users a user
+        PROFILE: `${API_BASE_URL}/api/user/profile/`,
     },
     PERSONAL: `${API_BASE_URL}/api/personal/`,  // Verificar si es 'personal' o 'personales'
     TAREOS: `${API_BASE_URL}/api/tareos/`,
