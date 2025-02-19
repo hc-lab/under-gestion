@@ -2,6 +2,7 @@ from datetime import timedelta
 import os
 from pathlib import Path
 import dj_database_url
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -143,13 +144,21 @@ WSGI_APPLICATION = 'almacen.wsgi.application'
 if os.getenv('RENDER', False):
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', 'postgres://hitt:1234@db:5432/almacen')
+            default=config(
+                'DATABASE_URL',
+                default='postgres://hitt:1234@localhost:5432/almacen'
+            ),
+            conn_max_age=600
         )
     }
 else:
     DATABASES = {
         'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL', 'postgres://hitt:1234@localhost:5432/almacen')
+            default=config(
+                'DATABASE_URL',
+                default='postgres://hitt:1234@localhost:5432/almacen'
+            ),
+            conn_max_age=600
         )
     }
 
