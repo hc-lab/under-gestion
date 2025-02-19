@@ -77,30 +77,22 @@ const RRHH = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const data = {
+            const response = await axiosInstance.post('/tareos/actualizar/', {
                 personal: selectedPersonal.id,
-                fecha: format(new Date(), 'yyyy-MM-dd'),
                 tipo: formData.tipo,
-                observaciones: formData.observaciones || ''
-            };
+                fecha: format(new Date(), 'yyyy-MM-dd'),
+                observaciones: formData.observaciones
+            });
 
-            let response;
-            if (selectedPersonal.tareo?.id) {
-                response = await axiosInstance.put(
-                    `tareos/${selectedPersonal.tareo.id}/`, 
-                    data
-                );
-            } else {
-                await axiosInstance.post('tareos/', data);
+            if (response.status === 200) {
+                toast.success('Registro actualizado con éxito');
+                await fetchPersonalWithTareos();
+                setIsModalOpen(false);
+                refreshTareos();
             }
-
-            toast.success('Tareo actualizado exitosamente');
-            setIsModalOpen(false);
-            await fetchPersonalWithTareos();
-            refreshTareos();
         } catch (error) {
-            console.error('Error al actualizar tareo:', error);
-            toast.error(error.response?.data?.detail || 'Error al actualizar el tareo');
+            console.error('Error al actualizar el registro:', error);
+            toast.error('Error al actualizar el registro');
         }
     };
 
@@ -528,4 +520,4 @@ const RRHH = () => {
     );
 };
 
-export default RRHH; 
+export default RRHH;

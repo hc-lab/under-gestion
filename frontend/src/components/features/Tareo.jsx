@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axiosInstance from '../../axiosInstance';
 import { format, isBefore, startOfToday } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -75,10 +75,6 @@ const Tareo = () => {
         return Array.from({ length: daysInMonth }, (_, i) => i + 1);
     };
 
-    useEffect(() => {
-        fetchData();
-    }, [selectedMonth, selectedYear, shouldRefresh]);
-
     const fetchTareos = async (year, month) => {
         try {
             const daysInMonth = getDaysInMonth(year, month);
@@ -105,7 +101,7 @@ const Tareo = () => {
         }
     };
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
             const [personalRes, tareosData] = await Promise.all([
@@ -120,7 +116,11 @@ const Tareo = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedMonth, selectedYear]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData, shouldRefresh]);
 
     // Función para verificar si una fecha es editable (pasada)
     const isDateEditable = (year, month, day) => {
@@ -149,12 +149,16 @@ const Tareo = () => {
                 tipo: tipo
             };
 
-            await axiosInstance.post('/tareos/actualizar_tareo/', data);
-            await fetchData();
-            setEditingCell(null);
-            refreshTareos();
+            const response = await axiosInstance.post('/tareos/actualizar/', data);
+            
+            if (response.status === 200) {
+                toast.success('Registro actualizado con éxito');
+                await fetchData();
+                setEditingCell(null);
+                refreshTareos();
+            }
         } catch (error) {
-            console.error('Error updating tareo:', error);
+            console.error('Error al actualizar tareo:', error);
             toast.error('Error al actualizar el registro');
         }
     };
@@ -310,4 +314,4 @@ const Tareo = () => {
     );
 };
 
-export default Tareo; 
+export default Tareo;

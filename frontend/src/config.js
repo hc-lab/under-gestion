@@ -3,26 +3,23 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // API URLs - Forzar URL correcta
-const API_URL = 'https://under-gestion.onrender.com';
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://under-gestion.onrender.com';
 
-console.log('API URL:', API_URL); // Debug log
+console.log('API URL:', API_BASE_URL); // Debug log
 
 // API Configuration
 export const API_ENDPOINTS = {
-    BASE: `${API_URL}/api`,
     AUTH: {
-        LOGIN: '/auth/token/',
-        REFRESH: '/auth/token/refresh/',
-        VERIFY: '/auth/token/verify/',
-        CURRENT_USER: '/user/current/'
+        LOGIN: `${API_BASE_URL}/api/token/`,
+        REFRESH: `${API_BASE_URL}/api/token/refresh/`,
     },
     USER: {
-        CURRENT: '/user/current/'
+        CURRENT: `${API_BASE_URL}/api/users/me/`,
     },
-    PERSONAL: '/personal/',  // Verificar si es 'personal' o 'personales'
-    TAREOS: '/tareos/',
-    PRODUCTOS: '/productos/',
-    DASHBOARD: '/dashboard-data/'
+    PERSONAL: `${API_BASE_URL}/api/personal/`,  // Verificar si es 'personal' o 'personales'
+    TAREOS: `${API_BASE_URL}/api/tareos/`,
+    PRODUCTOS: `${API_BASE_URL}/api/productos/`,
+    DASHBOARD: `${API_BASE_URL}/api/dashboard-data/`
 };
 
 export default API_ENDPOINTS;
@@ -33,7 +30,7 @@ export const APP_CONFIG = {
     VERSION: '1.0.0',
     IS_PRODUCTION: isProduction,
     IS_DEVELOPMENT: isDevelopment,
-    API_URL: API_URL
+    API_URL: API_BASE_URL
 };
 
 // Development Logging
