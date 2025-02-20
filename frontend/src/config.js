@@ -5,6 +5,13 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // API URLs - Usar la URL correcta del backend
 export const API_URL = 'https://under-gestion-api.onrender.com';
 
+// CORS Headers Configuration
+export const API_HEADERS = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest'
+};
+
 // API Configuration
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
