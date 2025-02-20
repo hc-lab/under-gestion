@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .models import (
-    Producto, SalidaProducto, Categoria, Noticia, 
+    Producto, SalidaProducto, Categoria, Noticia,
     PerfilUsuario, IngresoProducto, HistorialProducto
 )
 from .serializers import ProductoSerializer, SalidaProductoSerializer, CategoriaSerializer, NoticiaSerializer, IngresoProductoSerializer, UserSerializer
@@ -29,31 +29,13 @@ from rest_framework.decorators import api_view, permission_classes
 
 logger = logging.getLogger(__name__)
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def login_view(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
-    
-    user = authenticate(username=username, password=password)
-    
-    if user:
-        token, _ = Token.objects.get_or_create(user=user)
-        serializer = UserSerializer(user)
-        return Response({
-            'token': token.key,
-            'user': serializer.data
-        })
-    return Response(
-        {'error': 'Credenciales inválidas'}, 
-        status=status.HTTP_400_BAD_REQUEST
-    )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def current_user(request):
     serializer = UserSerializer(request.user)
     return Response(serializer.data)
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -64,11 +46,12 @@ def logout_view(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 class TienePermisosNecesarios(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_superuser:
             return True
-            
+
         try:
             perfil = request.user.perfilusuario
             if request.method in ['POST']:
@@ -81,13 +64,15 @@ class TienePermisosNecesarios(BasePermission):
         except PerfilUsuario.DoesNotExist:
             return False
 
+
 class ProductoFilter(filters.FilterSet):
     nombre = filters.CharFilter(lookup_expr='icontains')
     categoria = filters.CharFilter(field_name='categoria__nombre')
-    
+
     class Meta:
         model = Producto
         fields = ['nombre', 'categoria', 'estado']
+
 
 class ProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -105,21 +90,22 @@ class ProductoViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         try:
-            producto = Producto.objects.select_related('categoria').get(pk=kwargs['pk'])
+            producto = Producto.objects.select_related(
+                'categoria').get(pk=kwargs['pk'])
             serializer = self.get_serializer(producto)
             return Response(serializer.data)
         except Producto.DoesNotExist:
             return Response(
-                {'error': 'Producto no encontrado'}, 
+                {'error': 'Producto no encontrado'},
                 status=status.HTTP_404_NOT_FOUND
             )
-
 
 
 class SalidaProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = SalidaProductoSerializer
-    queryset = SalidaProducto.objects.select_related('producto', 'usuario').all()
+    queryset = SalidaProducto.objects.select_related(
+        'producto', 'usuario').all()
 
     @transaction.atomic
     def create(self, request, *args, **kwargs):
@@ -140,14 +126,15 @@ class SalidaProductoViewSet(viewsets.ModelViewSet):
             return Response({'error': str(e)}, status=400)
         except Exception as e:
             return Response(
-                {'error': 'Error interno del servidor', 'details': str(e)}, 
+                {'error': 'Error interno del servidor', 'details': str(e)},
                 status=500
             )
+
 
 class CustomAuthToken(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
-                                         context={'request': request})
+                                           context={'request': request})
         try:
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data['user']
@@ -168,15 +155,18 @@ class CustomAuthToken(ObtainAuthToken):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+
 class CategoriaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = CategoriaSerializer
     queryset = Categoria.objects.all()
 
+
 class NoticiaViewSet(viewsets.ModelViewSet):
     queryset = Noticia.objects.all().order_by('-fecha_creacion')
     serializer_class = NoticiaSerializer
     permission_classes = [AllowAny]  # Permitir acceso público a las noticias
+
 
 class IngresoProductoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
@@ -188,7 +178,8 @@ class IngresoProductoViewSet(viewsets.ModelViewSet):
         if fecha:
             fecha_inicio = datetime.strptime(fecha, '%Y-%m-%d')
             fecha_fin = fecha_inicio + timedelta(days=1)
-            queryset = queryset.filter(fecha__gte=fecha_inicio, fecha__lt=fecha_fin)
+            queryset = queryset.filter(
+                fecha__gte=fecha_inicio, fecha__lt=fecha_fin)
         else:
             today = timezone.now().date()
             queryset = queryset.filter(fecha__date=today)
@@ -197,6 +188,7 @@ class IngresoProductoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(usuario=self.request.user)
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
@@ -210,17 +202,19 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             }
         return response
 
+
 class DashboardDataView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            logger.info(f"Iniciando carga de dashboard para usuario: {request.user.username}")
+            logger.info(
+                f"Iniciando carga de dashboard para usuario: {request.user.username}")
             start_time = timezone.now()
 
             # Usar select_related para optimizar las consultas
             productos = Producto.objects.all()
-            
+
             # Calcular estadísticas usando valores en memoria
             total_productos = productos.count()
             productos_en_stock = productos.filter(stock__gt=0).count()
@@ -237,7 +231,7 @@ class DashboardDataView(APIView):
                 HistorialProducto.objects.select_related('producto', 'usuario')
                 .order_by('-fecha')[:5]
             )
-            
+
             movimientos_list = [{
                 'tipo': m.tipo_movimiento,
                 'producto': m.producto.nombre,
@@ -295,29 +289,18 @@ class DashboardDataView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
 class SalidaProductoDataView(APIView):
     def get(self, request, producto_id):
         # Filtrar las salidas del producto por ID
         salidas = SalidaProducto.objects.filter(producto_id=producto_id)
-        
+
         # Agrupar por fecha y sumar las cantidades
-        data = salidas.values('fecha_hora__date').annotate(total_salidas=Sum('cantidad')).order_by('fecha_hora__date')
-        
+        data = salidas.values('fecha_hora__date').annotate(
+            total_salidas=Sum('cantidad')).order_by('fecha_hora__date')
+
         # Formatear los datos para el gráfico
         fechas = [entry['fecha_hora__date'] for entry in data]
         cantidades = [entry['total_salidas'] for entry in data]
 
         return Response({'fechas': fechas, 'cantidades': cantidades})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def get_user_data(request):
-    user = request.user
-    data = {
-        'id': user.pk,
-        'username': user.username,
-        'email': user.email,
-        'first_name': user.first_name,
-        'last_name': user.last_name
-    }
-    return Response(data)

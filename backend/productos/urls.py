@@ -6,14 +6,13 @@ from rest_framework_simplejwt.views import (
     TokenVerifyView,
 )
 from .views import (
-    ProductoViewSet, 
-    SalidaProductoViewSet, 
+    ProductoViewSet,
+    SalidaProductoViewSet,
     CategoriaViewSet,
     NoticiaViewSet,
     IngresoProductoViewSet,
     DashboardDataView,
     SalidaProductoDataView,
-    get_user_data,
 )
 
 router = routers.DefaultRouter()
@@ -28,8 +27,9 @@ urlpatterns = [
     path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-    path('user/current/', get_user_data, name='get_user_data'),
     path('dashboard-data/', DashboardDataView.as_view(), name='dashboard-data'),
-    path('salida-producto-data/<int:producto_id>/', SalidaProductoDataView.as_view(), name='salida-producto-data'),
-    path('ingresos-dia/', IngresoProductoViewSet.as_view({'get': 'list'}), name='ingresos-dia'),
+    path('salida-producto-data/<int:producto_id>/',
+         SalidaProductoDataView.as_view(), name='salida-producto-data'),
+    path('ingresos-dia/',
+         IngresoProductoViewSet.as_view({'get': 'list'}), name='ingresos-dia'),
 ]
