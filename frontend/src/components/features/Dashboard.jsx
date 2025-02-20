@@ -7,7 +7,7 @@ import {
 import axiosInstance from '../../axiosInstance';
 import { Line, PolarArea } from 'react-chartjs-2';
 import { Chart as ChartJS, RadialLinearScale } from 'chart.js/auto';
-import config from '../../config';
+import { API_ENDPOINTS } from '../../config';
 
 ChartJS.register(RadialLinearScale);
 
@@ -32,14 +32,13 @@ const Dashboard = () => {
 
                 console.log('Iniciando fetch de datos...'); // Debug
 
-                const tareoUrl = `${config.TAREOS}?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
+                const tareoUrl = `${API_ENDPOINTS.BASE}${API_ENDPOINTS.TAREOS}?fecha__day=${day}&fecha__month=${month}&fecha__year=${year}`;
                 
                 const [personalRes, tareosRes, productosRes] = await Promise.all([
-                    axiosInstance.get(config.PERSONAL),
+                    axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.PERSONAL}`),
                     axiosInstance.get(tareoUrl),
-                    axiosInstance.get(config.DASHBOARD)
+                    axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.DASHBOARD}`)
                 ]);
-
                 console.log('Respuestas recibidas:', { // Debug
                     personal: personalRes.data,
                     tareos: tareosRes.data,
