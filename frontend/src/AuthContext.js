@@ -1,25 +1,22 @@
-import React, { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import axios from 'axios';
 import axiosInstance from './axiosInstance';
 import { API_ENDPOINTS } from './config';
-
-const API_BASE_URL = axiosInstance.defaults.baseURL;
 
 export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
-        return !!localStorage.getItem('token');
+        return !!localStorage.getItem('access');
     });
     const [user, setUser] = useState(null);
     const [userRole, setUserRole] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const abortControllerRef = useRef(null);
-    const checkAuthTimeoutRef = useRef(null);
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('access');
+        localStorage.removeItem('refresh');
         delete axiosInstance.defaults.headers.common['Authorization'];
         setIsAuthenticated(false);
         setUser(null);
@@ -29,11 +26,11 @@ export const AuthProvider = ({ children }) => {
     const login = async (credentials) => {
         try {
             handleLogout(); // Limpiar estado anterior
-            
+
             console.log('Intentando login con:', API_ENDPOINTS.AUTH.LOGIN);
-            
+
             const tokenResponse = await axios.post(
-                API_ENDPOINTS.AUTH.LOGIN,
+                `${API_ENDPOINTS.BASE}${API_ENDPOINTS.AUTH.LOGIN}`,
                 credentials,
                 {
                     headers: {
@@ -45,12 +42,12 @@ export const AuthProvider = ({ children }) => {
             console.log('Respuesta de login:', tokenResponse.data);
 
             const { access, refresh } = tokenResponse.data;
-            
-            localStorage.setItem('token', access);
-            localStorage.setItem('refreshToken', refresh);
+
+            localStorage.setItem('access', access);
+            localStorage.setItem('refresh', refresh);
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
+            const userResponse = await axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.USER.CURRENT}`);
             console.log('Respuesta de usuario:', userResponse.data);
 
             if (!userResponse.data) {
@@ -60,7 +57,7 @@ export const AuthProvider = ({ children }) => {
             setUser(userResponse.data);
             setUserRole(userResponse.data.perfil?.rol || 'OPERADOR');
             setIsAuthenticated(true);
-            
+
             return true;
         } catch (error) {
             console.error('Error en login:', error);
@@ -77,14 +74,14 @@ export const AuthProvider = ({ children }) => {
             }
             abortControllerRef.current = new AbortController();
 
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('access');
             if (!token) {
                 handleLogout();
                 setIsLoading(false);
                 return;
             }
 
-            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
+            const userResponse = await axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.USER.CURRENT}`);
             if (userResponse.data && userResponse.data.perfil) {
                 setUser(userResponse.data);
                 setUserRole(userResponse.data.perfil.rol);
