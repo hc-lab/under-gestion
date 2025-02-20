@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { API_URL } from './config';
+import { API_URL, API_ENDPOINTS } from './config';
 
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+    baseURL: API_ENDPOINTS.BASE,
     headers: {
         'Content-Type': 'application/json'
     }
@@ -27,7 +27,7 @@ axiosInstance.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response.status === 401 && !originalRequest._retry) {
+        if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
             try {
                 const refreshToken = localStorage.getItem('refresh');
@@ -35,9 +35,10 @@ axiosInstance.interceptors.response.use(
                     throw new Error('No refresh token available');
                 }
 
-                const response = await axios.post(`${API_URL}/api/token/refresh/`, {
-                    refresh: refreshToken
-                });
+                const response = await axios.post(
+                    `${API_ENDPOINTS.BASE}${API_ENDPOINTS.AUTH.REFRESH}`,
+                    { refresh: refreshToken }
+                );
 
                 const { access } = response.data;
                 localStorage.setItem('access', access);

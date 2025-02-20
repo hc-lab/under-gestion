@@ -29,14 +29,9 @@ export const AuthProvider = ({ children }) => {
 
             console.log('Intentando login con:', API_ENDPOINTS.AUTH.LOGIN);
 
-            const tokenResponse = await axios.post(
-                `${API_ENDPOINTS.BASE}${API_ENDPOINTS.AUTH.LOGIN}`,
-                credentials,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                }
+            const tokenResponse = await axiosInstance.post(
+                API_ENDPOINTS.AUTH.LOGIN,
+                credentials
             );
 
             console.log('Respuesta de login:', tokenResponse.data);
@@ -47,7 +42,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('refresh', refresh);
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${access}`;
 
-            const userResponse = await axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.USER.CURRENT}`);
+            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
             console.log('Respuesta de usuario:', userResponse.data);
 
             if (!userResponse.data) {
@@ -81,7 +76,7 @@ export const AuthProvider = ({ children }) => {
                 return;
             }
 
-            const userResponse = await axiosInstance.get(`${API_ENDPOINTS.BASE}${API_ENDPOINTS.USER.CURRENT}`);
+            const userResponse = await axiosInstance.get(API_ENDPOINTS.USER.CURRENT);
             if (userResponse.data && userResponse.data.perfil) {
                 setUser(userResponse.data);
                 setUserRole(userResponse.data.perfil.rol);

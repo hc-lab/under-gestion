@@ -3,29 +3,25 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 // API URLs - Usar la URL correcta del backend
-const API_URL = 'https://under-gestion-api.onrender.com';
-
-console.log('API URL:', API_URL); // Debug log
+export const API_URL = 'https://under-gestion-api.onrender.com';
 
 // API Configuration
 export const API_ENDPOINTS = {
     BASE: `${API_URL}/api`,
     AUTH: {
-        LOGIN: '/api/token/',
-        REFRESH: '/api/token/refresh/',
-        VERIFY: '/api/token/verify/',
-        CURRENT_USER: '/api/user/current/'
+        LOGIN: '/token/',
+        REFRESH: '/token/refresh/',
+        VERIFY: '/token/verify/',
+        CURRENT_USER: '/user/current/'
     },
     USER: {
-        CURRENT: '/api/user/current/'
+        CURRENT: '/user/current/'
     },
-    PERSONAL: '/api/personal/',
-    TAREOS: '/api/tareos/',
-    PRODUCTOS: '/api/productos/',
-    DASHBOARD: '/api/dashboard-data/'
+    PERSONAL: '/personal/',
+    TAREOS: '/tareos/',
+    PRODUCTOS: '/productos/',
+    DASHBOARD: '/dashboard-data/'
 };
-
-export default API_ENDPOINTS;
 
 // App Configuration
 export const APP_CONFIG = {
@@ -37,4 +33,7 @@ export const APP_CONFIG = {
 };
 
 // Development Logging
-console.log('[Config] API Endpoints:', API_ENDPOINTS); // Debug log
+if (isDevelopment) {
+    console.log('[Config] API URL:', API_URL);
+    console.log('[Config] API Endpoints:', API_ENDPOINTS);
+}
