@@ -3,8 +3,7 @@ import { API_URL, API_ENDPOINTS, API_HEADERS } from './config';
 
 const axiosInstance = axios.create({
     baseURL: API_ENDPOINTS.BASE,
-    headers: API_HEADERS,
-    withCredentials: true
+    headers: API_HEADERS
 });
 
 axiosInstance.interceptors.request.use(
@@ -41,8 +40,7 @@ axiosInstance.interceptors.response.use(
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json'
-                        },
-                        withCredentials: true
+                        }
                     }
                 );
 

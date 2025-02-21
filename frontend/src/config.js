@@ -14,12 +14,12 @@ export const API_HEADERS = {
 
 // API Configuration
 export const API_ENDPOINTS = {
-    BASE: `${API_URL}/api`,
+    BASE: `${API_URL}`,
     AUTH: {
-        LOGIN: '/token/',
-        REFRESH: '/token/refresh/',
-        VERIFY: '/token/verify/',
-        CURRENT_USER: '/user/current/'
+        LOGIN: '/api/token/',
+        REFRESH: '/api/token/refresh/',
+        VERIFY: '/api/token/verify/',
+        CURRENT_USER: '/api/user/current/'
     },
     USER: {
         CURRENT: '/user/current/'
