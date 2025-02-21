@@ -36,7 +36,14 @@ axiosInstance.interceptors.response.use(
 
                 const response = await axios.post(
                     `${API_ENDPOINTS.BASE}${API_ENDPOINTS.AUTH.REFRESH}`,
-                    { refresh: refreshToken }
+                    { refresh: refreshToken },
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        withCredentials: true
+                    }
                 );
 
                 const { access } = response.data;

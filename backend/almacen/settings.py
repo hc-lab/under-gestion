@@ -68,14 +68,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'almacen.middleware.RoleMiddleware',
 ]
-
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
-    "https://under-gestion-api.onrender.com"
+    "https://under-gestion-api.onrender.com",
+    "https://under-gestion.onrender.com"
 ]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.onrender\.com$",
@@ -88,7 +88,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken', 'Authorization']
 CORS_PREFLIGHT_MAX_AGE = 86400
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -106,6 +106,7 @@ CORS_ALLOW_HEADERS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://under-gestion-frontend.onrender.com",
+    "https://under-gestion.onrender.com"
 ]
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
